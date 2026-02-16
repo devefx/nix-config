@@ -1,0 +1,17 @@
+# SOPS configuration
+# See: https://github.com/Mic92/sops-nix
+#
+# To set up:
+#   1. Generate an age key:  age-keygen -o ~/.config/sops/age/keys.txt
+#   2. Put the public key below
+#   3. Encrypt secrets:      sops secrets/secrets.yaml
+
+keys:
+  # FIXME: Replace with your age public key (from age-keygen output)
+  - &user age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+creation_rules:
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - age:
+          - *user
