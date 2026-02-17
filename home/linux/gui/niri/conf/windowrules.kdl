@@ -1,0 +1,33 @@
+// Niri window rules
+// Docs: https://github.com/YaLTeR/niri/wiki/Configuration:-Window-Rules
+
+// Fix Firefox PiP (picture-in-picture)
+window-rule {
+    match app-id=r#"^org\.mozilla\.firefox$"#
+    match title="Picture-in-Picture"
+    open-floating true
+}
+
+// File manager opens at 60% width
+window-rule {
+    match app-id="org.gnome.Nautilus"
+    default-column-width { proportion 0.6; }
+}
+
+// Terminal opens at 40% width
+window-rule {
+    match app-id="kitty"
+    default-column-width { proportion 0.4; }
+}
+
+// QQ messaging
+window-rule {
+    match app-id="com.qq.QQ"
+    default-column-width { proportion 0.4; }
+}
+
+// Telegram messaging
+window-rule {
+    match app-id="org.telegram.desktop"
+    default-column-width { proportion 0.4; }
+}

@@ -1,6 +1,7 @@
 # NixOS desktop environment base configuration
 {
   pkgs,
+  myvars,
   lib,
   ...
 }: {
@@ -11,11 +12,25 @@
   time.timeZone = "Asia/Shanghai";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # ── Desktop Environment: KDE Plasma 6 ───────────────────────
-  services = {
-    xserver.enable = true;
-    displayManager.sddm.enable = true;
-    desktopManager.plasma6.enable = true;
+  # ── Niri Wayland Compositor ──────────────────────────────────
+  programs.niri.enable = true;
+
+  # Session manager (replaces SDDM)
+  services.greetd = {
+    enable = true;
+    settings.default_session = {
+      user = myvars.username;
+      command = "$HOME/.wayland-session";
+    };
+  };
+
+  # XDG portal for file picker, screen sharing, etc.
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+      xdg-desktop-portal-gnome
+    ];
   };
 
   # Audio (PipeWire)

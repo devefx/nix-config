@@ -58,9 +58,16 @@ in
 
         "/etc/egl"
         "/etc/static/egl"
+
+        # XWayland socket — needed when x11=true (e.g. QQ/Electron)
+        # xwayland-satellite creates /tmp/.X11-unix/X0
+        "/tmp/.X11-unix"
       ];
       bind.dev = [
         "/dev/shm"
+
+        # GPU device nodes (unused entries are safely ignored)
+        "/dev/dri" # AMD/Intel (render nodes + card devices)
 
         "/dev/nvidia0"
         "/dev/nvidiactl"

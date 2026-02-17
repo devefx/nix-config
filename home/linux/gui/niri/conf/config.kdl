@@ -1,0 +1,93 @@
+// Niri configuration
+// Docs: https://github.com/YaLTeR/niri/wiki/Configuration:-Introduction
+
+// Include per-host hardware config (monitor output, workspace assignments)
+// Create hosts/<hostname>/niri-hardware.kdl for your setup
+// include "niri-hardware.kdl"
+
+// Include keybindings
+include "keybindings.kdl"
+
+// Include window rules
+include "windowrules.kdl"
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        repeat-delay 300
+        repeat-rate 50
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+        dwt  // disable while typing
+    }
+
+    mouse {
+        // natural-scroll
+    }
+
+    // Focus follows mouse
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+// Cursor theme
+cursor {
+    xcursor-theme "Bibata-Modern-Classic"
+    xcursor-size 24
+}
+
+layout {
+    gaps 8
+
+    center-focused-column "never"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width {
+        proportion 0.5
+    }
+
+    focus-ring {
+        width 2
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+    }
+
+    border {
+        off
+    }
+
+    shadow {
+        on
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#00000070"
+    }
+}
+
+// Startup applications
+spawn-at-startup "xwayland-satellite"
+spawn-at-startup "swaync"
+spawn-at-startup "noctalia-shell"
+
+screenshot-path "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png"
+
+prefer-no-csd
+
+animations {
+    // Uncomment to disable all animations
+    // off
+}
+
+environment {
+    DISPLAY ":0"
+}

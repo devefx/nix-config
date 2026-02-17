@@ -38,7 +38,7 @@ let
             sloth.xdgPicturesDir
           ];
           sockets = {
-            x11 = false;
+            x11 = true; # QQ (Electron) needs XWayland fallback
             wayland = true;
             pipewire = true;
           };
