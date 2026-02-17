@@ -2,21 +2,22 @@
 {myvars, ...}: {
   programs.git = {
     enable = true;
-    userName = myvars.userfullname;
-    userEmail = myvars.useremail;
 
-    extraConfig = {
+    settings = {
+      user.name = myvars.userfullname;
+      user.email = myvars.useremail;
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       pull.rebase = true;
     };
+  };
 
-    delta = {
-      enable = true; # Better git diff
-      options = {
-        navigate = true;
-        side-by-side = true;
-      };
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
     };
   };
 }
