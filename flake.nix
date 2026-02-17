@@ -71,6 +71,7 @@
           ./modules/base
           ./modules/nixos
           ./hardening/nixpaks
+          ./hardening/bwraps
           ./secrets/nixos.nix
         ];
         home-modules = [

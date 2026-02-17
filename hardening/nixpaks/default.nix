@@ -23,8 +23,8 @@ in
     (_: super: {
       nixpaks = {
         firefox = wrapper super ./firefox.nix;
-        # Add more sandboxed apps here:
-        # telegram-desktop = wrapper super ./telegram-desktop.nix;
+        qq = wrapper super ./qq.nix;
+        telegram-desktop = wrapper super ./telegram-desktop.nix;
       };
     })
   ];
