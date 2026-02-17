@@ -10,15 +10,17 @@ let
   appId = "org.telegram.desktop";
   wrapped = mkNixPak {
     config =
-      {sloth, ...}: {
+      { sloth, ... }:
+      {
         imports = [
           ./modules/gui-base.nix
           ./modules/network.nix
           ./modules/common.nix
         ];
         app.package = telegram-desktop;
-        flatpak.appId = appId;
-
+        flatpak = {
+          appId = appId;
+        };
         dbus = {
           enable = true;
           policies = {

@@ -1,7 +1,6 @@
-# Nixpak sandboxed applications overlay
-# Adapted from: https://github.com/ryan4yin/nix-config/tree/main/hardening/nixpaks
 {
   pkgs,
+  pkgs-master,
   nixpak,
   ...
 }:
@@ -19,12 +18,13 @@ let
   wrapper = _pkgs: path: (_pkgs.callPackage path callArgs);
 in
 {
+  # Add nixpaked Apps into nixpkgs, and reference them in home-manager or other nixos modules
   nixpkgs.overlays = [
     (_: super: {
       nixpaks = {
-        firefox = wrapper super ./firefox.nix;
-        qq = wrapper super ./qq.nix;
+        qq = wrapper pkgs-master ./qq.nix;
         telegram-desktop = wrapper super ./telegram-desktop.nix;
+        firefox = wrapper super ./firefox.nix;
       };
     })
   ];

@@ -1,7 +1,7 @@
 # Refer:
 # - Flatpak manifest's docs:
-# - https://docs.flatpak.org/en/latest/manifests.html
-# - https://docs.flatpak.org/en/latest/sandbox-permissions.html
+#   - https://docs.flatpak.org/en/latest/manifests.html
+#   - https://docs.flatpak.org/en/latest/sandbox-permissions.html
 # - QQ's flatpak manifest: https://github.com/flathub/com.qq.QQ/blob/master/com.qq.QQ.yaml
 {
   lib,
@@ -11,12 +11,14 @@
   makeDesktopItem,
   ...
 }:
+
 let
   appId = "com.qq.QQ";
 
   wrapped = mkNixPak {
     config =
-      {sloth, ...}: {
+      { sloth, ... }:
+      {
         app = {
           package = qq;
           binPath = "bin/qq";
@@ -30,6 +32,9 @@ let
         ];
 
         bubblewrap = {
+          # To trace all the home files QQ accesses, you can use the following nushell command:
+          #   just trace-access qq
+          # See the Justfile in the root of this repository for more information.
           bind.rw = [
             sloth.xdgDocumentsDir
             sloth.xdgDownloadDir
@@ -38,7 +43,7 @@ let
             sloth.xdgPicturesDir
           ];
           sockets = {
-            x11 = true; # QQ (Electron) needs XWayland fallback
+            x11 = false;
             wayland = true;
             pipewire = true;
           };
@@ -55,7 +60,7 @@ buildEnv {
       name = appId;
       desktopName = "QQ";
       genericName = "QQ Boxed";
-      comment = "Tencent QQ instant messaging";
+      comment = "Tencent QQ, also known as QQ, is an instant messaging software service and web portal developed by the Chinese technology company Tencent.";
       exec = "${exePath} %U";
       terminal = false;
       icon = "${qq}/share/icons/hicolor/512x512/apps/qq.png";

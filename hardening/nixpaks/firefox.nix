@@ -1,3 +1,8 @@
+# Refer:
+# - Flatpak manifest's docs:
+#   - https://docs.flatpak.org/en/latest/manifests.html
+#   - https://docs.flatpak.org/en/latest/sandbox-permissions.html
+# - Firefox's flatpak manifest: https://hg.mozilla.org/mozilla-central/file/tip/taskcluster/docker/firefox-flatpak/runme.sh#l151
 {
   lib,
   firefox,
@@ -6,6 +11,7 @@
   makeDesktopItem,
   ...
 }:
+
 let
   appId = "org.mozilla.firefox";
   wrapped = mkNixPak {
@@ -29,7 +35,12 @@ let
         ];
 
         bubblewrap = {
+          # To trace all the home files Firefox accesses, you can use the following nushell command:
+          #   just trace-access firefox
+          # See the Justfile in the root of this repository for more information.
           bind.rw = [
+            # given the read write permission to the following directories.
+            # NOTE: sloth.mkdir is used to create the directory if it does not exist!
             (sloth.mkdir (sloth.concat' sloth.homeDir "/.mozilla"))
 
             sloth.xdgDocumentsDir
@@ -45,11 +56,13 @@ let
               "/app/etc/firefox"
             ]
 
+            # ================ for browserpass extension ===============================
             "/etc/gnupg"
-            (sloth.concat' sloth.homeDir "/.gnupg")
-            (sloth.concat' sloth.homeDir "/.local/share/password-store")
-            (sloth.concat' sloth.runtimeDir "/gnupg")
+            (sloth.concat' sloth.homeDir "/.gnupg") # gpg's config
+            (sloth.concat' sloth.homeDir "/.local/share/password-store") # my secrets
+            (sloth.concat' sloth.runtimeDir "/gnupg") # for access gpg-agent socket
 
+            # Unsure
             (sloth.concat' sloth.xdgConfigHome "/dconf")
           ];
 

@@ -8,6 +8,7 @@
 }:
 let
   envSuffix = envKey: suffix: sloth.concat' (sloth.env envKey) suffix;
+  # cursor & icon's theme should be the same as the host's one.
   cursorTheme = pkgs.bibata-cursors;
   iconTheme = pkgs.papirus-icon-theme;
 in
@@ -15,13 +16,20 @@ in
   config = {
     dbus.policies = {
       "${config.flatpak.appId}" = "own";
+      # we add other policies in ./common.nix
     };
+    # https://github.com/nixpak/nixpak/blob/master/modules/gpu.nix
+    # 1. bind readonly - /run/opengl-driver
+    # 2. bind device   - /dev/dri
     gpu = {
       enable = lib.mkDefault true;
       provider = "nixos";
-      bundlePackage = pkgs.mesa.drivers;
+      bundlePackage = pkgs.mesa.drivers; # for amd & intel
     };
+    # https://github.com/nixpak/nixpak/blob/master/modules/gui/fonts.nix
+    # it works not well, bind system's /etc/fonts directly instead
     fonts.enable = false;
+    # https://github.com/nixpak/nixpak/blob/master/modules/locale.nix
     locale.enable = true;
     bubblewrap = {
       network = lib.mkDefault false;
@@ -52,23 +60,21 @@ in
         (sloth.concat' sloth.xdgConfigHome "/gtk-4.0")
         (sloth.concat' sloth.xdgConfigHome "/fontconfig")
 
-        "/etc/fonts"
-        "/etc/localtime"
+        "/etc/fonts" # for fontconfig
+        "/etc/localtime" # this is a symlink to /etc/zoneinfo/xxx
         "/etc/zoneinfo"
 
+        # Fix: libEGL warning: egl: failed to create dri2 screen
         "/etc/egl"
         "/etc/static/egl"
-
-        # XWayland socket — needed when x11=true (e.g. QQ/Electron)
-        # xwayland-satellite creates /tmp/.X11-unix/X0
-        "/tmp/.X11-unix"
       ];
       bind.dev = [
-        "/dev/shm"
+        "/dev/shm" # Shared Memory
 
         # GPU device nodes (unused entries are safely ignored)
         "/dev/dri" # AMD/Intel (render nodes + card devices)
 
+        # seems required when using nvidia as primary gpu
         "/dev/nvidia0"
         "/dev/nvidiactl"
         "/dev/nvidia-modeset"
