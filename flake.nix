@@ -75,8 +75,7 @@
           ./secrets/nixos.nix
         ];
         home-modules = [
-          ./home/base
-          ./home/linux
+          ./home/linux/gui.nix
         ];
       };
     };
@@ -94,7 +93,6 @@
           ./secrets/darwin.nix
         ];
         home-modules = [
-          ./home/base
           ./home/darwin
         ];
       };

@@ -1,12 +1,13 @@
 # macOS-specific Home Manager configuration
-# All .nix files in this directory are auto-imported.
-{
-  mylib,
-  myvars,
-  pkgs,
-  ...
-}: {
-  imports = mylib.scanPaths ./.;
+{mylib, myvars, ...}: {
+  imports =
+    (mylib.scanPaths ./.)
+    ++ [
+      ../base/core
+      ../base/home.nix
+    ];
 
   home.homeDirectory = "/Users/${myvars.username}";
+
+  xdg.enable = true;
 }

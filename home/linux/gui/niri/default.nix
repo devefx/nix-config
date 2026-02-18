@@ -9,15 +9,8 @@
 in {
   home.packages = with pkgs; [
     xwayland-satellite # XWayland support for Niri
-    wl-clipboard # Wayland clipboard utilities
     swaynotificationcenter # notification daemon
     fuzzel # application launcher
-    swaylock-effects # screen locker
-    grim # screenshot tool
-    slurp # region selector
-    brightnessctl # brightness control
-    playerctl # media player control
-    pamixer # PulseAudio mixer CLI
     noctalia-shell # desktop shell / panel
   ];
 
@@ -29,19 +22,28 @@ in {
   };
 
   # Polkit authentication agent
-  systemd.user.services.niri-polkit = {
+  systemd.user.services.niri-flake-polkit = {
+    Unit = {
+      Description = "PolicyKit Authentication Agent provided by niri-flake";
+      After = ["graphical-session.target"];
+      Wants = ["graphical-session-pre.target"];
+    };
     Install.WantedBy = ["niri.service"];
     Service = {
       Type = "simple";
       ExecStart = "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1";
       Restart = "on-failure";
+      RestartSec = 1;
+      TimeoutStopSec = 10;
     };
   };
 
   # Wayland session script for greetd
   home.file.".wayland-session" = {
     source = pkgs.writeScript "init-session" ''
+      # trying to stop a previous niri session
       systemctl --user is-active niri.service && systemctl --user stop niri.service
+      # and then we start a new one
       /run/current-system/sw/bin/niri-session
     '';
     executable = true;
