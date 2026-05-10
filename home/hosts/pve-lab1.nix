@@ -1,0 +1,5 @@
+{
+  imports = [
+    ../linux/gui.nix
+  ];
+}

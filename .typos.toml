@@ -1,0 +1,7 @@
+[files]
+extend-exclude = [
+  "flake.lock",
+]
+
+[default.extend-words]
+# add false-positive words here
