@@ -87,7 +87,11 @@ buildEnv {
       comment = "Firefox Browser";
       exec = "${exePath} %U";
       terminal = false;
-      icon = "firefox";
+      # Absolute path into the upstream firefox package — buildEnv only
+      # links the wrapper script + .desktop file, so a bare `firefox`
+      # icon name would not resolve. `Icon=` accepts full paths per the
+      # desktop-entry spec.
+      icon = "${firefox}/share/icons/hicolor/128x128/apps/firefox.png";
       startupNotify = true;
       startupWMClass = "firefox";
       type = "Application";
