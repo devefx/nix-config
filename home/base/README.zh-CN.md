@@ -12,7 +12,7 @@ home/base/
 ├── home.nix     home-manager 状态(stateVersion、username)—— 所有入口都会导入
 ├── core/        日常基线(任何主机):git、starship、direnv、eza、bat、tmux、btop、yazi、cli-tools
 ├── tui/         工作站 dev 增强(预留 —— 未来加 pgcli / k9s / tokei / ...)
-└── gui/         跨平台 GUI:kitty、media(ffmpeg / viu / imagemagick)、dev-tools(AI agents + 网络工具)
+└── gui/         跨平台 GUI:kitty、media(ffmpeg / viu / imagemagick)、dev-tools(网络调试)、ai-agents(opt-in)
 ```
 
 每个子目录都有 `default.nix` 用 `scanPaths` 自动扫描同级文件 —— 往对应

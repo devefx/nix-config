@@ -13,7 +13,7 @@ home/base/
 ├── home.nix     home-manager state (stateVersion, username) — always imported
 ├── core/        daily baseline (any host): git, starship, direnv, eza, bat, tmux, btop, yazi, cli-tools
 ├── tui/         dev workstation extras (reserved — add pgcli / k9s / tokei / ... here)
-└── gui/         cross-platform GUI: kitty, media (ffmpeg/viu/imagemagick), dev-tools (AI agents + network)
+└── gui/         cross-platform GUI: kitty, media (ffmpeg/viu/imagemagick), dev-tools (network), ai-agents (opt-in)
 ```
 
 Each subdirectory has a `default.nix` that `scanPaths` siblings — drop
