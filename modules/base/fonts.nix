@@ -33,7 +33,7 @@ in
       noto-fonts-cjk-serif
 
       # Emoji
-      noto-fonts-emoji
+      noto-fonts-color-emoji
 
       # Dev/terminal — Nerd Fonts patched JetBrainsMono (icons + ligatures)
       nerd-fonts.jetbrains-mono
