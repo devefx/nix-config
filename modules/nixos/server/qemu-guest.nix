@@ -14,8 +14,12 @@
     # trigger commands (shutdown, fs-freeze for backup consistency, etc.).
     services.qemuGuest.enable = true;
 
-    # Grub on virtio disk (PVE default when using virtio-scsi / virtio-block).
-    # If your PVE VM uses SATA/IDE, override to /dev/sda in the host file.
+    # PVE VMs default to SeaBIOS, so the systemd-boot default from
+    # base/core.nix won't work. Switch to GRUB on virtio disk. Override
+    # grub.device in the host file if the VM uses SATA/IDE (/dev/sda).
+    boot.loader.systemd-boot.enable = lib.mkForce false;
+    boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
+    boot.loader.grub.enable = lib.mkDefault true;
     boot.loader.grub.device = lib.mkDefault "/dev/vda";
 
     # Auto-grow root partition when you resize the VM disk in PVE.

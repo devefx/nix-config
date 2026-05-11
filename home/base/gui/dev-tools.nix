@@ -11,7 +11,9 @@
     [
       # -------- Network / HTTP debugging --------
       mitmproxy # intercepting HTTP/HTTPS proxy, script-able
-      wireshark # network packet analyzer
+      # wireshark intentionally omitted: live capture needs setuid wrapper
+      # + wireshark group, which home-manager can't set up. Add via a
+      # system module (`programs.wireshark.enable = true`) instead.
     ]
     # -------- AI Agent CLIs --------
     ++ (

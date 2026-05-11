@@ -1,3 +1,4 @@
+{ myvars, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -20,5 +21,5 @@
     allowedTCPPorts = [ 22 ];
   };
 
-  system.stateVersion = "25.11";
+  system.stateVersion = myvars.stateVersion;
 }

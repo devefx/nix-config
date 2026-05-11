@@ -1,4 +1,12 @@
-{ mylib, ... }@args:
+{
+  inputs,
+  lib,
+  myvars,
+  mylib,
+  system,
+  genSpecialArgs,
+  ...
+}@args:
 let
   name = "pve-lab1";
   modules = {

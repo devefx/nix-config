@@ -39,12 +39,12 @@
       # Human-readable timestamps in `git log`.
       log.date = "iso";
 
-      # Rewrite https → ssh for own GitHub namespace, so `git clone
-      # https://github.com/devefx/xxx` silently uses the ssh remote
-      # (uses ssh-agent, respects your ed25519 key).
+      # Rewrite https → ssh for own GitHub namespace, so
+      # `git clone https://github.com/<user>/xxx` silently uses the ssh
+      # remote (uses ssh-agent, respects your ed25519 key).
       url = {
-        "ssh://git@github.com/devefx" = {
-          insteadOf = "https://github.com/devefx";
+        "ssh://git@github.com/${myvars.githubUsername}" = {
+          insteadOf = "https://github.com/${myvars.githubUsername}";
         };
       };
 

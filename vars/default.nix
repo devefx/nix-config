@@ -3,6 +3,14 @@
   userfullname = "Yoke Yue";
   useremail = "yoke.yue@outlook.com";
 
+  # GitHub namespace used by git's url.insteadOf rewrites.
+  githubUsername = "devefx";
+
+  # NixOS / home-manager state version — must stay pinned at install-time
+  # release even after upgrading, otherwise stateful modules (postgres,
+  # ~/.config schemas) silently migrate.
+  stateVersion = "25.11";
+
   # Generated via: mkpasswd -m yescrypt --rounds=11
   initialHashedPassword = "$y$jFT$JUngg/W4gWCUrycUmqVb.1$7u6saIKJbKaLCy34709U7ZeOJrFV8is.Wgm2MeLmMh6";
 

@@ -1,3 +1,4 @@
+{ myvars, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -9,5 +10,5 @@
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;
 
-  system.stateVersion = "25.11";
+  system.stateVersion = myvars.stateVersion;
 }
