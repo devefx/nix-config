@@ -21,7 +21,7 @@
     fcitx5.addons = with pkgs; [
       qt6Packages.fcitx5-configtool # GUI config tool
       fcitx5-gtk # GTK app integration
-      fcitx5-chinese-addons # Pinyin / Shuangpin / Wubi / Zhuyin — all in one
+      qt6Packages.fcitx5-chinese-addons # Pinyin / Shuangpin / Wubi / Zhuyin — all in one
     ];
   };
 }
