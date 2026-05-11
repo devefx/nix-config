@@ -14,13 +14,11 @@
     # trigger commands (shutdown, fs-freeze for backup consistency, etc.).
     services.qemuGuest.enable = true;
 
-    # PVE VMs default to SeaBIOS, so the systemd-boot default from
-    # base/core.nix won't work. Switch to GRUB on virtio disk. Override
-    # grub.device in the host file if the VM uses SATA/IDE (/dev/sda).
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-    boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
-    boot.loader.grub.enable = lib.mkDefault true;
-    boot.loader.grub.device = lib.mkDefault "/dev/vda";
+    # Boot loader (systemd-boot vs grub) is host-specific — depends on
+    # whether the VM is provisioned with OVMF (UEFI) or SeaBIOS. Leave
+    # it to base/core.nix (systemd-boot by default, suits OVMF) or the
+    # host file. Override to grub in `hosts/<name>/default.nix` for
+    # SeaBIOS VMs.
 
     # Auto-grow root partition when you resize the VM disk in PVE.
     boot.growPartition = lib.mkDefault true;
