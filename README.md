@@ -20,7 +20,7 @@ modules/nixos/server/         NixOS server modules (opt-in per host)
 home/base/home.nix            home-manager state (stateVersion, username)
 home/base/core/               daily baseline: git, ssh, starship, direnv, eza, bat, tmux, btop, yazi, cli tools
 home/base/tui/                dev workstation extras (reserved — add pgcli / k9s / tokei / ... here)
-home/base/gui/                cross-platform GUI: kitty, media (ffmpeg/imagemagick/...), dev-tools (AI agents)
+home/base/gui/                cross-platform GUI: kitty, media (ffmpeg/imagemagick/...), dev-tools (network), ai-agents (opt-in)
 home/linux/core.nix           Linux entry: CLI-only
 home/linux/tui.nix            Linux entry: core + TUI tools
 home/linux/gui.nix            Linux entry: core + TUI + GUI

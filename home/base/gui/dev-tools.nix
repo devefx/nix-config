@@ -1,32 +1,13 @@
-{ pkgs, llm-agents, ... }:
-# Cross-platform dev-workflow tools — AI coding agents (main content),
-# plus HTTP / network analysis utilities.
+{ pkgs, ... }:
+# Cross-platform HTTP / network debugging utilities.
 #
-# The AI agents come from the `llm-agents.nix` flake input, which packages
-# each vendor's official CLI. Install one, several, or comment out the
-# ones you don't use — they're independent.
+# AI coding agents live in a separate opt-in module (ai-agents.nix) so
+# hosts that don't need them skip the ~GB of Node/Go/Rust runtimes.
 {
-  home.packages =
-    with pkgs;
-    [
-      # -------- Network / HTTP debugging --------
-      mitmproxy # intercepting HTTP/HTTPS proxy, script-able
-      # wireshark intentionally omitted: live capture needs setuid wrapper
-      # + wireshark group, which home-manager can't set up. Add via a
-      # system module (`programs.wireshark.enable = true`) instead.
-    ]
-    # -------- AI Agent CLIs --------
-    ++ (
-      with llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
-      [
-        claude-code # Anthropic Claude Code — what you're using right now
-        codex # OpenAI Codex CLI (GPT-based coding agent)
-        gemini-cli # Google Gemini CLI
-        cursor-cli # Cursor's CLI
-        opencode # opencode — open-source coding agent
-
-        # -------- Utilities --------
-        rtk # Rust Token Killer — proxy that reduces LLM token usage 60-90%
-      ]
-    );
+  home.packages = with pkgs; [
+    mitmproxy # intercepting HTTP/HTTPS proxy, script-able
+    # wireshark intentionally omitted: live capture needs setuid wrapper
+    # + wireshark group, which home-manager can't set up. Add via a
+    # system module (`programs.wireshark.enable = true`) instead.
+  ];
 }

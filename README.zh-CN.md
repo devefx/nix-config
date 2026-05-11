@@ -20,7 +20,7 @@ modules/nixos/server/         NixOS 服务器模块(按主机显式导入)
 home/base/home.nix            home-manager 状态(stateVersion、用户名)
 home/base/core/               日常基线:git、ssh、starship、direnv、eza、bat、tmux、btop、yazi、CLI 小工具
 home/base/tui/                工作站 dev 增强(预留 —— 未来加 pgcli / k9s / tokei / ...)
-home/base/gui/                跨平台 GUI:kitty、media(ffmpeg / imagemagick 等)、dev-tools(AI agents)
+home/base/gui/                跨平台 GUI:kitty、media(ffmpeg / imagemagick 等)、dev-tools(网络调试)、ai-agents(opt-in)
 home/linux/core.nix           Linux 入口:纯 CLI
 home/linux/tui.nix            Linux 入口:core + TUI 工具
 home/linux/gui.nix            Linux 入口:core + TUI + GUI
