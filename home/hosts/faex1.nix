@@ -4,4 +4,5 @@
   ];
 
   modules.aiAgents.enable = true;
+  modules.wechat.enable = true;
 }

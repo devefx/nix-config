@@ -10,8 +10,7 @@
   nixpkgs.overlays = [
     (_: super: {
       bwraps = {
-        # Example (uncomment after creating ./wechat.nix):
-        # wechat = super.callPackage ./wechat.nix { };
+        wechat = super.callPackage ./wechat.nix { };
       };
     })
   ];
