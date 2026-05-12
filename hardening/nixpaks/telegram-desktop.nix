@@ -17,13 +17,7 @@ let
           ./modules/network.nix
           ./modules/common.nix
         ];
-        app = {
-          package = telegram-desktop;
-          # Upstream ships the binary as `bin/Telegram` (capital T),
-          # not `bin/telegram-desktop` — nixpak can't guess, so spell
-          # it out or the sandbox launches nothing.
-          binPath = "bin/Telegram";
-        };
+        app.package = telegram-desktop;
         flatpak.appId = appId;
 
         # Needed for system tray indicators and libfeedback (GNOME-style
