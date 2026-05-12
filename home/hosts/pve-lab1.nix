@@ -4,4 +4,5 @@
   ];
 
   modules.wechat.enable = true;
+  modules.telegram.enable = true;
 }

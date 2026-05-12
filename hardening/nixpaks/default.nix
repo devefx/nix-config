@@ -29,6 +29,7 @@ in
     (_: super: {
       nixpaks = {
         firefox = wrapper super ./firefox.nix;
+        telegram-desktop = wrapper super ./telegram-desktop.nix;
       };
     })
   ];
