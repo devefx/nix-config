@@ -101,9 +101,12 @@ buildEnv {
           icon = "application-exit";
         };
       };
+      # DBusActivatable removed: the sandbox doesn't ship a matching
+      # org.telegram.desktop.service, so KDE's D-Bus activation path
+      # aborts with "name is not activatable". Let KDE fall back to
+      # the Exec= line above.
       extraConfig = {
         X-Flatpak = appId;
-        DBusActivatable = "true";
         SingleMainWindow = "true";
         X-GNOME-UsesNotifications = "true";
         X-GNOME-SingleWindow = "true";
