@@ -9,5 +9,6 @@
     git
     vim
     btop # process viewer — available even for root / in rescue shell
+    just # Justfile runner — needed for `just switch`, `just build`, etc.
   ];
 }
