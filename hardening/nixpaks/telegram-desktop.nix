@@ -64,7 +64,7 @@ buildEnv {
       # Absolute path into upstream package — buildEnv only ships the
       # wrapper script + .desktop file, so a bare icon name wouldn't
       # resolve. See hardening/nixpaks/firefox.nix for the same pattern.
-      icon = "${telegram-desktop}/share/icons/hicolor/256x256/apps/telegram.png";
+      icon = "${telegram-desktop}/share/icons/hicolor/256x256/apps/${appId}.png";
       startupNotify = true;
       startupWMClass = appId;
       terminal = false;
