@@ -1,6 +1,7 @@
 {
   pkgs,
   nixpak,
+  ayugram-desktop,
   ...
 }:
 let
@@ -16,6 +17,9 @@ let
       (sloth.mkdir (sloth.concat' sloth.appDataDir realdir))
       (sloth.concat' sloth.homeDir mapdir)
     ];
+    # Pre-resolve flake-input packages so individual .nix files don't
+    # have to know about flake plumbing.
+    ayugramDesktop = ayugram-desktop.packages.${pkgs.system}.ayugram-desktop;
   };
   wrapper = _pkgs: path: (_pkgs.callPackage path callArgs);
 in
@@ -30,6 +34,7 @@ in
       nixpaks = {
         firefox = wrapper super ./firefox.nix;
         telegram-desktop = wrapper super ./telegram-desktop.nix;
+        ayugram-desktop = wrapper super ./ayugram-desktop.nix;
       };
     })
   ];

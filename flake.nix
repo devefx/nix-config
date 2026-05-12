@@ -42,5 +42,15 @@
     # AI coding agents — packages Claude Code / Codex / Gemini CLI / etc.
     # Does NOT follow our nixpkgs (agents pin their own supported versions).
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # AyuGram Desktop — Telegram fork with privacy extensions. Packaged
+    # by upstream (not nixpkgs) so the flake has submodules; use git
+    # input type. Binary cache: cache.garnix.io + ayugram-desktop.cachix.org
+    # (public keys wired in modules/base/nix.nix).
+    ayugram-desktop = {
+      type = "git";
+      submodules = true;
+      url = "https://github.com/ndfined-crp/ayugram-desktop/";
+    };
   };
 }

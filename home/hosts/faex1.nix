@@ -6,4 +6,5 @@
   modules.aiAgents.enable = true;
   modules.wechat.enable = true;
   modules.telegram.enable = true;
+  modules.ayugram.enable = true;
 }
