@@ -4,6 +4,7 @@
   ];
 
   modules.aiAgents.enable = true;
+  modules.ccSwitch.enable = true;
   modules.wechat.enable = true;
   modules.telegram.enable = true;
 }
