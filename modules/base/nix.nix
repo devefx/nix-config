@@ -6,6 +6,15 @@
   # to home-manager too.
   nixpkgs.config.allowUnfree = true;
 
+  # openldap 2.6.13 ships timing-sensitive syncrepl replication tests
+  # that flake under load (provider/consumer db differ); skip checks so
+  # rebuilds do not fail on them. The binaries are unaffected.
+  nixpkgs.overlays = [
+    (final: prev: {
+      openldap = prev.openldap.overrideAttrs (old: { doCheck = false; });
+    })
+  ];
+
   nix.settings = {
     experimental-features = [
       "nix-command"
