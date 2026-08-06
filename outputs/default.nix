@@ -41,17 +41,11 @@ let
   forAllSystems = func: (nixpkgs.lib.genAttrs allSystemNames func);
 in
 {
-  debugAttrs = {
-    inherit nixosSystems allSystemNames;
-  };
-
   nixosConfigurations = lib.attrsets.mergeAttrsList (
     map (it: it.nixosConfigurations or { }) nixosSystemValues
   );
 
   packages = forAllSystems (system: allSystems.${system}.packages or { });
-
-  evalTests = lib.lists.all (it: it.evalTests == { }) nixosSystemValues;
 
   checks = forAllSystems (
     system:
@@ -66,7 +60,7 @@ in
       pre-commit-check = pre-commit-hooks.lib.${system}.run {
         src = mylib.relativeToRoot ".";
         hooks = {
-          nixfmt-rfc-style = {
+          nixfmt = {
             enable = true;
             settings.width = 100;
           };
