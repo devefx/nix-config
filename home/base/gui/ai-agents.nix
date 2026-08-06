@@ -22,7 +22,8 @@ let
   cfg = config.modules.aiAgents;
 
   cc-haha = pkgs.appimageTools.wrapType2 {
-    name = "cc-haha";
+    pname = "cc-haha";
+    version = "0.5.3";
     src = pkgs.fetchurl {
       url = "https://github.com/NanmiCoder/cc-haha/releases/download/v0.5.3/Claude-Code-Haha-0.5.3-linux-x86_64.AppImage";
       sha512 = "sha512-68XfBFgvv9OmZDAzqSkcMnxQqHgMXCbFTIsaV6GbH5n6PVSoqfBW+F56UOxGaMVo2H0Ld8ewVJEuwywq3KkmvA==";

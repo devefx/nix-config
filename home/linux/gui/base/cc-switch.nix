@@ -20,7 +20,8 @@ let
   cfg = config.modules.ccSwitch;
 
   cc-switch = pkgs.appimageTools.wrapType2 {
-    name = "cc-switch";
+    pname = "cc-switch";
+    version = "3.19.2";
     src = pkgs.fetchurl {
       url = "https://github.com/farion1231/cc-switch/releases/download/v3.19.2/CC-Switch-v3.19.2-Linux-x86_64.AppImage";
       sha256 = "sha256-de19d047df983fa6f05d6faddfbf0b387ddff5a575c9e80e0a37c9f9737f1175";
