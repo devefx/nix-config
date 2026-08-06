@@ -27,7 +27,7 @@ in
       claude-code # Anthropic Claude Code
       codex # OpenAI Codex CLI
       gemini-cli # Google Gemini CLI
-      cursor-cli # Cursor's CLI
+      cursor-agent # Cursor Agent (Cursor's CLI)
       opencode # opencode — open-source coding agent
       rtk # Rust Token Killer — proxy that reduces LLM token usage 60-90%
     ];

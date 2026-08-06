@@ -22,7 +22,7 @@ lib.mkIf (osConfig.modules.desktop.gaming.enable or false) {
     protonPackages = [ pkgs.proton-ge-bin ];
 
     # WoW64 wine — 64-bit build that also runs 32-bit titles.
-    winePackages = [ pkgs.wineWowPackages.full ];
+    winePackages = [ pkgs.wineWow64Packages.full ];
 
     extraPackages = with pkgs; [
       winetricks # install Windows DLLs / redistributables per prefix
