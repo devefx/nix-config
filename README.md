@@ -35,7 +35,6 @@ hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
 | Host       | Role                     | Home entry           | Desktop |
 |------------|--------------------------|----------------------|---------|
 | `faex1`    | physical desktop         | `linux/gui.nix`      | KDE Plasma 6 |
-| `pve-lab1` | Proxmox VE sandbox VM    | `linux/gui.nix`      | KDE Plasma 6 |
 
 ## Desktop
 

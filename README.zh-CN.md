@@ -35,7 +35,6 @@ hardening/                    opt-in 沙箱:nixpaks/、bwraps/、profiles/
 | 主机 | 角色 | Home 入口 | 桌面 |
 |------|------|-----------|------|
 | `faex1` | 物理桌面机 | `linux/gui.nix` | KDE Plasma 6 |
-| `pve-lab1` | Proxmox VE 实验 VM | `linux/gui.nix` | KDE Plasma 6 |
 
 ## 桌面环境
 

@@ -19,7 +19,7 @@ home/linux/
     │   ├── firefox.nix   Firefox (sandboxed via nixpak — hardening/nixpaks/firefox.nix)
     │   ├── chrome.nix    Google Chrome (unfree; has its own built-in sandbox)
     │   ├── fcitx5.nix    Chinese input method (Pinyin / Shuangpin / Wubi)
-    │   └── lutris.nix    Linux game launcher (Wine / Proton / GOG / ...)
+    │   └── gaming.nix    Linux game launcher (Lutris / Wine / Proton / ...)
     └── plasma.nix   Plasma / KDE user apps: kate, ark, gwenview, ...
 ```
 
@@ -36,7 +36,7 @@ Different hosts want different levels:
 - A dev-active VM / workstation without GUI wants `tui.nix` — reserves
   the layer for future dev-tools (pgcli, k8s clients, ...); currently
   empty.
-- A desktop or GUI-enabled VM (`faex1`, `pve-lab1`) wants `gui.nix` —
+- A desktop or GUI-enabled VM (`faex1`) wants `gui.nix` —
   everything including KDE apps and GTK theming.
 
 Layers stack: **core ⊂ tui ⊂ gui**. If a host uses `gui.nix`, it

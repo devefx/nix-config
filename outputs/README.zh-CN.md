@@ -13,8 +13,7 @@ outputs/
 └── x86_64-linux/
     ├── default.nix          haumea 加载 ./src,合并 nixosConfigurations / packages
     └── src/
-        ├── faex1.nix        一个文件 = 一台主机
-        └── pve-lab1.nix
+        └── faex1.nix        一个文件 = 一台主机
 ```
 
 ## 工作原理

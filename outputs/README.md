@@ -13,8 +13,7 @@ outputs/
 └── x86_64-linux/
     ├── default.nix          haumea-loads ./src, merges nixosConfigurations / packages
     └── src/
-        ├── faex1.nix        one file = one host
-        └── pve-lab1.nix
+        └── faex1.nix        one file = one host
 ```
 
 ## How it works

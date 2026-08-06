@@ -16,7 +16,7 @@ hosts/
 └── ...
 ```
 
-Current hosts: `faex1` (physical desktop), `pve-lab1` (PVE sandbox VM).
+Current hosts: `faex1` (physical desktop).
 
 ## What belongs here vs in modules/
 

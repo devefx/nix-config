@@ -26,7 +26,7 @@ Each host's `home/hosts/<name>.nix` picks **one** of:
 |-------|------------------|--------------|
 | `home/linux/core.nix` | `base/home.nix` + `base/core` (tmux, btop, git, ...) | Service-only servers, minimal containers |
 | `home/linux/tui.nix` | core + `base/tui` (future dev tools — currently empty) | Dev-active VMs / workstations (no GUI needed) |
-| `home/linux/gui.nix` | tui + `base/gui` + `linux/gui` | Desktops + GUI VMs (`faex1`, `pve-lab1`) |
+| `home/linux/gui.nix` | tui + `base/gui` + `linux/gui` | Desktops / GUI VMs (`faex1`) |
 
 Layers stack: **core ⊂ tui ⊂ gui**. No `default.nix` in `home/linux/` —
 the host must pick explicitly.

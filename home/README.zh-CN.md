@@ -24,7 +24,7 @@ home/
 |------|------------|---------|
 | `home/linux/core.nix` | `base/home.nix` + `base/core`(tmux、btop、git 等) | 只跑服务的服务器、最小化容器 |
 | `home/linux/tui.nix` | core + `base/tui`(未来的 dev 工具 —— 当前为空) | 开发活跃的 VM / 工作站(无需 GUI) |
-| `home/linux/gui.nix` | tui + `base/gui` + `linux/gui` | 桌面 + 有 GUI 的 VM(`faex1`、`pve-lab1`) |
+| `home/linux/gui.nix` | tui + `base/gui` + `linux/gui` | 桌面 / 有 GUI 的 VM(`faex1`) |
 
 叠加关系:**core ⊂ tui ⊂ gui**。`home/linux/` 下**没有** `default.nix` ——
 主机必须显式选择。

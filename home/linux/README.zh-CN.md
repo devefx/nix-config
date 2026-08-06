@@ -18,7 +18,7 @@ home/linux/
     │   ├── firefox.nix   Firefox(经 nixpak 沙箱 —— hardening/nixpaks/firefox.nix)
     │   ├── chrome.nix    Google Chrome(unfree,有自己内置沙箱)
     │   ├── fcitx5.nix    中文输入法(拼音 / 双拼 / 五笔)
-    │   └── lutris.nix    Linux 游戏启动器(Wine / Proton / GOG 等)
+    │   └── gaming.nix    Linux 游戏启动器(Lutris / Wine / Proton 等)
     └── plasma.nix   Plasma / KDE 用户应用:kate、ark、gwenview 等
 ```
 
@@ -32,7 +32,7 @@ home/linux/
   日常基线(git、tmux、btop、direnv),不带 dev 增强
 - 开发活跃的无 GUI 的 VM / 工作站选 `tui.nix` ——
   预留给未来的 dev 工具(pgcli、k8s 客户端 ...),当前为空
-- 桌面 / 有 GUI 的 VM(`faex1`、`pve-lab1`)选 `gui.nix` —— 含 KDE 应用 + GTK 主题
+- 桌面 / 有 GUI 的 VM(`faex1`)选 `gui.nix` —— 含 KDE 应用 + GTK 主题
 
 叠加关系:**core ⊂ tui ⊂ gui**。主机选 `gui.nix` 就自动带上
 `tui.nix` 和 `core.nix` 里的所有东西。
