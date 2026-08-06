@@ -44,7 +44,10 @@ in
             exec = "cc-switch";
             desktopName = "CC Switch";
             comment = "AI provider config manager for Claude Code / Codex / Gemini";
-            categories = [ "Development" "Utility" ];
+            categories = [
+              "Development"
+              "Utility"
+            ];
           })
         ];
       })

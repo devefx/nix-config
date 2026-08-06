@@ -40,7 +40,10 @@ let
         exec = "cc-haha";
         desktopName = "Claude Code Haha";
         comment = "Desktop Claude Code workspace";
-        categories = [ "Development" "Utility" ];
+        categories = [
+          "Development"
+          "Utility"
+        ];
       })
     ];
   };
@@ -51,8 +54,9 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages =
-      [ llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex ]
-      ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ];
+    home.packages = [
+      llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex
+    ]
+    ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ];
   };
 }
