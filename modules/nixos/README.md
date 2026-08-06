@@ -16,18 +16,17 @@ modules/nixos/
 
 ## Why base is special
 
-`modules/nixos/default.nix` only imports `./base` and `../base` (the
-cross-platform base). It intentionally **does not** `scanPaths ./.` —
-that would auto-import `desktop/` and `server/` into every host, which
-would force every machine to carry desktop or VM-guest configuration.
+`modules/nixos/default.nix` only imports `./base` and `../base` (the cross-platform base). It
+intentionally **does not** `scanPaths ./.` — that would auto-import `desktop/` and `server/` into
+every host, which would force every machine to carry desktop or VM-guest configuration.
 
 ## Three patterns in practice
 
-| Directory | Import pattern | Who decides? |
-|-----------|---------------|--------------|
-| `base/` | Auto via `default.nix` | Everyone (mandatory) |
+| Directory  | Import pattern                                                            | Who decides?                                   |
+| ---------- | ------------------------------------------------------------------------- | ---------------------------------------------- |
+| `base/`    | Auto via `default.nix`                                                    | Everyone (mandatory)                           |
 | `desktop/` | Group imported by host that wants any DE, individual DEs gated by options | Host via `modules.desktop.<de>.enable = true;` |
-| `server/` | Per-file explicit import in the host's module list | Host picks specific files |
+| `server/`  | Per-file explicit import in the host's module list                        | Host picks specific files                      |
 
 ## See also
 

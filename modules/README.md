@@ -2,12 +2,10 @@
 
 **English** | [简体中文](./README.zh-CN.md)
 
-System-level modules (NixOS / nix-darwin). The place for anything that
-needs to go into `/etc`, `/nix/store`-wide settings, systemd services,
-kernel / boot, or system-wide package sets.
+System-level modules (NixOS / nix-darwin). The place for anything that needs to go into `/etc`,
+`/nix/store`-wide settings, systemd services, kernel / boot, or system-wide package sets.
 
-User-level stuff (apps installed per user, dotfiles, themes) belongs in
-`home/`, not here.
+User-level stuff (apps installed per user, dotfiles, themes) belongs in `home/`, not here.
 
 ## Layout
 
@@ -24,19 +22,18 @@ When a macOS host is added later, a `modules/darwin/` sibling will appear.
 
 ## Two import patterns
 
-Depending on whether a subdirectory is "everyone needs it" or
-"opt-in per host", it's plugged in differently.
+Depending on whether a subdirectory is "everyone needs it" or "opt-in per host", it's plugged in
+differently.
 
-| Pattern | Where | How it's loaded |
-|---------|-------|-----------------|
-| **Auto-imported** | `modules/base/`, `modules/nixos/base/` | Every host that imports `modules/nixos` gets them automatically via `modules/nixos/default.nix` |
-| **Explicit import** | `modules/nixos/server/<file>.nix` | The host adds the specific file to its `nixos-modules` list |
-| **Options-gated** | `modules/nixos/desktop/` | Imported group-wide, but each feature gated behind `modules.desktop.<de>.enable` |
+| Pattern             | Where                                  | How it's loaded                                                                                 |
+| ------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Auto-imported**   | `modules/base/`, `modules/nixos/base/` | Every host that imports `modules/nixos` gets them automatically via `modules/nixos/default.nix` |
+| **Explicit import** | `modules/nixos/server/<file>.nix`      | The host adds the specific file to its `nixos-modules` list                                     |
+| **Options-gated**   | `modules/nixos/desktop/`               | Imported group-wide, but each feature gated behind `modules.desktop.<de>.enable`                |
 
 ## Options pattern (the right way to extend)
 
-Instead of a new file doing unconditional work, define an option and
-gate the config:
+Instead of a new file doing unconditional work, define an option and gate the config:
 
 ```nix
 { lib, config, ... }:
@@ -57,8 +54,7 @@ Hosts then opt in:
 modules.<area>.<feature>.enable = true;
 ```
 
-This keeps unused features at zero cost and avoids "mass import"
-side-effects.
+This keeps unused features at zero cost and avoids "mass import" side-effects.
 
 ## Adding a module
 

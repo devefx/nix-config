@@ -6,10 +6,10 @@
 
 ## 目录内容
 
-| 文件 | 选项 | 启用的内容 |
-|------|------|-----------|
-| `default.nix` | — | `scanPaths ./.` —— 自动扫描目录里所有文件 |
-| `plasma.nix` | `modules.desktop.plasma.enable` | KDE Plasma 6(SDDM、Plasma service、pipewire、打印、显卡、系统字体) |
+| 文件          | 选项                            | 启用的内容                                                         |
+| ------------- | ------------------------------- | ------------------------------------------------------------------ |
+| `default.nix` | —                               | `scanPaths ./.` —— 自动扫描目录里所有文件                          |
+| `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6(SDDM、Plasma service、pipewire、打印、显卡、系统字体) |
 
 ## 主机如何使用
 
@@ -31,8 +31,7 @@ nixos-modules = map mylib.relativeToRoot [
 modules.desktop.plasma.enable = true;
 ```
 
-**没第二步的话**,import `modules/nixos/desktop` 是空操作 —— 只为你启用的
-东西付出代价。
+**没第二步的话**,import `modules/nixos/desktop` 是空操作 —— 只为你启用的东西付出代价。
 
 ## 系统级 vs 用户级
 
@@ -42,8 +41,7 @@ modules.desktop.plasma.enable = true;
 - 合成器 / 会话(Plasma、GNOME、Hyprland ...)—— 作为 NixOS 服务
 - 音频栈(pipewire)、显卡、打印、系统字体
 
-桌面的**用户侧**(具体装什么应用、GTK/Qt 主题偏好、shell 配置)放在
-`home/linux/gui/`。
+桌面的**用户侧**(具体装什么应用、GTK/Qt 主题偏好、shell 配置)放在 `home/linux/gui/`。
 
 ## 新增一个桌面环境
 
@@ -63,8 +61,6 @@ modules.desktop.plasma.enable = true;
    }
    ```
 
-2. 在 `home/linux/gui/<de>.nix` 加对应的用户侧文件
-   (应用、主题、快捷键)。
+2. 在 `home/linux/gui/<de>.nix` 加对应的用户侧文件 (应用、主题、快捷键)。
 
-3. 主机通过 `modules.desktop.<de>.enable = true;` 启用。加第二个 DE
-   **不需要**动现有代码。
+3. 主机通过 `modules.desktop.<de>.enable = true;` 启用。加第二个 DE **不需要**动现有代码。

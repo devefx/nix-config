@@ -32,21 +32,25 @@ hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
 
 ## Hosts
 
-| Host       | Role                     | Home entry           | Desktop |
-|------------|--------------------------|----------------------|---------|
-| `faex1`    | physical desktop         | `linux/gui.nix`      | KDE Plasma 6 |
+| Host    | Role             | Home entry      | Desktop      |
+| ------- | ---------------- | --------------- | ------------ |
+| `faex1` | physical desktop | `linux/gui.nix` | KDE Plasma 6 |
 
 ## Desktop
 
 KDE Plasma 6 is wired via the options pattern:
 
-- System-level: `modules/nixos/desktop/plasma.nix` — SDDM, Plasma service, pipewire, graphics, printing, system fonts. Toggled by `modules.desktop.plasma.enable = true;` in the host.
-- User-level: `home/linux/gui/plasma.nix` — KDE apps (kate, ark, gwenview, okular, spectacle, ...) installed per-user.
+- System-level: `modules/nixos/desktop/plasma.nix` — SDDM, Plasma service, pipewire, graphics,
+  printing, system fonts. Toggled by `modules.desktop.plasma.enable = true;` in the host.
+- User-level: `home/linux/gui/plasma.nix` — KDE apps (kate, ark, gwenview, okular, spectacle, ...)
+  installed per-user.
 - Theme: `home/linux/gui/gtk.nix` — GTK cursor/font so GTK apps blend with Plasma.
 
-Adding another DE (Hyprland, GNOME, ...): drop a new file in each of the two places, host enables via `modules.desktop.<name>.enable = true;`.
+Adding another DE (Hyprland, GNOME, ...): drop a new file in each of the two places, host enables
+via `modules.desktop.<name>.enable = true;`.
 
-> NixOS tracks one Plasma release per nixpkgs channel. Use `nix flake update nixpkgs` to pull the latest (currently Plasma 6.6 on `nixos-unstable`).
+> NixOS tracks one Plasma release per nixpkgs channel. Use `nix flake update nixpkgs` to pull the
+> latest (currently Plasma 6.6 on `nixos-unstable`).
 
 ## Home entry points (three tiers)
 
@@ -56,37 +60,36 @@ tui.nix     core + base/tui: dev workstation extras (reserved — empty for now)
 gui.nix     tui + linux/gui: KDE apps, GTK theme
 ```
 
-Each host's `home/hosts/<name>.nix` picks **one** entry — no `default.nix`
-in `home/linux/`, you must be explicit.
+Each host's `home/hosts/<name>.nix` picks **one** entry — no `default.nix` in `home/linux/`, you
+must be explicit.
 
 ## Sandboxing
 
 Three opt-in layers — see [hardening/README.md](./hardening/README.md):
 
-- `hardening/nixpaks/` — per-app sandbox via [nixpak](https://github.com/nixpak/nixpak), exposed at `pkgs.nixpaks.<app>`
+- `hardening/nixpaks/` — per-app sandbox via [nixpak](https://github.com/nixpak/nixpak), exposed at
+  `pkgs.nixpaks.<app>`
 - `hardening/bwraps/` — per-app raw bubblewrap wrapper, exposed at `pkgs.bwraps.<app>`
 - `hardening/profiles/` — NixOS hardened profile (system-wide, aggressive)
 
-The overlay layers are wired into example hosts by default but have
-**zero effect** until you add an app and reference it.
+The overlay layers are wired into example hosts by default but have **zero effect** until you add an
+app and reference it.
 
 ## First deploy
 
-1. Generate hardware config on the target machine:
-   `sudo nixos-generate-config --dir ./hw-dump` → copy `hardware-configuration.nix`
-   into `hosts/<host>/` (replacing the placeholder).
-2. Fill `vars/default.nix` — `username`, `useremail`, SSH keys,
-   `initialHashedPassword` (generate via `mkpasswd -m yescrypt --rounds=11`).
+1. Generate hardware config on the target machine: `sudo nixos-generate-config --dir ./hw-dump` →
+   copy `hardware-configuration.nix` into `hosts/<host>/` (replacing the placeholder).
+2. Fill `vars/default.nix` — `username`, `useremail`, SSH keys, `initialHashedPassword` (generate
+   via `mkpasswd -m yescrypt --rounds=11`).
 3. (Optional) rename a host: update its name in three places —
    `outputs/x86_64-linux/src/<name>.nix`, `hosts/<name>/`, `home/hosts/<name>.nix`.
 4. Deploy: `just switch <host>` (or `sudo nixos-rebuild switch --flake .#<host>`).
 
 ## Add a new host
 
-Drop a file into `outputs/x86_64-linux/src/<host>.nix`, create
-`hosts/<host>/`, and a `home/hosts/<host>.nix`. haumea picks it up
-automatically. Pick a home entry (`core` / `tui` / `gui`) and, if it's a
-VM, import `modules/nixos/server/qemu-guest.nix`.
+Drop a file into `outputs/x86_64-linux/src/<host>.nix`, create `hosts/<host>/`, and a
+`home/hosts/<host>.nix`. haumea picks it up automatically. Pick a home entry (`core` / `tui` /
+`gui`) and, if it's a VM, import `modules/nixos/server/qemu-guest.nix`.
 
 ## Common commands
 

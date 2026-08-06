@@ -2,8 +2,8 @@
 
 **English** | [简体中文](./README.zh-CN.md)
 
-Per-host system-level configuration — hardware, hostname, disko layout,
-anything that genuinely differs between machines.
+Per-host system-level configuration — hardware, hostname, disko layout, anything that genuinely
+differs between machines.
 
 ## Layout
 
@@ -20,17 +20,16 @@ Current hosts: `faex1` (physical desktop).
 
 ## What belongs here vs in modules/
 
-| Belongs here | Belongs in `modules/` |
-|--------------|----------------------|
-| `networking.hostName` | Anything reusable by a second host |
-| `hardware-configuration.nix` (generated) | System-wide feature toggles |
-| Disk layout / disko config | Desktop / server infrastructure |
-| Host-specific firewall rules / static IPs | Per-user app lists (those go to `home/`) |
-| Which options to flip on: `modules.desktop.plasma.enable = true;` | The actual KDE config |
+| Belongs here                                                      | Belongs in `modules/`                    |
+| ----------------------------------------------------------------- | ---------------------------------------- |
+| `networking.hostName`                                             | Anything reusable by a second host       |
+| `hardware-configuration.nix` (generated)                          | System-wide feature toggles              |
+| Disk layout / disko config                                        | Desktop / server infrastructure          |
+| Host-specific firewall rules / static IPs                         | Per-user app lists (those go to `home/`) |
+| Which options to flip on: `modules.desktop.plasma.enable = true;` | The actual KDE config                    |
 
-A good rule: **if copy-pasting this file to a new host would make
-sense, it shouldn't be here** — move the reusable bits into `modules/`
-behind an option.
+A good rule: **if copy-pasting this file to a new host would make sense, it shouldn't be here** —
+move the reusable bits into `modules/` behind an option.
 
 ## Adding a host
 
@@ -46,7 +45,7 @@ behind an option.
    ```
 2. Generate `hardware-configuration.nix` on the target machine:
    `sudo nixos-generate-config --dir /tmp/hw`, copy it into `hosts/<name>/`.
-3. Create the matching output declaration at
-   `outputs/x86_64-linux/src/<name>.nix` (see [outputs/README.md](../outputs/README.md)).
-4. Create the home-manager entry at `home/hosts/<name>.nix` picking one
-   of `core.nix` / `tui.nix` / `gui.nix` (see [home/linux/README.md](../home/linux/README.md)).
+3. Create the matching output declaration at `outputs/x86_64-linux/src/<name>.nix` (see
+   [outputs/README.md](../outputs/README.md)).
+4. Create the home-manager entry at `home/hosts/<name>.nix` picking one of `core.nix` / `tui.nix` /
+   `gui.nix` (see [home/linux/README.md](../home/linux/README.md)).

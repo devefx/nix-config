@@ -28,26 +28,23 @@ home/linux/
 
 不同主机要的层级不一样:
 
-- 只跑服务的服务器(nginx / postgres 盒子,不做开发)选 `core.nix` ——
-  日常基线(git、tmux、btop、direnv),不带 dev 增强
-- 开发活跃的无 GUI 的 VM / 工作站选 `tui.nix` ——
-  预留给未来的 dev 工具(pgcli、k8s 客户端 ...),当前为空
+- 只跑服务的服务器(nginx / postgres 盒子,不做开发)选 `core.nix`
+  ——日常基线(git、tmux、btop、direnv),不带 dev 增强
+- 开发活跃的无 GUI 的 VM / 工作站选 `tui.nix`
+  ——预留给未来的 dev 工具(pgcli、k8s 客户端 ...),当前为空
 - 桌面 / 有 GUI 的 VM(`faex1`)选 `gui.nix` —— 含 KDE 应用 + GTK 主题
 
-叠加关系:**core ⊂ tui ⊂ gui**。主机选 `gui.nix` 就自动带上
-`tui.nix` 和 `core.nix` 里的所有东西。
+叠加关系:**core ⊂ tui ⊂ gui**。主机选 `gui.nix` 就自动带上 `tui.nix` 和 `core.nix` 里的所有东西。
 
 ## `linux/gui/` vs `base/gui/`
 
-| 目录 | 内容 |
-|------|------|
-| `home/base/gui/` | 跨平台 GUI 应用 —— VS Code、Obsidian 这种在 Linux 和 macOS 上 home-manager 都支持好的 |
-| `home/linux/gui/` | Linux 专属 GUI —— KDE 应用、GTK 主题、fcitx5、niri 快捷键等 |
+| 目录              | 内容                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `home/base/gui/`  | 跨平台 GUI 应用 —— VS Code、Obsidian 这种在 Linux 和 macOS 上 home-manager 都支持好的 |
+| `home/linux/gui/` | Linux 专属 GUI —— KDE 应用、GTK 主题、fcitx5、niri 快捷键等                           |
 
-加新 GUI 应用时先问:**macOS 上能跑吗?** 能 → 放 `home/base/gui/`;
-不能 → 放 `home/linux/gui/`。
+加新 GUI 应用时先问:**macOS 上能跑吗?** 能 → 放 `home/base/gui/`; 不能 → 放 `home/linux/gui/`。
 
 ## 新增文件
 
-扔一个 `.nix` 到合适的桶里,`default.nix` 里的 `scanPaths` 会自动
-识别,无需改任何 manifest。
+扔一个 `.nix` 到合适的桶里,`default.nix` 里的 `scanPaths` 会自动识别,无需改任何 manifest。

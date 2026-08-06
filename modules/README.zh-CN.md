@@ -2,8 +2,8 @@
 
 [English](./README.md) | **简体中文**
 
-系统级模块(NixOS / nix-darwin)。所有要进 `/etc`、改 `/nix/store` 级
-配置、挂 systemd 服务、动内核 / 启动项、装全系统软件包的内容都放这里。
+系统级模块(NixOS / nix-darwin)。所有要进 `/etc`、改 `/nix/store`
+级配置、挂 systemd 服务、动内核 / 启动项、装全系统软件包的内容都放这里。
 
 用户级内容(按用户装的 app、dotfiles、主题)属于 `home/`,**不是这里**。
 
@@ -24,11 +24,11 @@ modules/
 
 子目录是"人人需要"还是"按需启用",接入方式不同。
 
-| 模式 | 位置 | 加载方式 |
-|------|------|---------|
-| **自动导入** | `modules/base/`、`modules/nixos/base/` | 任何 import 了 `modules/nixos` 的主机自动带上(经由 `modules/nixos/default.nix`) |
-| **显式导入** | `modules/nixos/server/<file>.nix` | 主机把具体文件加到自己的 `nixos-modules` 列表里 |
-| **options 开关** | `modules/nixos/desktop/` | 整组被 import,但每个具体功能藏在 `modules.desktop.<de>.enable` 后面 |
+| 模式             | 位置                                   | 加载方式                                                                        |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------------------------- |
+| **自动导入**     | `modules/base/`、`modules/nixos/base/` | 任何 import 了 `modules/nixos` 的主机自动带上(经由 `modules/nixos/default.nix`) |
+| **显式导入**     | `modules/nixos/server/<file>.nix`      | 主机把具体文件加到自己的 `nixos-modules` 列表里                                 |
+| **options 开关** | `modules/nixos/desktop/`               | 整组被 import,但每个具体功能藏在 `modules.desktop.<de>.enable` 后面             |
 
 ## options 开关模式(扩展模块的正确姿势)
 
