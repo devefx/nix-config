@@ -53,33 +53,41 @@ in
 
   evalTests = lib.lists.all (it: it.evalTests == { }) nixosSystemValues;
 
-  checks = forAllSystems (system: {
-    eval-tests = allSystems.${system}.evalTests == { };
+  checks = forAllSystems (
+    system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      # Real derivation so `nix flake check` accepts it; builds all eval
+      # tests (empty set for now means trivially passes).
+      eval-tests = pkgs.linkFarm "eval-tests" allSystems.${system}.evalTests;
 
-    pre-commit-check = pre-commit-hooks.lib.${system}.run {
-      src = mylib.relativeToRoot ".";
-      hooks = {
-        nixfmt-rfc-style = {
-          enable = true;
-          settings.width = 100;
-        };
-        typos = {
-          enable = true;
-          settings = {
-            write = true;
-            configPath = ".typos.toml";
+      pre-commit-check = pre-commit-hooks.lib.${system}.run {
+        src = mylib.relativeToRoot ".";
+        hooks = {
+          nixfmt-rfc-style = {
+            enable = true;
+            settings.width = 100;
           };
-        };
-        prettier = {
-          enable = true;
-          settings = {
-            write = true;
-            configPath = ".prettierrc.yaml";
+          typos = {
+            enable = true;
+            settings = {
+              write = true;
+              configPath = ".typos.toml";
+            };
+          };
+          prettier = {
+            enable = true;
+            settings = {
+              write = true;
+              configPath = ".prettierrc.yaml";
+            };
           };
         };
       };
-    };
-  });
+    }
+  );
 
   devShells = forAllSystems (
     system:
