@@ -99,11 +99,11 @@ in
         packages = with pkgs; [
           bashInteractive
           gcc
-          nixfmt-rfc-style
+          nixfmt
           deadnix
           statix
           typos
-          nodePackages.prettier
+          prettier
         ];
         name = "nix-config";
         inherit (self.checks.${system}.pre-commit-check) shellHook;
@@ -111,5 +111,5 @@ in
     }
   );
 
-  formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+  formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 }
