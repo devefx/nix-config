@@ -3,26 +3,28 @@
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks = {
+    # `matchBlocks` is deprecated — `settings` uses upstream ssh_config
+    # directive names; each key becomes a `Host <key>` block.
+    settings = {
       "*" = {
-        forwardAgent = false;
-        addKeysToAgent = "yes";
-        compression = true;
-        serverAliveInterval = 60;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+        ForwardAgent = false;
+        AddKeysToAgent = "yes";
+        Compression = true;
+        ServerAliveInterval = 60;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
       };
 
       # Port 22 is blocked on many networks; use SSH-over-HTTPS.
       "github.com" = {
-        hostname = "ssh.github.com";
-        port = 443;
-        user = "git";
-        identitiesOnly = true;
+        HostName = "ssh.github.com";
+        Port = 443;
+        User = "git";
+        IdentitiesOnly = true;
       };
     };
   };

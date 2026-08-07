@@ -3,6 +3,7 @@
 # (e.g. Firefox, VS Code). Plasma itself uses its own (Qt) theme.
 {
   home.pointerCursor = {
+    enable = true;
     gtk.enable = true;
     x11.enable = true;
     package = pkgs.bibata-cursors;
