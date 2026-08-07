@@ -23,7 +23,7 @@ let
 
   cc-haha-icon = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/NanmiCoder/cc-haha/v0.5.3/desktop/src-tauri/icons/128x128.png";
-    sha256 = "sha256-4deeccaf7b99013753d51525787758f4337b814b5a7f03c70ed58df332b1b344";
+    sha256 = "sha256-Te7Mr3uZATdT1RUleHdY9DN7gUtafwPHDtWN8zKxs0Q=";
   };
 
   cc-haha = pkgs.appimageTools.wrapType2 {
