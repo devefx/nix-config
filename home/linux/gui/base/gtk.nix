@@ -17,5 +17,10 @@
       package = pkgs.noto-fonts;
       size = 11;
     };
+
+    # Force-rewrite ~/.gtkrc-2.0 without backup: home-manager fully owns
+    # this generated file, and nixpkgs bumps change its content, which
+    # otherwise collides with the stale `.home-manager.backup` copy.
+    gtk2.force = true;
   };
 }
