@@ -8,25 +8,21 @@
 # Codex / Gemini CLI): one-click provider switching, MCP / Skills sync,
 # and local usage tracking.
 #
-# No nixpkgs package in the pinned channel (upstream added it 2026-05,
-# after our lock date), so we wrap the official Linux x86_64 AppImage
-# from the pinned v3.19.2 release. After a `nix flake update`, this can
-# be swapped for plain `pkgs.cc-switch`.
+# Uses the native `pkgs.cc-switch` from nixpkgs (added 2026-06) instead of
+# the upstream AppImage. The AppImage bundles an Ubuntu-built WebKitGTK
+# that runs against NixOS host libraries and aborts WebKitWebProcess with
+# EGL errors, leaving a blank/white window (seen on faex1). The nixpkgs
+# build compiles against nixpkgs' webkitgtk_4_1 (2.52.5), where the
+# upstream crash no longer reproduces.
+#
+# Requires the `nixpkgs` (nixos-unstable) input to be at or after rev
+# 38a4887 (2026-07-25); flake.lock is pinned there already.
 #
 # Gated behind `modules.ccSwitch.enable` — enable in
 # `home/hosts/<name>.nix`.
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.ccSwitch;
-
-  cc-switch = pkgs.appimageTools.wrapType2 {
-    pname = "cc-switch";
-    version = "3.19.2";
-    src = pkgs.fetchurl {
-      url = "https://github.com/farion1231/cc-switch/releases/download/v3.19.2/CC-Switch-v3.19.2-Linux-x86_64.AppImage";
-      sha256 = "sha256-3hnQR9+YP6bwXW+t378LOH3f9aV1yegOCjfJ+XN/EXU=";
-    };
-  };
 in
 {
   options.modules.ccSwitch = {
@@ -34,23 +30,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [
-      (pkgs.buildEnv {
-        name = "cc-switch-desktop";
-        paths = [
-          cc-switch
-          (pkgs.makeDesktopItem {
-            name = "cc-switch";
-            exec = "cc-switch";
-            desktopName = "CC Switch";
-            comment = "AI provider config manager for Claude Code / Codex / Gemini";
-            categories = [
-              "Development"
-              "Utility"
-            ];
-          })
-        ];
-      })
-    ];
+    home.packages = [ pkgs.cc-switch ];
   };
 }

@@ -21,6 +21,11 @@ let
 
   cfg = config.modules.aiAgents;
 
+  cc-haha-icon = pkgs.fetchurl {
+    url = "https://raw.githubusercontent.com/NanmiCoder/cc-haha/v0.5.3/desktop/src-tauri/icons/128x128.png";
+    sha256 = "sha256-4deeccaf7b99013753d51525787758f4337b814b5a7f03c70ed58df332b1b344";
+  };
+
   cc-haha = pkgs.appimageTools.wrapType2 {
     pname = "cc-haha";
     version = "0.5.3";
@@ -28,6 +33,10 @@ let
       url = "https://github.com/NanmiCoder/cc-haha/releases/download/v0.5.3/Claude-Code-Haha-0.5.3-linux-x86_64.AppImage";
       sha512 = "sha512-68XfBFgvv9OmZDAzqSkcMnxQqHgMXCbFTIsaV6GbH5n6PVSoqfBW+F56UOxGaMVo2H0Ld8ewVJEuwywq3KkmvA==";
     };
+
+    extraInstallCommands = ''
+      install -Dm644 ${cc-haha-icon} $out/share/icons/hicolor/128x128/apps/cc-haha.png
+    '';
   };
 
   # Menu entry + binary, so Plasma picks it up as a desktop app.
@@ -37,6 +46,7 @@ let
       cc-haha
       (pkgs.makeDesktopItem {
         name = "cc-haha";
+        icon = "cc-haha";
         exec = "cc-haha";
         desktopName = "Claude Code Haha";
         comment = "Desktop Claude Code workspace";
