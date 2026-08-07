@@ -6,6 +6,10 @@
 
   networking.hostName = "faex1";
 
+  # Bluetooth — required for the KDE Bluetooth settings panel to show up.
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
   # default of systemd-boot.
