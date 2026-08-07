@@ -11,7 +11,9 @@
   # rebuilds do not fail on them. The binaries are unaffected.
   nixpkgs.overlays = [
     (final: prev: {
-      openldap = prev.openldap.overrideAttrs (old: { doCheck = false; });
+      openldap = prev.openldap.overrideAttrs (old: {
+        doCheck = false;
+      });
     })
   ];
 
