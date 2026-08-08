@@ -16,6 +16,7 @@ home/linux/gui/
 │   ├── chrome.nix      Google Chrome (unfree; has its own built-in sandbox)
 │   ├── fcitx5.nix      Chinese input method (Pinyin / Shuangpin / Wubi)
 │   ├── cc-switch.nix    CC Switch — AI provider config manager (native nixpkgs build)
+│   ├── clash-verge-rev.nix Clash Verge Rev — Clash GUI (Tauri)
 │   └── lutris.nix      Linux game launcher (Wine / Proton / GOG / ...)
 └── plasma.nix          Plasma / KDE user apps (kate, ark, gwenview, ...)
 ```
