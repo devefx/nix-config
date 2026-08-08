@@ -4,7 +4,7 @@
   pkgs,
   ...
 }:
-# System fonts — baseline CJK + emoji + Nerd Fonts bundle.
+# System fonts — baseline CJK + Microsoft Core Fonts + emoji + Nerd Fonts bundle.
 #
 # File lives in `modules/base/` because `fonts.packages` is one of the
 # NixOS options that nix-darwin also implements, so this module is
@@ -17,7 +17,7 @@ let
 in
 {
   options.modules.desktop.fonts = {
-    enable = mkEnableOption "system font bundle (CJK + emoji + Nerd Fonts)";
+    enable = mkEnableOption "system font bundle (CJK + Microsoft Core Fonts + emoji + Nerd Fonts)";
   };
 
   config = mkIf cfg.enable {
@@ -26,6 +26,8 @@ in
       dejavu_fonts
       liberation_ttf
       source-code-pro
+      # Original Microsoft Core Fonts (Arial, Times New Roman, Courier New, ...)
+      corefonts
 
       # CJK (Noto Sans/Serif CJK = thin wrappers over Source Han)
       noto-fonts
