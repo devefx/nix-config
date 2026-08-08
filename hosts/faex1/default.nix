@@ -4,6 +4,19 @@
   pkgs,
   ...
 }:
+let
+  # GRUB theme — sandesh236/sleek--themes (MIT), pinned commit e103aa4
+  # (2025-05-21). Variants: "Sleek theme-bigSur" / "-dark" / "-light" / "-orange" (default: light).
+  grubTheme = pkgs.runCommand "sleek-grub-theme" {
+    src = pkgs.fetchurl {
+      url = "https://codeload.github.com/sandesh236/sleek--themes/tar.gz/e103aa4cd655be6a38dbab37b1911c6ed9ef7765";
+      sha256 = "sha256-DbsGg5mcbPxew3UarMLQEMafS4CEXBt4K+oVt4NsGoY=";
+    };
+  } ''
+    mkdir -p $out
+    tar -xzf $src -C $out --strip-components=1
+  '';
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -47,6 +60,7 @@
     enable = true;
     device = "nodev"; # UEFI-only: do not write to an MBR
     efiSupport = true;
+    theme = "${grubTheme}/Sleek theme-light/sleek";
     extraEntries = ''
       menuentry "Windows 11" {
         insmod part_gpt
