@@ -1,4 +1,9 @@
-{ myvars, ... }:
+{
+  myvars,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./hardware-configuration.nix
@@ -9,7 +14,31 @@
   # Bluetooth — required for the KDE Bluetooth settings panel to show up.
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
+  # BlueZ 5.86 fails to activate A2DP on some speakers with
+  # "a2dp-sink profile connect failed: Device or resource busy".
+  # Pin 5.84 until nixpkgs ships the fixed 5.87 release.
+  # https://github.com/bluez/bluez/issues/1898
+  hardware.bluetooth.package = lib.mkIf (lib.versionOlder pkgs.bluez.version "5.87") (
+    (pkgs.bluez.override {
+      bluez-headers = pkgs.bluez-headers.overrideAttrs (old: {
+        version = "5.84";
 
+        src = pkgs.fetchurl {
+          url = "mirror://kernel/linux/bluetooth/bluez-5.84.tar.xz";
+          hash = "sha256-W6c9Aw97AAh9Z4ALDjIWAa7A+JKCfHLlosg5DYyIaxE=";
+        };
+      });
+    }).overrideAttrs
+      (_: {
+        patches = [
+          (pkgs.fetchurl {
+            name = "static.patch";
+            url = "https://lore.kernel.org/linux-bluetooth/20250703182908.2370130-1-hi@alyssa.is/raw";
+            hash = "sha256-4Yz3ljsn2emJf+uTcJO4hG/YXvjERtitce71TZx5Hak=";
+          })
+        ];
+      })
+  );
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
   # default of systemd-boot.
