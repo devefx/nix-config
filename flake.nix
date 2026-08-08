@@ -20,6 +20,11 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # GRUB theme — provides `boot.loader.grub2-theme` NixOS module.
+    grub2-themes = {
+      url = "github:vinceliuice/grub2-themes";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # directory -> attrset auto-loader
     haumea = {

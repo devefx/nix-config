@@ -48,7 +48,7 @@
     device = "nodev"; # UEFI-only: do not write to an MBR
     efiSupport = true;
     extraEntries = ''
-      menuentry "Windows 11" {
+      menuentry "Windows 11" --class windows {
         insmod part_gpt
         insmod fat
         insmod chain
@@ -60,6 +60,16 @@
   boot.loader.efi = {
     canTouchEfiVariables = true;
     efiSysMountPoint = "/boot";
+  };
+
+  # GRUB theme — vinceliuice/grub2-themes via its NixOS module (README method).
+  # Variants: tela / vimix / stylish / whitesur · icons: color / white / whitesur
+  # · screens: 1080p / 2k / 4k / ultrawide / ultrawide2k.
+  boot.loader.grub2-theme = {
+    enable = true;
+    theme = "tela";
+    icon = "white";
+    screen = "4k";
   };
 
   boot.supportedFilesystems = [ "ntfs" ];
