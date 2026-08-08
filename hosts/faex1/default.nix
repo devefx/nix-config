@@ -51,5 +51,12 @@
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;
 
+  # Clash Verge with TUN mode: setuid wrapper + privilege service.
+  # tunMode needs networking.firewall.checkReversePath to be loose (set automatically).
+  programs.clash-verge = {
+    enable = true;
+    serviceMode = true;
+    tunMode = true;
+  };
   system.stateVersion = myvars.stateVersion;
 }
