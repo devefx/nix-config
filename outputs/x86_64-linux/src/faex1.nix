@@ -17,7 +17,7 @@ let
         "modules/nixos/desktop"
         "hosts/${name}"
         # Age-encrypted secrets (agenix) — see secrets/nixos.nix.
-        "secrets"
+        "secrets/nixos.nix"
         # Sandbox overlays — safe to always import, they only register
         # `pkgs.nixpaks.*` / `pkgs.bwraps.*` namespaces. Zero effect until
         # you actually reference one.

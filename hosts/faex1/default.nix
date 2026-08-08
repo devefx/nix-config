@@ -13,6 +13,16 @@ let
     fsType = "cifs";
     options = [
       "credentials=${cred}"
+      # Mount lazily on first access instead of failing at boot before the
+      # network/NAS is ready. `_netdev` alone did not add the needed
+      # network-online ordering in the generated mount units.
+      "x-systemd.automount"
+      "noauto"
+      "x-systemd.requires=network-online.target"
+      "x-systemd.after=network-online.target"
+      "x-systemd.device-timeout=5s"
+      "x-systemd.mount-timeout=5s"
+      "x-systemd.idle-timeout=300"
       "nofail"
       "_netdev"
       "rw"
@@ -90,7 +100,10 @@ in
     screen = "4k";
   };
 
-  boot.supportedFilesystems = [ "ntfs" "cifs" ];
+  boot.supportedFilesystems = [
+    "ntfs"
+    "cifs"
+  ];
 
   # Shared NTFS data partition, mounted with the in-kernel ntfs3 driver.
   fileSystems."/mnt/data" = {
@@ -107,12 +120,24 @@ in
   # SMB shares — TrueNAS (192.168.16.251) and Windows Server
   # (192.168.16.206). Credentials are decrypted by agenix
   # (see secrets/nixos.nix).
-  fileSystems."/mnt/portable_apps" = smbMount "192.168.16.251" config.age.secrets.smb-credentials.path "portable_apps";
-  fileSystems."/mnt/media" = smbMount "192.168.16.251" config.age.secrets.smb-credentials.path "media";
-  fileSystems."/mnt/downloads" = smbMount "192.168.16.251" config.age.secrets.smb-credentials.path "downloads";
-  fileSystems."/mnt/archive" = smbMount "192.168.16.251" config.age.secrets.smb-credentials.path "archive";
-  fileSystems."/mnt/workspace" = smbMount "192.168.16.251" config.age.secrets.smb-credentials.path "workspace";
-  fileSystems."/mnt/wd_20t" = smbMount "192.168.16.206" config.age.secrets.smb-credentials-wd20t.path "wd_20t";
+  fileSystems."/mnt/portable_apps" =
+    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
+      "portable_apps";
+  fileSystems."/mnt/media" =
+    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
+      "media";
+  fileSystems."/mnt/downloads" =
+    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
+      "downloads";
+  fileSystems."/mnt/archive" =
+    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
+      "archive";
+  fileSystems."/mnt/workspace" =
+    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
+      "workspace";
+  fileSystems."/mnt/wd_20t" =
+    smbMount "192.168.16.206" config.age.secrets.smb-credentials-wd20t.path
+      "wd_20t";
 
   modules.secrets.enable = true;
   modules.secrets.smb.enable = true;
