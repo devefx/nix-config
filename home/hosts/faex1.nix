@@ -7,4 +7,5 @@
   modules.ccSwitch.enable = true;
   modules.wechat.enable = true;
   modules.telegram.enable = true;
+  modules.feishin.enable = true;
 }
