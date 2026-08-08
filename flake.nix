@@ -47,5 +47,20 @@
     # AI coding agents — packages Claude Code / Codex / Gemini CLI / etc.
     # Does NOT follow our nixpkgs (agents pin their own supported versions).
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # age-encrypted secrets — asymmetric (age keys). Encrypted `.age` files
+    # live in the private nix-secrets repo; decrypted at activation using the
+    # host's SSH key.
+    agenix = {
+      url = "github:ryantm/agenix/4835b1dc898959d8547a871ef484930675cb47f1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Private secrets repo (git+ssh, must exist & be reachable from hosts):
+    # https://github.com/devefx/nix-secrets
+    mysecrets = {
+      url = "git+ssh://git@github.com/devefx/nix-secrets.git?shallow=1";
+      flake = false;
+    };
   };
 }
