@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }:
 # Gaming infrastructure — Steam, GameMode, 32-bit GPU drivers.
@@ -28,6 +29,14 @@ in
 
     programs.steam = {
       enable = true;
+      # Steam only enables its own CJK IME path when launched under a Chinese
+      # locale; the nixpkgs FHS wrapper otherwise forces GTK_IM_MODULE=xim.
+      package = pkgs.steam.override {
+        extraEnv = {
+          LANG = "zh_CN.UTF-8";
+          XMODIFIERS = "@im=fcitx";
+        };
+      };
       # Upscaling / frame-limit / handheld-style composition.
       gamescopeSession.enable = true;
       # Winetricks wrapper for Proton prefixes.

@@ -18,6 +18,16 @@
     # instead of the legacy XMODIFIERS / *_IM_MODULE env vars.
     fcitx5.waylandFrontend = true;
 
+    # waylandFrontend avoids exporting X11 env vars for native Wayland apps,
+    # but Steam and other XWayland apps still need them for fcitx5.
+    fcitx5.sessionVariables = {
+      GTK_IM_MODULE = "fcitx";
+      QT_IM_MODULE = "fcitx";
+      XMODIFIERS = "@im=fcitx";
+      GLFW_IM_MODULE = "fcitx";
+      SDL_IM_MODULE = "fcitx";
+    };
+
     fcitx5.addons = with pkgs; [
       qt6Packages.fcitx5-configtool # GUI config tool
       fcitx5-gtk # GTK app integration
