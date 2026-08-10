@@ -38,6 +38,8 @@ in
   ];
 
   networking.hostName = "faex1";
+  # llama-server / local HTTP dev tools.
+  networking.firewall.allowedTCPPorts = [ 8080 ];
 
   # Bluetooth — required for the KDE Bluetooth settings panel to show up.
   hardware.bluetooth.enable = true;
