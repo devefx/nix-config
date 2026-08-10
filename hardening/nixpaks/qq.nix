@@ -35,9 +35,12 @@ let
             sloth.xdgPicturesDir
           ];
           sockets = {
-            x11 = false;
-            wayland = true;
+            x11 = true;
+            wayland = lib.mkForce false;
             pipewire = true;
+          };
+          env = {
+            QT_QPA_PLATFORM = "xcb";
           };
         };
       };
