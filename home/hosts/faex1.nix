@@ -9,6 +9,7 @@
   modules.wechat.enable = true;
   modules.karere.enable = true;
   modules.telegram.enable = true;
+  modules.qq.enable = true;
   modules.ime.enable = true;
   modules.feishin.enable = true;
 }
