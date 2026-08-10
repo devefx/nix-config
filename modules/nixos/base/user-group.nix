@@ -12,6 +12,7 @@
       # Desktop groups — harmless on headless hosts.
       "audio"
       "video"
+      "render"
       "input"
     ];
     initialHashedPassword = myvars.initialHashedPassword;

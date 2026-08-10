@@ -100,6 +100,13 @@ in
     screen = "4k";
   };
 
+  # Raise the Radeon 8060S GPU GTT cap from the default ~55 GiB to 96 GiB.
+  # 96 GiB = 25165824 4KiB pages. Requires a reboot to take effect.
+  boot.extraModprobeConfig = ''
+    options ttm pages_limit=25165824
+    options ttm page_pool_size=25165824
+  '';
+
   boot.supportedFilesystems = [
     "ntfs"
     "cifs"
@@ -141,6 +148,7 @@ in
 
   modules.secrets.enable = true;
   modules.secrets.smb.enable = true;
+  modules.secrets.hf.enable = true;
   modules.desktop.plasma.enable = true;
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;

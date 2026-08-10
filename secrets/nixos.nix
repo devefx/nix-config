@@ -20,7 +20,7 @@
 #   2. agenix -e <name>.age -r <age-pubkey>          # encrypt; commit to nix-secrets
 #   3. declare it below as age.secrets.<name>
 let
-  inherit (lib) mkEnableOption mkIf;
+  inherit (lib) mkEnableOption mkIf mkMerge;
   cfg = config.modules.secrets;
 in
 {
@@ -29,6 +29,7 @@ in
   options.modules.secrets = {
     enable = mkEnableOption "age-encrypted secrets (agenix)";
     smb.enable = mkEnableOption "SMB share credentials secret";
+    hf.enable = mkEnableOption "Hugging Face token secret";
   };
 
   config = mkIf cfg.enable {
@@ -39,21 +40,31 @@ in
     # Decrypt with the machine's SSH host key — never leaves the box.
     age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
-    age.secrets = mkIf cfg.smb.enable {
-      # TrueNAS (192.168.16.251)
-      smb-credentials = {
-        file = "${mysecrets}/smb-credentials.age";
-        owner = myvars.username;
-        group = "users";
-        mode = "0600";
-      };
-      # Windows Server (192.168.16.206) — wd_20t share
-      smb-credentials-wd20t = {
-        file = "${mysecrets}/smb-credentials-wd20t.age";
-        owner = myvars.username;
-        group = "users";
-        mode = "0600";
-      };
-    };
+    age.secrets = mkMerge [
+      (mkIf cfg.smb.enable {
+        # TrueNAS (192.168.16.251)
+        smb-credentials = {
+          file = "${mysecrets}/smb-credentials.age";
+          owner = myvars.username;
+          group = "users";
+          mode = "0600";
+        };
+        # Windows Server (192.168.16.206) — wd_20t share
+        smb-credentials-wd20t = {
+          file = "${mysecrets}/smb-credentials-wd20t.age";
+          owner = myvars.username;
+          group = "users";
+          mode = "0600";
+        };
+      })
+      (mkIf cfg.hf.enable {
+        hf-token = {
+          file = "${mysecrets}/hf-token.age";
+          owner = myvars.username;
+          group = "users";
+          mode = "0600";
+        };
+      })
+    ];
   };
 }

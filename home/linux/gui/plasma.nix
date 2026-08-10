@@ -23,5 +23,8 @@ lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
       okular # PDF / document viewer
       spectacle # screenshot tool
     ]
-    ++ [ pkgs.haruna ];
+    ++ [
+      pkgs.haruna
+      pkgs.nvtopPackages.amd # GPU monitoring for AMD
+    ];
 }

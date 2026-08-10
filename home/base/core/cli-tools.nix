@@ -14,5 +14,6 @@
     ripgrep # rg — fast grep (no programs.ripgrep)
     fd # modern find (no programs.fd)
     jq # json query (no programs.jq)
+    python3Packages.huggingface-hub # hf CLI — download models from Hugging Face
   ];
 }
