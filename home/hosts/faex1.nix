@@ -5,6 +5,7 @@
 
   modules.aiAgents.enable = true;
   modules.ccSwitch.enable = true;
+  modules.godot.enable = true;
   modules.llamaCpp.enable = true;
   modules.wechat.enable = true;
   modules.karere.enable = true;

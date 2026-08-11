@@ -9,11 +9,25 @@ let
   mylib = import ../lib { inherit lib; };
   myvars = import ../vars;
 
+  godotYoke =
+    system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    pkgs.godot_4_7.overrideAttrs (old: {
+      version = "4.7.2-yoke";
+      src = inputs.godot-yoke;
+      sconsFlags = (old.sconsFlags or []) ++ [
+        "system_certs_path=/etc/ssl/certs/ca-certificates.crt"
+      ];
+    });
+
   genSpecialArgs =
     system:
     inputs
     // {
       inherit mylib myvars;
+      godotYoke = godotYoke system;
 
       pkgs-stable = import inputs.nixpkgs-stable {
         inherit system;
@@ -45,7 +59,13 @@ in
     map (it: it.nixosConfigurations or { }) nixosSystemValues
   );
 
-  packages = forAllSystems (system: allSystems.${system}.packages or { });
+  packages = forAllSystems (
+    system:
+    {
+      godot-yoke = godotYoke system;
+    }
+    // (allSystems.${system}.packages or { })
+  );
 
   checks = forAllSystems (
     system:
