@@ -7,6 +7,7 @@
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;
   modules.llamaCpp.enable = true;
+  modules.comfyui.enable = true;
   modules.wechat.enable = true;
   modules.karere.enable = true;
   modules.telegram.enable = true;
