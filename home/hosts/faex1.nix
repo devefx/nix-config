@@ -8,6 +8,7 @@
   modules.godot.enable = true;
   modules.llamaCpp.enable = true;
   modules.comfyui.enable = true;
+  modules.obs.enable = true;
   modules.wechat.enable = true;
   modules.karere.enable = true;
   modules.telegram.enable = true;
