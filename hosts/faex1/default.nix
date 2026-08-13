@@ -70,13 +70,21 @@ in
       })
   );
 
-  # usb1: keep the AMD xHCI controller and its root hub out of runtime power
-  # management. This does not prevent system-suspend resume failures, but it
-  # removes USB autosuspend as a variable.
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:c6:00.4", ATTR{power/control}="on"
-    ACTION=="add", SUBSYSTEM=="usb", KERNEL=="usb1", ATTR{power/control}="on"
-  '';
+  # Never suspend or hibernate. Screen blanking/locking still works because it
+  # is handled independently by the desktop, not by these sleep targets.
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+    suspend-then-hibernate.enable = false;
+  };
+
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
 
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
