@@ -69,6 +69,15 @@ in
         ];
       })
   );
+
+  # usb1: keep the AMD xHCI controller and its root hub out of runtime power
+  # management. This does not prevent system-suspend resume failures, but it
+  # removes USB autosuspend as a variable.
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:c6:00.4", ATTR{power/control}="on"
+    ACTION=="add", SUBSYSTEM=="usb", KERNEL=="usb1", ATTR{power/control}="on"
+  '';
+
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
   # default of systemd-boot.
