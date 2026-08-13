@@ -46,4 +46,16 @@
     # macOS: start maximized.
     darwinLaunchOptions = [ "--start-as=maximized" ];
   };
+
+  # Keep the shipped logo under the app id in the user hicolor tree so KDE
+  # icon lookups resolve `Icon=kitty` even when profile XDG paths differ.
+  xdg.dataFile."icons/hicolor/128x128/apps/kitty.png".source =
+    "${pkgs.kitty}/lib/kitty/logo/kitty-128.png";
+
+  # Dolphin reads TerminalService with KDesktopFile, which only searches
+  # ~/.local/share/applications for a relative desktop filename. Keep a
+  # user-level copy there so its "Open Terminal Here" icon lookup can find
+  # `Icon=kitty` instead of falling back to the generic terminal icon.
+  xdg.dataFile."applications/kitty.desktop".source =
+    "${pkgs.kitty}/share/applications/kitty.desktop";
 }
