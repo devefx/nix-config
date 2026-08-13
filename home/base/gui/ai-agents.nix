@@ -5,10 +5,13 @@
   config,
   ...
 }:
-# AI coding agent tooling — Codex CLI, plus the cc-haha desktop workspace.
+# AI coding agent tooling — Codex CLI, Codex/ChatGPT desktop, plus the
+# cc-haha desktop workspace.
 #
 # Codex comes from the `llm-agents.nix` flake input (pinned separately
 # from nixpkgs so each vendor's supported version lands intact).
+# Codex desktop comes from pkgs/codex-desktop, which extracts OpenAI's
+# official Linux `.deb` and runs it through an FHS environment for NixOS.
 # cc-haha (Claude Code Haha) is a desktop Claude Code workspace with no
 # nixpkgs package, so we wrap its official Linux x86_64 AppImage release
 # (pinned v0.5.3; sha512 taken from the release's latest-linux.yml).
@@ -20,6 +23,8 @@ let
   inherit (lib) mkEnableOption mkIf optionals;
 
   cfg = config.modules.aiAgents;
+
+  codex-desktop = pkgs.callPackage ../../../pkgs/codex-desktop { };
 
   cc-haha-icon = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/NanmiCoder/cc-haha/v0.5.3/desktop/src-tauri/icons/128x128.png";
@@ -60,12 +65,13 @@ let
 in
 {
   options.modules.aiAgents = {
-    enable = mkEnableOption "AI coding agent tooling (Codex / cc-haha)";
+    enable = mkEnableOption "AI coding agent tooling (Codex CLI / desktop / cc-haha)";
   };
 
   config = mkIf cfg.enable {
     home.packages = [
       llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex
+      codex-desktop
     ]
     ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ];
   };
