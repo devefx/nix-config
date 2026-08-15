@@ -7,6 +7,7 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.desktop.plasma;
+  antDarkTheme = pkgs.callPackage ../../../pkgs/ant-dark { };
 in
 {
   options.modules.desktop.plasma = {
@@ -25,6 +26,11 @@ in
     services.desktopManager.plasma6.enable = true;
 
     hardware.graphics.enable = true;
+
+    environment.systemPackages = [
+      pkgs.darkly
+      antDarkTheme
+    ];
 
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
       elisa
