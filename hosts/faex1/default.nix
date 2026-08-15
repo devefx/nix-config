@@ -70,22 +70,6 @@ in
       })
   );
 
-  # Never suspend or hibernate. Screen blanking/locking still works because it
-  # is handled independently by the desktop, not by these sleep targets.
-  systemd.targets = {
-    sleep.enable = false;
-    suspend.enable = false;
-    hibernate.enable = false;
-    hybrid-sleep.enable = false;
-    suspend-then-hibernate.enable = false;
-  };
-
-  services.logind.settings.Login = {
-    HandleLidSwitch = "ignore";
-    HandleLidSwitchExternalPower = "ignore";
-    HandleLidSwitchDocked = "ignore";
-  };
-
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
   # default of systemd-boot.
@@ -125,6 +109,12 @@ in
     options ttm pages_limit=25165824
     options ttm page_pool_size=25165824
   '';
+
+  # The Sculptor DP monitor briefly drops HPD and reconnects ~3s after
+  # DPMS-off. KWin only ignores reconnects within 2s by default, so it treats
+  # the reconnect as a new output and turns the screen back on. Extend that
+  # window to keep the screen off until a real wake event.
+  environment.sessionVariables.KWIN_DPMS_WORKAROUND_TIMEOUT = "100000";
 
   boot.supportedFilesystems = [
     "ntfs"

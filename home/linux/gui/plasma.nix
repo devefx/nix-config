@@ -26,6 +26,30 @@ lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
       };
     };
 
+    # KDE-side power management only: auto-suspend is off, while manual
+    # suspend/hibernate remains available. Display dim, lock, and turn-off
+    # are still handled by PowerDevil and KScreenLocker.
+    powerdevil = {
+      AC = {
+        autoSuspend.action = "nothing";
+        turnOffDisplay = {
+          idleTimeout = 300;
+          idleTimeoutWhenLocked = 60;
+        };
+        dimDisplay = {
+          enable = true;
+          idleTimeout = 600;
+        };
+        powerButtonAction = "nothing";
+        whenLaptopLidClosed = "doNothing";
+      };
+    };
+
+    kscreenlocker = {
+      autoLock = true;
+      timeout = 5;
+    };
+
     configFile = {
       kdeglobals = {
         General.ColorScheme = "Darkly";
@@ -50,6 +74,12 @@ lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
         General = {
           count = 0;
           rules = "";
+        };
+      };
+      powerdevilrc = {
+        "AC/Display" = {
+          TurnOffDisplayWhenIdle = true;
+          LockBeforeTurnOffDisplay = true;
         };
       };
     };
