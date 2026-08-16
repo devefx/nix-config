@@ -4,15 +4,15 @@
   osConfig,
   ...
 }:
-# User-level Plasma / KDE apps. The Plasma desktop itself (SDDM,
+# User-level Plasma / KDE apps. The Plasma desktop itself (login manager,
 # compositor, pipewire, ...) is installed system-wide via
 # `modules.desktop.plasma.enable` in modules/nixos/desktop/plasma.nix.
 #
 # Gated on the same system option so headless / non-KDE hosts don't pull
 # the KDE app closure into their home profile.
 lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
-  # SDDM and Plasma read the user picture from ~/.face.icon; KDE's user
-  # manager also tracks ~/.face.
+  # Plasma and the login manager read the user picture from ~/.face.icon;
+  # KDE's user manager also tracks ~/.face.
   home.file = {
     ".face".source = ../../../assets/avatars/yoke.jpg;
     ".face.icon".source = ../../../assets/avatars/yoke.jpg;

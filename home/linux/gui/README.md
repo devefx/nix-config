@@ -48,7 +48,7 @@ Linux-specific user-level GUI configuration that doesn't fit in cross-platform `
 | Should live where        | Examples                                                                               |
 | ------------------------ | -------------------------------------------------------------------------------------- |
 | `home/base/gui/`         | kitty, VS Code, Obsidian — apps with good home-manager support on both Linux and macOS |
-| `modules/nixos/desktop/` | KDE's system service, SDDM, pipewire — anything requiring root                         |
+| `modules/nixos/desktop/` | KDE's system service, Plasma Login Manager, pipewire — anything requiring root        |
 
 ## Adding a desktop environment's user bits
 

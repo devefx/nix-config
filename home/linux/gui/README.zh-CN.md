@@ -47,7 +47,7 @@ Linux 专属的用户级 GUI 配置,跨平台的 `home/base/gui/` 装不下的:
 | 应该去哪里               | 举例                                                                  |
 | ------------------------ | --------------------------------------------------------------------- |
 | `home/base/gui/`         | VS Code、Obsidian —— 在 Linux 和 macOS 上 home-manager 都支持好的应用 |
-| `modules/nixos/desktop/` | KDE 的系统服务、SDDM、pipewire —— 需要 root 的东西                    |
+| `modules/nixos/desktop/` | KDE 的系统服务、Plasma Login Manager、pipewire —— 需要 root 的东西     |
 
 ## 新增桌面环境的用户侧
 

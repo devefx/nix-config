@@ -10,7 +10,7 @@ what they want.
 | File          | Option                          | What it enables                                                                 |
 | ------------- | ------------------------------- | ------------------------------------------------------------------------------- |
 | `default.nix` | —                               | `scanPaths ./.` — auto-imports everything here                                  |
-| `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6 (SDDM, Plasma service, pipewire, printing, graphics, system fonts) |
+| `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6 (Plasma Login Manager, Plasma service, pipewire, printing, graphics, system fonts) |
 
 ## How a host uses it
 

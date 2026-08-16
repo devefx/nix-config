@@ -9,7 +9,7 @@
 | 文件          | 选项                            | 启用的内容                                                         |
 | ------------- | ------------------------------- | ------------------------------------------------------------------ |
 | `default.nix` | —                               | `scanPaths ./.` —— 自动扫描目录里所有文件                          |
-| `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6(SDDM、Plasma service、pipewire、打印、显卡、系统字体) |
+| `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6(Plasma Login Manager、Plasma service、pipewire、打印、显卡、系统字体) |
 
 ## 主机如何使用
 

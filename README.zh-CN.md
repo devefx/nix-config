@@ -41,7 +41,7 @@ KDE Plasma 6 按 options 开关模式接入,**系统级 / 用户级** 清晰分�
 
 | 层级   | 位置                               | 内容                                                     |
 | ------ | ---------------------------------- | -------------------------------------------------------- |
-| 系统级 | `modules/nixos/desktop/plasma.nix` | SDDM、Plasma service、pipewire、显卡驱动、打印、系统字体 |
+| 系统级 | `modules/nixos/desktop/plasma.nix` | Plasma Login Manager、Plasma service、pipewire、显卡驱动、打印、系统字体 |
 | 用户级 | `home/linux/gui/plasma.nix`        | KDE 应用(kate / ark / gwenview / okular / spectacle …)   |
 | 用户级 | `home/linux/gui/gtk.nix`           | GTK 鼠标/字体主题,让 GTK 应用在 Plasma 里视觉统一        |
 

@@ -40,8 +40,8 @@ hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
 
 KDE Plasma 6 is wired via the options pattern:
 
-- System-level: `modules/nixos/desktop/plasma.nix` — SDDM, Plasma service, pipewire, graphics,
-  printing, system fonts. Toggled by `modules.desktop.plasma.enable = true;` in the host.
+- System-level: `modules/nixos/desktop/plasma.nix` — Plasma Login Manager, Plasma service, pipewire,
+  graphics, printing, system fonts. Toggled by `modules.desktop.plasma.enable = true;` in the host.
 - User-level: `home/linux/gui/plasma.nix` — KDE apps (kate, ark, gwenview, okular, spectacle, ...)
   installed per-user.
 - Theme: `home/linux/gui/gtk.nix` — GTK cursor/font so GTK apps blend with Plasma.

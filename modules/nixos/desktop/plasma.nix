@@ -18,10 +18,8 @@ in
     # XWayland needs xserver even though Plasma 6 runs on pure Wayland.
     services.xserver.enable = true;
 
-    services.displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-    };
+    # KDE's native login manager — replaces SDDM as the default login screen.
+    services.displayManager.plasma-login-manager.enable = true;
 
     services.desktopManager.plasma6.enable = true;
 
@@ -48,8 +46,8 @@ in
 
     services.printing.enable = true;
 
-    # SDDM and Plasma prefer the AccountsService icon over ~/.face.icon.
-    # Refresh it when the system switches, not on every boot.
+    # The login manager and Plasma prefer the AccountsService icon over
+    # ~/.face.icon. Refresh it when the system switches, not on every boot.
     system.activationScripts.userAvatar.text = ''
       install -D -m 0644 ${../../../assets/avatars/yoke.jpg} /var/lib/AccountsService/icons/yoke
     '';
