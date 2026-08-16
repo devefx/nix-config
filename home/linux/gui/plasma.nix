@@ -11,6 +11,13 @@
 # Gated on the same system option so headless / non-KDE hosts don't pull
 # the KDE app closure into their home profile.
 lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
+  # SDDM and Plasma read the user picture from ~/.face.icon; KDE's user
+  # manager also tracks ~/.face.
+  home.file = {
+    ".face".source = ../../../assets/avatars/yoke.jpg;
+    ".face.icon".source = ../../../assets/avatars/yoke.jpg;
+  };
+
   # Declarative Plasma settings. The panel below mirrors the current layout
   # but intentionally omits the "minimize all windows" applet.
   programs.plasma = {

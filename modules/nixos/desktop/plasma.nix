@@ -47,5 +47,11 @@ in
     security.rtkit.enable = true;
 
     services.printing.enable = true;
+
+    # SDDM and Plasma prefer the AccountsService icon over ~/.face.icon.
+    # Refresh it when the system switches, not on every boot.
+    system.activationScripts.userAvatar.text = ''
+      install -D -m 0644 ${../../../assets/avatars/yoke.jpg} /var/lib/AccountsService/icons/yoke
+    '';
   };
 }
