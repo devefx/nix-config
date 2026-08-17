@@ -18,4 +18,5 @@
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
   modules.eden.enable = true;
+  modules.remmina.enable = true;
 }
