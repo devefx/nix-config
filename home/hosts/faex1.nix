@@ -17,4 +17,5 @@
   modules.ime.enable = true;
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
+  modules.eden.enable = true;
 }
