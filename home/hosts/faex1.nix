@@ -16,4 +16,5 @@
   modules.qq.enable = true;
   modules.ime.enable = true;
   modules.feishin.enable = true;
+  modules.tsukimi.enable = true;
 }
