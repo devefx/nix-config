@@ -3,9 +3,11 @@
     ../linux/gui.nix
   ];
 
+  modules.cpp.enable = true;
   modules.aiAgents.enable = true;
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;
+  modules.godotDev.enable = true;
   modules.llamaCpp.enable = true;
   modules.comfyui.enable = true;
   modules.obs.enable = true;
