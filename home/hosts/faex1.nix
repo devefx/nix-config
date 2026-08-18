@@ -8,6 +8,9 @@
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;
   modules.godotDev.enable = true;
+  modules.godotAndroid.enable = true;
+  modules.godotWindows.enable = true;
+  modules.godotWeb.enable = true;
   modules.llamaCpp.enable = true;
   modules.comfyui.enable = true;
   modules.obs.enable = true;
