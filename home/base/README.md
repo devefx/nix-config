@@ -11,7 +11,7 @@ reused from `home/linux/` and (future) `home/darwin/` entry points.
 home/base/
 ├── home.nix     home-manager state (stateVersion, username) — always imported
 ├── core/        daily baseline (any host): git, starship, direnv, eza, bat, tmux, btop, yazi, cli-tools
-├── tui/         dev workstation extras (reserved — add pgcli / k9s / tokei / ... here)
+├── tui/         dev workstation extras (Rust toolchain opt-in; add pgcli / k9s / tokei / ... here)
 └── gui/         cross-platform GUI: kitty, media (ffmpeg/viu/imagemagick), dev-tools (network), ai-agents (opt-in)
 ```
 

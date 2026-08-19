@@ -4,6 +4,7 @@
   ];
 
   modules.cpp.enable = true;
+  modules.rust.enable = true;
   modules.aiAgents.enable = true;
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;

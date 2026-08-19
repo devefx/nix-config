@@ -18,7 +18,7 @@ modules/nixos/desktop/        NixOS 桌面组(opt-in:modules.desktop.<de>.enable
 modules/nixos/server/         NixOS 服务器模块(按主机显式导入)
 home/base/home.nix            home-manager 状态(stateVersion、用户名)
 home/base/core/               日常基线:git、ssh、starship、direnv、eza、bat、tmux、btop、yazi、CLI 小工具
-home/base/tui/                工作站 dev 增强(预留 —— 未来加 pgcli / k9s / tokei / ...)
+home/base/tui/                工作站 dev 增强(Rust 工具链 opt-in;未来加 pgcli / k9s / tokei / ...)
 home/base/gui/                跨平台 GUI:kitty、media(ffmpeg / imagemagick 等)、dev-tools(网络调试)、ai-agents(opt-in)
 home/linux/core.nix           Linux 入口:纯 CLI
 home/linux/tui.nix            Linux 入口:core + TUI 工具
@@ -57,7 +57,7 @@ KDE Plasma 6 按 options 开关模式接入,**系统级 / 用户级** 清晰分�
 
 ```
 core.nix    日常基线(任何主机):git、shell、tmux、btop、direnv 等
-tui.nix     core + base/tui:工作站 dev 增强(预留 —— 当前为空)
+tui.nix     core + base/tui:工作站 dev 增强(Rust 工具链 opt-in)
 gui.nix     tui + linux/gui:KDE 应用、GTK 主题
 ```
 

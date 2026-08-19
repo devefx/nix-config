@@ -19,7 +19,7 @@ modules/nixos/desktop/        NixOS desktop group (opt-in: modules.desktop.<de>.
 modules/nixos/server/         NixOS server modules (opt-in per host)
 home/base/home.nix            home-manager state (stateVersion, username)
 home/base/core/               daily baseline: git, ssh, starship, direnv, eza, bat, tmux, btop, yazi, cli tools
-home/base/tui/                dev workstation extras (reserved — add pgcli / k9s / tokei / ... here)
+home/base/tui/                dev workstation extras (Rust toolchain opt-in; add pgcli / k9s / tokei / ... here)
 home/base/gui/                cross-platform GUI: kitty, media (ffmpeg/imagemagick/...), dev-tools (network), ai-agents (opt-in)
 home/linux/core.nix           Linux entry: CLI-only
 home/linux/tui.nix            Linux entry: core + TUI tools
@@ -56,7 +56,7 @@ via `modules.desktop.<name>.enable = true;`.
 
 ```
 core.nix    daily baseline (any host): git, shell, tmux, btop, direnv, ...
-tui.nix     core + base/tui: dev workstation extras (reserved — empty for now)
+tui.nix     core + base/tui: dev workstation extras (Rust toolchain opt-in)
 gui.nix     tui + linux/gui: KDE apps, GTK theme
 ```
 
