@@ -161,11 +161,11 @@
     "godot-yoke": {
       "flake": false,
       "locked": {
-        "lastModified": 1786486156,
-        "narHash": "sha256-1yI8XN9x0oo25c2xeWY2cvF4ae1lCV7ceqP9HnCplsE=",
+        "lastModified": 1787119681,
+        "narHash": "sha256-OoKWDC0tjqW8Kbn/WpWT6qpTgKzxeZbV/Re1G0iEgzY=",
         "owner": "MHGameDevs",
         "repo": "godot",
-        "rev": "b33633229381d0379e21e74986162e0e929120af",
+        "rev": "672f7d52bb1de4c31f871a92b1b178d3e6936111",
         "type": "github"
       },
       "original": {
