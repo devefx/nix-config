@@ -5,6 +5,7 @@
 # - Firefox's flatpak manifest: https://hg.mozilla.org/mozilla-central/file/tip/taskcluster/docker/firefox-flatpak/runme.sh#l151
 {
   lib,
+  pkgs,
   firefox,
   mkNixPak,
   buildEnv,
@@ -14,6 +15,31 @@
 
 let
   appId = "org.mozilla.firefox";
+
+  # Ship the mkcert root CA inside the sandboxed Firefox install dir and have
+  # the enterprise policy install it into every profile, so the local HTTPS
+  # certificates stay trusted after profile resets or re-provisioning.
+  firefoxWithCa = pkgs.symlinkJoin {
+    name = "firefox-with-mkcert-ca";
+    paths = [ firefox.unwrapped ];
+    meta = firefox.unwrapped.meta;
+    passthru = {
+      inherit (firefox.unwrapped) gtk3;
+      applicationName = firefox.unwrapped.applicationName or "firefox";
+      binaryName = firefox.unwrapped.binaryName or "firefox";
+    };
+    postBuild = ''
+      mkdir -p "$out/lib/firefox/certs"
+      cp ${../../certs/https/mkcert-rootCA.pem} "$out/lib/firefox/certs/mkcert-rootCA.pem"
+    '';
+  };
+
+  firefoxWithPolicy = pkgs.wrapFirefox firefoxWithCa {
+    extraPolicies.Certificates.Install = [
+      "/app/etc/firefox/certs/mkcert-rootCA.pem"
+    ];
+  };
+
   wrapped = mkNixPak {
     config =
       {
@@ -23,7 +49,7 @@ let
       }:
       {
         app = {
-          package = firefox;
+          package = firefoxWithPolicy;
           binPath = "bin/firefox";
         };
         flatpak.appId = appId;
