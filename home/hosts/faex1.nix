@@ -25,4 +25,5 @@
   modules.tsukimi.enable = true;
   modules.eden.enable = true;
   modules.remmina.enable = true;
+  modules.emby.enable = true;
 }
