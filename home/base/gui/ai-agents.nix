@@ -5,11 +5,12 @@
   config,
   ...
 }:
-# AI coding agent tooling — Codex CLI, Codex/ChatGPT desktop, plus the
-# cc-haha desktop workspace.
+# AI coding agent tooling — Codex CLI, DeepSeek Harness, Codex/ChatGPT
+# desktop, plus the cc-haha desktop workspace.
 #
-# Codex comes from the `llm-agents.nix` flake input (pinned separately
-# from nixpkgs so each vendor's supported version lands intact).
+# Codex and DeepSeek Harness (`dsh`) come from the `llm-agents.nix` flake
+# input (pinned separately from nixpkgs so each vendor's supported version
+# lands intact).
 # Codex desktop comes from pkgs/codex-desktop, which extracts OpenAI's
 # official Linux `.deb` and runs it through an FHS environment for NixOS.
 # cc-haha (Claude Code Haha) is a desktop Claude Code workspace with no
@@ -65,12 +66,13 @@ let
 in
 {
   options.modules.aiAgents = {
-    enable = mkEnableOption "AI coding agent tooling (Codex CLI / desktop / cc-haha)";
+    enable = mkEnableOption "AI coding agent tooling (Codex CLI / DeepSeek Harness / desktop / cc-haha)";
   };
 
   config = mkIf cfg.enable {
     home.packages = [
       llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex
+      llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.dsh
       codex-desktop
     ]
     ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ];
