@@ -83,11 +83,17 @@ in
       ];
 
       env = {
+        # GTK's file chooser aborts if the org.gtk.Settings.FileChooser
+        # schema is missing, so expose the schema dirs in XDG_DATA_DIRS.
         XDG_DATA_DIRS = lib.mkForce (
-          lib.makeSearchPath "share" [
-            iconTheme
-            cursorTheme
-            pkgs.shared-mime-info
+          lib.concatStringsSep ":" [
+            "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}"
+            "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+            (lib.makeSearchPath "share" [
+              iconTheme
+              cursorTheme
+              pkgs.shared-mime-info
+            ])
           ]
         );
         XCURSOR_PATH = lib.mkForce (

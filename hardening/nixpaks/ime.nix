@@ -195,6 +195,9 @@ let
             sloth.xdgMusicDir
             sloth.xdgVideosDir
             sloth.xdgPicturesDir
+            # Shared SMB downloads target used by Save As; non-XDG paths are
+            # invisible to the sandbox unless explicitly bound read-write.
+            "/mnt/downloads"
           ];
           bind.ro = [
             [
