@@ -19,6 +19,8 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJtGB+2LpNX/QbowSrJJyIFavclLFDjIp/xszX70k/Jd yoke@macbook"
     # Windows 11 workstation — daily SSH client for faex1.
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGXn5WTkRNtsD9UJEG42Dyab4KyQY1rT0fXO/FKU3zeL yoke@win11"
+    # PVE server — root key for deployment.
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBAR91YbSOwL0HozPGzAm759DlFSdL+branjpQH6CWyD pve-root-key"
   ];
 
   # Backup keys for disaster recovery (main key lost / device broken).
