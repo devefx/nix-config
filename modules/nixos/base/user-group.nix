@@ -14,6 +14,8 @@
       "video"
       "render"
       "input"
+      # Virtual input devices used by Sunshine / Moonlight streaming.
+      "uinput"
     ];
     initialHashedPassword = myvars.initialHashedPassword;
     openssh.authorizedKeys.keys = myvars.mainSshAuthorizedKeys ++ myvars.secondaryAuthorizedKeys;
