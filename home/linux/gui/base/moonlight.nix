@@ -19,9 +19,9 @@ in
 
   config = mkIf cfg.enable {
     home.packages = [
-      # ffmpeg 9 removed AVVulkanDeviceContext decode-queue fields that
-      # moonlight-qt 6.1.0 still uses, so build against ffmpeg 8.
-      (pkgs.moonlight-qt.override { ffmpeg = pkgs.ffmpeg_8; })
+      # nixpkgs builds moonlight-qt 6.1.0 against ffmpeg_8, which it still
+      # requires after ffmpeg 9 removed AVVulkanDeviceContext decode fields.
+      pkgs.moonlight-qt
     ];
   };
 }

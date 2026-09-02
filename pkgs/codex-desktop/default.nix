@@ -7,11 +7,11 @@
 # dpkg state directly, so this wrapper extracts the official .deb and runs it
 # inside an FHS environment with the Electron runtime libraries it needs.
 let
-  version = "26.810.41047";
+  version = "26.825.51511";
 
   src = pkgs.fetchurl {
     url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb";
-    sha256 = "sha256-eHFfo80Tb/ZwcNqnaBmtrsxbQumYUVWWWWRdzh+/KvM=";
+    sha256 = "sha256-NVSwAixs+1EzJvQ/0R9xiDWncIasTXyi/z67ui1Mf0U=";
   };
 
   chatgpt-files = pkgs.stdenv.mkDerivation {

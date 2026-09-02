@@ -24,9 +24,22 @@ let
     paths = [ firefox.unwrapped ];
     meta = firefox.unwrapped.meta;
     passthru = {
-      inherit (firefox.unwrapped) gtk3;
-      applicationName = firefox.unwrapped.applicationName or "firefox";
-      binaryName = firefox.unwrapped.binaryName or "firefox";
+      # symlinkJoin drops Firefox's passthru flags; wrapFirefox needs these
+      # to add ffmpeg/pipewire/audio libraries to LD_LIBRARY_PATH.
+      inherit (firefox.unwrapped)
+        gtk3
+        applicationName
+        binaryName
+        version
+        ffmpegSupport
+        gssSupport
+        alsaSupport
+        pipewireSupport
+        sndioSupport
+        jackSupport
+        requireSigning
+        allowAddonSideload
+        ;
     };
     postBuild = ''
       mkdir -p "$out/lib/firefox/certs"

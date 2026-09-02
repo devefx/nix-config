@@ -67,6 +67,11 @@ in
         "org.freedesktop.portal.Fcitx.*" = "talk";
         "org.freedesktop.portal.IBus" = "talk";
         "org.freedesktop.portal.IBus.*" = "talk";
+
+        # --- Fcitx5 GTK/Qt IM modules talk to the daemon directly. ---
+        "org.fcitx.Fcitx5" = "talk";
+        "org.fcitx.Fcitx-0" = "talk";
+        "org.fcitx.Fcitx" = "talk";
       };
       # '--call' rules permit specific method calls on D-Bus interfaces.
       rules.call = {
@@ -86,6 +91,9 @@ in
         "org.freedesktop.portal.Fcitx.*" = [ "*" ];
         "org.freedesktop.portal.IBus" = [ "*" ];
         "org.freedesktop.portal.IBus.*" = [ "*" ];
+        "org.fcitx.Fcitx5" = [ "*" ];
+        "org.fcitx.Fcitx-0" = [ "*" ];
+        "org.fcitx.Fcitx" = [ "*" ];
         "org.freedesktop.portal.Notification" = [ "*" ];
         "org.freedesktop.portal.OpenURI" = [ "*" ];
         "org.freedesktop.portal.OpenURI.OpenFile" = [ "*" ];

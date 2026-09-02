@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   qq,
   buildEnv,
   mkNixPak,
@@ -8,6 +9,24 @@
 }:
 let
   appId = "com.qq.QQ";
+
+  # GTK needs an immodules cache to find fcitx5's IM module inside the sandbox.
+  gtk3Cache =
+    pkgs.runCommand "gtk3-immodule.cache"
+      {
+        preferLocalBuild = true;
+        allowSubstitutes = false;
+        nativeBuildInputs = [
+          pkgs.gtk3
+          pkgs.fcitx5-gtk
+        ];
+      }
+      ''
+        mkdir -p $out/etc/gtk-3.0
+        GTK_PATH=${pkgs.fcitx5-gtk}/lib/gtk-3.0 \
+          ${pkgs.gtk3.dev}/bin/gtk-query-immodules-3.0 > $out/etc/gtk-3.0/immodules.cache
+      '';
+
   wrapped = mkNixPak {
     config =
       { sloth, ... }:
@@ -40,7 +59,14 @@ let
             pipewire = true;
           };
           env = {
+            # QQ is Electron running under XWayland; fcitx5 needs these
+            # legacy IM variables to attach to the input context.
             QT_QPA_PLATFORM = "xcb";
+            QT_IM_MODULE = "fcitx";
+            GTK_IM_MODULE = "fcitx";
+            GTK_PATH = "${pkgs.fcitx5-gtk}/lib/gtk-3.0";
+            GTK_IM_MODULE_FILE = "${gtk3Cache}/etc/gtk-3.0/immodules.cache";
+            XMODIFIERS = "@im=fcitx";
           };
         };
       };
