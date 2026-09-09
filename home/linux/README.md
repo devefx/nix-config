@@ -19,7 +19,7 @@ home/linux/
     │   ├── chrome.nix    Google Chrome (unfree; has its own built-in sandbox)
     │   ├── fcitx5.nix    Chinese input method (Pinyin / Shuangpin / Wubi)
     │   └── gaming.nix    Linux game launcher (Lutris / Wine / Proton / ...)
-    └── plasma.nix   Plasma / KDE user apps: kate, ark, gwenview, ...
+    └── plasma.nix   Plasma / desktop user apps: kate, ark, qimgv, ...
 ```
 
 **No `default.nix` at this level.** Hosts pick one of the three `.nix` entries explicitly.

@@ -18,7 +18,7 @@ home/linux/gui/
 │   ├── cc-switch.nix    CC Switch —— AI 供应商配置管理(nixpkgs 原生构建)
 │   ├── feishin.nix       Feishin —— 自托管音乐播放器(Jellyfin)
 │   └── lutris.nix      Linux 游戏启动器(Wine / Proton / GOG 等)
-└── plasma.nix          Plasma / KDE 用户应用(kate、ark、gwenview ...)
+└── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
 ```
 
 ## DE 无关(`base/`) vs DE 专属(同级其他文件)

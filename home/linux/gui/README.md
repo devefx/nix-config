@@ -18,7 +18,7 @@ home/linux/gui/
 │   ├── cc-switch.nix    CC Switch — AI provider config manager (native nixpkgs build)
 │   ├── feishin.nix       Feishin — self-hosted music player (Jellyfin)
 │   └── lutris.nix      Linux game launcher (Wine / Proton / GOG / ...)
-└── plasma.nix          Plasma / KDE user apps (kate, ark, gwenview, ...)
+└── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
 ```
 
 ## DE-agnostic (`base/`) vs DE-specific (siblings)

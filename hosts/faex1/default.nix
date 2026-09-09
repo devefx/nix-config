@@ -107,7 +107,8 @@ in
   };
 
   # Raise the Radeon 8060S GPU GTT cap from the default ~55 GiB to 96 GiB.
-  # 96 GiB = 25165824 4KiB pages. Requires a reboot to take effect.
+  # With UMA/VRAM set to 8 GiB in BIOS, the GPU sees 8 + 96 = 104 GiB of
+  # unified memory. 96 GiB = 25165824 4KiB pages. Requires a reboot.
   boot.extraModprobeConfig = ''
     options ttm pages_limit=25165824
     options ttm page_pool_size=25165824

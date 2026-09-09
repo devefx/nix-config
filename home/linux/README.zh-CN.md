@@ -19,7 +19,7 @@ home/linux/
     │   ├── chrome.nix    Google Chrome(unfree,有自己内置沙箱)
     │   ├── fcitx5.nix    中文输入法(拼音 / 双拼 / 五笔)
     │   └── gaming.nix    Linux 游戏启动器(Lutris / Wine / Proton 等)
-    └── plasma.nix   Plasma / KDE 用户应用:kate、ark、gwenview 等
+    └── plasma.nix   Plasma / 桌面用户应用:kate、ark、qimgv 等
 ```
 
 **此层没有 `default.nix`。** 主机必须从三个 `.nix` 入口里**显式**选一个。

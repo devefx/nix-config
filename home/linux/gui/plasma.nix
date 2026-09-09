@@ -143,11 +143,11 @@ lib.mkIf (osConfig.modules.desktop.plasma.enable or false) {
       partitionmanager # disks
       filelight # disk usage viewer
       kcalc # calculator
-      gwenview # image viewer
       okular # PDF / document viewer
       spectacle # screenshot tool
     ]
     ++ [
+      pkgs.qimgv # image viewer
       pkgs.haruna
       pkgs.nvtopPackages.amd # GPU monitoring for AMD
     ];
