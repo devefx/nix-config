@@ -32,8 +32,8 @@ let
     sha256 = "sha256-Te7Mr3uZATdT1RUleHdY9DN7gUtafwPHDtWN8zKxs0Q=";
   };
 
-  cc-haha = pkgs.appimageTools.wrapType2 {
-    pname = "cc-haha";
+  cc-haha-appimage = pkgs.appimageTools.wrapType2 {
+    pname = "cc-haha-appimage";
     version = "0.5.3";
     src = pkgs.fetchurl {
       url = "https://github.com/NanmiCoder/cc-haha/releases/download/v0.5.3/Claude-Code-Haha-0.5.3-linux-x86_64.AppImage";
@@ -45,10 +45,39 @@ let
     '';
   };
 
+  # The desktop app is single-instance but does not reliably raise its
+  # existing window. Focus the niri window first; only start a new process
+  # when no window exists.
+  cc-haha = pkgs.writeShellApplication {
+    name = "cc-haha";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.niri
+    ];
+    text = ''
+      if command -v niri >/dev/null 2>&1; then
+        window_id="$(
+          niri msg --json windows 2>/dev/null |
+            jq -r '[.[] | select(
+              (.app_id // "") == "claude-code-desktop" or
+              ((.title // "") | ascii_downcase | contains("claude code haha"))
+            )] | first | .id // empty' 2>/dev/null
+        )" || true
+
+        if [[ -n "$window_id" ]] && niri msg action focus-window --id "$window_id" >/dev/null 2>&1; then
+          exit 0
+        fi
+      fi
+
+      exec ${lib.getExe cc-haha-appimage} "$@"
+    '';
+  };
+
   # Menu entry + binary, so Plasma picks it up as a desktop app.
   cc-haha-desktop = pkgs.buildEnv {
     name = "cc-haha-desktop";
     paths = [
+      cc-haha-appimage
       cc-haha
       (pkgs.makeDesktopItem {
         name = "cc-haha";
@@ -56,9 +85,9 @@ let
         exec = "cc-haha";
         desktopName = "Claude Code Haha";
         comment = "Desktop Claude Code workspace";
+        startupWMClass = "claude-code-desktop";
         categories = [
           "Development"
-          "Utility"
         ];
       })
     ];

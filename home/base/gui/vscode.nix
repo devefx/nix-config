@@ -36,6 +36,34 @@ in
     ];
   };
 
+  # Noctalia maps the first matching category to a launcher group, and
+  # Utility takes precedence over Development. Override VS Code's desktop
+  # entry without Utility so it appears under Development with Godot.
+  xdg.desktopEntries.code = {
+    name = "Visual Studio Code";
+    genericName = "Text Editor";
+    comment = "Code Editing. Redefined.";
+    exec = "code %F";
+    icon = "vscode";
+    categories = [
+      "Development"
+      "IDE"
+    ];
+    mimeType = [
+      "application/x-code-workspace"
+      "text/plain"
+      "inode/directory"
+    ];
+    startupNotify = true;
+    settings.Keywords = "vscode";
+    settings.StartupWMClass = "Code";
+    actions.new-empty-window = {
+      name = "New Empty Window";
+      exec = "code --new-window %F";
+      icon = "vscode";
+    };
+  };
+
   # Remove the marketplace copy installed from the Extensions view, then
   # force VSCode to regenerate extensions.json from a full directory scan.
   # The home-manager immutable-extension hook only reruns when the immutable

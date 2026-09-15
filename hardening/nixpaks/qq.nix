@@ -71,12 +71,19 @@ let
         };
       };
   };
-  exePath = lib.getExe wrapped.config.script;
+  # niri's XWayland Satellite does not export XAUTHORITY, while the nixpak
+  # launcher requires it whenever the X11 socket is enabled. Keep the fallback
+  # scoped to QQ so Plasma sessions with a real Xauthority still use theirs.
+  qqWrapper = pkgs.writeShellScriptBin "qq" ''
+    export XAUTHORITY="''${XAUTHORITY:-$HOME/.Xauthority}"
+    exec ${wrapped.config.script}/bin/qq "$@"
+  '';
+  exePath = lib.getExe qqWrapper;
 in
 buildEnv {
   inherit (wrapped.config.script) name meta passthru;
   paths = [
-    wrapped.config.script
+    qqWrapper
     (makeDesktopItem {
       name = appId;
       desktopName = "QQ";

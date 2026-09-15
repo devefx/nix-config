@@ -7,11 +7,11 @@
 # dpkg state directly, so this wrapper extracts the official .deb and runs it
 # inside an FHS environment with the Electron runtime libraries it needs.
 let
-  version = "26.825.51511";
+  version = "26.908.40834";
 
   src = pkgs.fetchurl {
     url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb";
-    sha256 = "sha256-NVSwAixs+1EzJvQ/0R9xiDWncIasTXyi/z67ui1Mf0U=";
+    sha256 = "sha256-2je457zvquoBnEeMrL5sc+4d3RXg4euzx+8KQt2BisI=";
   };
 
   chatgpt-files = pkgs.stdenv.mkDerivation {
@@ -94,15 +94,37 @@ let
     runScript = "chatgpt";
   };
 
+  # The desktop app is single-instance. A second launch exits with
+  # "Opening in existing browser session" but does not always raise the
+  # existing window, so focus it through niri before starting a new process.
+  chatgptWrapper = pkgs.writeShellApplication {
+    name = "chatgpt";
+    runtimeInputs = [ pkgs.jq ];
+    text = ''
+      if command -v niri >/dev/null 2>&1; then
+        window_id="$(
+          niri msg --json windows 2>/dev/null |
+            jq -r '[.[] | select((.app_id // "") | ascii_downcase | contains("chatgpt"))] | first | .id // empty' 2>/dev/null
+        )" || true
+
+        if [[ -n "$window_id" ]] && niri msg action focus-window --id "$window_id" >/dev/null 2>&1; then
+          exit 0
+        fi
+      fi
+
+      exec ${fhs}/bin/chatgpt "$@"
+    '';
+  };
+
   desktopItem = pkgs.makeDesktopItem {
     name = "chatgpt";
     desktopName = "ChatGPT";
     comment = "ChatGPT by OpenAI";
     icon = "chatgpt";
-    exec = "chatgpt %U";
+    exec = "${lib.getExe chatgptWrapper} %U";
+    startupWMClass = "Chatgpt";
     categories = [
       "Development"
-      "Utility"
     ];
     mimeTypes = [
       "x-scheme-handler/codex"
@@ -118,7 +140,7 @@ in
 pkgs.buildEnv {
   name = "chatgpt-desktop";
   paths = [
-    fhs
+    chatgptWrapper
     desktopItem
     icon
   ];

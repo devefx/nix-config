@@ -46,7 +46,9 @@ appimageTools.wrapAppImage {
     mkdir -p $out/share/pixmaps
     cp ${appimageContents}/wechat.png $out/share/pixmaps/
 
-    substituteInPlace $out/share/applications/wechat.desktop --replace-fail AppRun wechat
+    substituteInPlace $out/share/applications/wechat.desktop \
+      --replace-fail AppRun wechat \
+      --replace-fail 'Categories=Utility;' 'Categories=InstantMessaging;Network;'
   '';
 
   # Redirect WeChat's data under XDG_DOCUMENTS_DIR/WeChat_Data and jail
