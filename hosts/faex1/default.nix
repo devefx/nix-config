@@ -129,6 +129,51 @@ in
   # window to keep the screen off until a real wake event.
   environment.sessionVariables.KWIN_DPMS_WORKAROUND_TIMEOUT = "100000";
 
+  # nixpkgs 26.11 has PyTorch 2.13 against AOTriton 0.11.1b, which does not
+  # compile. Use ROCm's matching 0.12b binaries for the gfx1151 Strix Halo GPU
+  # and patch PyTorch's configure-time helper shebang.
+  nixpkgs.overlays = [
+    (
+      _final: prev:
+      let
+        aotriton = prev.callPackage ../../pkgs/aotriton-0.12b { };
+        rocmPackages = prev.rocmPackages.gfx1151.overrideScope (
+          _rocmFinal: _rocmPrev: {
+            inherit aotriton;
+          }
+        );
+        patchTorchAttrs =
+          torch:
+          torch.overridePythonAttrs (old: {
+            postPatch = (old.postPatch or "") + ''
+              patchShebangs --build aten/src/ATen/native/transformers/hip/flash_attn/ck/add_make_kernel_pt.sh
+            '';
+          });
+      in
+      {
+        inherit rocmPackages;
+        python3Packages = prev.python3Packages.overrideScope (
+          _pythonFinal: pythonPrev: {
+            torch = patchTorchAttrs (
+              pythonPrev.torch.override {
+                inherit rocmPackages;
+              }
+            );
+            torchWithRocm = patchTorchAttrs (
+              pythonPrev.torch.override {
+                inherit rocmPackages;
+                cudaSupport = false;
+                rocmSupport = true;
+                triton = pythonPrev.triton-no-cuda;
+              }
+            );
+          }
+        );
+      }
+    )
+  ];
+  nixpkgs.config.problems.handlers."composable_kernel-gfx1151".broken = "ignore";
+
   boot.supportedFilesystems = [
     "ntfs"
     "cifs"

@@ -9,11 +9,7 @@
 # ComfyUI pinned to the same source/version as nixpkgs, but with PyTorch
 # built for AMD ROCm instead of the default CPU-only torch.
 let
-  # Use a clean nixpkgs instance so torchWithRocm keeps its cached store
-  # path; overriding through the home-manager package scope would rebuild it.
-  torchRocm = (import pkgs.path {
-    inherit (pkgs.stdenv.hostPlatform) system;
-  }).python3Packages.torchWithRocm;
+  torchRocm = pkgs.python3Packages.torchWithRocm;
 
   appDependencies =
     ps:
