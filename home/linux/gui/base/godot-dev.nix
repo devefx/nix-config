@@ -17,8 +17,8 @@
 #   - OpenGL (mesa) + Vulkan (headers / glslang) tooling
 #
 # On NixOS headers live in the nix store, not /usr/include, so
-# CPATH / LIBRARY_PATH / PKG_CONFIG_PATH are injected to let scons
-# find them. Run e.g.: `scons platform=linuxbsd target=editor`.
+# `godot-dev-env` injects CPATH / LIBRARY_PATH / PKG_CONFIG_PATH for scons.
+# Run e.g.: `godot-dev-env scons platform=linuxbsd target=editor`.
 #
 # Gated behind `modules.godotDev.enable` — enable in `home/hosts/<name>.nix`.
 let
@@ -91,6 +91,29 @@ let
     pathsToLink = [ "/lib" ];
     ignoreCollisions = true;
   };
+
+  toolchainEnv = {
+    CPATH = concatStringsSep ":" (map (p: "${p}/include") devLibs);
+    LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") devLibs);
+    PKG_CONFIG_PATH = concatStringsSep ":" (map (p: "${p}/lib/pkgconfig") devLibs);
+  };
+
+  # Scope the build and runtime environment to these wrappers instead of
+  # polluting every process in the desktop session.
+  godotDevEnv = pkgs.writeShellScriptBin "godot-dev-env" ''
+    export CPATH="${toolchainEnv.CPATH}"
+    export LIBRARY_PATH="${toolchainEnv.LIBRARY_PATH}"
+    export PKG_CONFIG_PATH="${toolchainEnv.PKG_CONFIG_PATH}"
+    export LD_LIBRARY_PATH="${godotRunLibs}/lib"
+    exec "$@"
+  '';
+
+  # VSCode launch configs can use this as the program and pass the real Godot
+  # binary in args.
+  godotDevRun = pkgs.writeShellScriptBin "godot-dev-run" ''
+    export LD_LIBRARY_PATH="${godotRunLibs}/lib"
+    exec "$@"
+  '';
 in
 {
   options.modules.godotDev = {
@@ -110,30 +133,19 @@ in
         glslang # shader compiler (Vulkan)
         vulkan-loader # Vulkan runtime
         wayland-scanner # generates Wayland protocol bindings
+        godotDevEnv
+        godotDevRun
       ]
       ++ devLibs;
 
-    # Stable home-directory lib bundle for tools that do not inherit the
-    # login session (e.g. VSCode's debug adapter) but still need to launch
-    # Godot with LD_LIBRARY_PATH.
-    home.file.".config/godot-dev/lib".source = "${godotRunLibs}/lib";
-
-    # Some terminal setups skip /etc/profile (e.g. interactive non-login
-    # shells), so also make the runtime lib path available in ~/.bashrc.
-    home.activation.godotLdLibraryPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # Remove the old global path injected by previous generations. Keeping
+    # libudev from Godot's runtime bundle on the global search path breaks
+    # unrelated desktop tools such as NetworkManager's nmcli.
+    home.activation.removeGodotLdLibraryPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       bashrc="${config.home.homeDirectory}/.bashrc"
-      touch "$bashrc"
-      if ! grep -q 'godot-dev/lib' "$bashrc"; then
-        printf '\n# Godot dev runtime libraries\nexport LD_LIBRARY_PATH="%s/.config/godot-dev/lib''${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"\n' "${config.home.homeDirectory}" >> "$bashrc"
+      if [ -f "$bashrc" ] && grep -q '^# Godot dev runtime libraries$' "$bashrc"; then
+        sed -i '/^# Godot dev runtime libraries$/,+1d' "$bashrc"
       fi
     '';
-
-    # Point the toolchain at nix-store include/lib paths.
-    home.sessionVariables = {
-      CPATH = concatStringsSep ":" (map (p: "${p}/include") devLibs);
-      LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") devLibs);
-      LD_LIBRARY_PATH = lib.makeLibraryPath runLibs;
-      PKG_CONFIG_PATH = concatStringsSep ":" (map (p: "${p}/lib/pkgconfig") devLibs);
-    };
   };
 }
