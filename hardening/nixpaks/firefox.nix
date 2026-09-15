@@ -16,41 +16,74 @@
 let
   appId = "org.mozilla.firefox";
 
+  # The site sends Content-Disposition filenames as bare GBK bytes instead of
+  # RFC 5987 `filename*=UTF-8''...`, which Firefox otherwise stores mojibake.
+  # AMO signs and resigns this XPI; keep the URL and hash in sync with the
+  # add-on API when updating.
+  downloadFilenameEncoding = pkgs.fetchurl {
+    name = "download-filename-encoding.xpi";
+    url = "https://addons.mozilla.org/firefox/downloads/file/4272940/download_filename_encoding-2.1resigned1.xpi";
+    sha256 = "f1c80d7c41305a3b05b2022876827006795d2a72beaa478f2f2d56467fd9c3d2";
+  };
+
+  bitwardenPasswordManager = pkgs.fetchurl {
+    name = "bitwarden-password-manager.xpi";
+    url = "https://addons.mozilla.org/firefox/downloads/file/4970633/bitwarden_password_manager-2026.8.0.xpi";
+    sha256 = "989ee33f19329af1fc155dcebb7f90a517a7259cea4bfbdd660923d25a7d465a";
+  };
+
+  immersiveTranslate = pkgs.fetchurl {
+    name = "immersive-translate.xpi";
+    url = "https://addons.mozilla.org/firefox/downloads/file/4844745/immersive_translate-1.30.2.xpi";
+    sha256 = "8b07a51726911e225b3fbb3a08c0c7861d1a5ce95fcfc2ae30de0252f189e2fd";
+  };
+
+  # Wrap the raw Firefox install first: wrapFirefox needs a real unwrapped
+  # package, not a symlinkJoin, or the wrapper script would still launch the
+  # original store path and none of the policies/prefs below would be read.
+  firefoxWithPolicy = pkgs.wrapFirefox firefox.unwrapped {
+    extraPolicies = {
+      Certificates.Install = [
+        "/app/etc/firefox/certs/mkcert-rootCA.pem"
+      ];
+      # Install the signed AMO XPI via enterprise policy; this is the same
+      # mechanism wrapFirefox uses for Nix-declared extensions.
+      Extensions.Install = [
+        "${downloadFilenameEncoding}"
+        "${bitwardenPasswordManager}"
+        "${immersiveTranslate}"
+      ];
+      ExtensionSettings = {
+        "download-filename-encoding@qw.linux-2g64.local" = {
+          installation_mode = "allowed";
+        };
+        "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
+          installation_mode = "allowed";
+        };
+        "{5efceaa7-f3a2-4e59-a54b-85319448e305}" = {
+          installation_mode = "allowed";
+        };
+      };
+    };
+    # Firefox detects `/.flatpak-info` and takes the xdg-desktop-portal
+    # OpenDirectory path for "Show in Folder". nixpak exposes FileManager1
+    # directly and Dolphin handles ShowItems reliably, so prefer that route.
+    extraPrefs = ''
+      pref("widget.use-xdg-desktop-portal.open-uri", 0);
+    '';
+  };
+
   # Ship the mkcert root CA inside the sandboxed Firefox install dir and have
   # the enterprise policy install it into every profile, so the local HTTPS
   # certificates stay trusted after profile resets or re-provisioning.
   firefoxWithCa = pkgs.symlinkJoin {
     name = "firefox-with-mkcert-ca";
-    paths = [ firefox.unwrapped ];
-    meta = firefox.unwrapped.meta;
-    passthru = {
-      # symlinkJoin drops Firefox's passthru flags; wrapFirefox needs these
-      # to add ffmpeg/pipewire/audio libraries to LD_LIBRARY_PATH.
-      inherit (firefox.unwrapped)
-        gtk3
-        applicationName
-        binaryName
-        version
-        ffmpegSupport
-        gssSupport
-        alsaSupport
-        pipewireSupport
-        sndioSupport
-        jackSupport
-        requireSigning
-        allowAddonSideload
-        ;
-    };
+    paths = [ firefoxWithPolicy ];
+    meta = firefoxWithPolicy.meta;
     postBuild = ''
       mkdir -p "$out/lib/firefox/certs"
       cp ${../../certs/https/mkcert-rootCA.pem} "$out/lib/firefox/certs/mkcert-rootCA.pem"
     '';
-  };
-
-  firefoxWithPolicy = pkgs.wrapFirefox firefoxWithCa {
-    extraPolicies.Certificates.Install = [
-      "/app/etc/firefox/certs/mkcert-rootCA.pem"
-    ];
   };
 
   wrapped = mkNixPak {
@@ -62,7 +95,7 @@ let
       }:
       {
         app = {
-          package = firefoxWithPolicy;
+          package = firefoxWithCa;
           binPath = "bin/firefox";
         };
         flatpak.appId = appId;
@@ -100,6 +133,11 @@ let
             (sloth.concat' sloth.homeDir "/.gnupg") # gpg's config
             (sloth.concat' sloth.homeDir "/.local/share/password-store") # my secrets
             (sloth.concat' sloth.runtimeDir "/gnupg") # for access gpg-agent socket
+
+            # Firefox falls back to a localized download folder name when it
+            # cannot read the host XDG user dirs; the real folder is Downloads.
+            (sloth.concat' sloth.xdgConfigHome "/user-dirs.dirs")
+            (sloth.concat' sloth.xdgConfigHome "/user-dirs.locale")
 
             # Unsure
             (sloth.concat' sloth.xdgConfigHome "/dconf")
