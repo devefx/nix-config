@@ -24,6 +24,7 @@ let
       "x-systemd.mount-timeout=5s"
       "x-systemd.idle-timeout=300"
       "nofail"
+      "soft"
       "_netdev"
       "rw"
       "uid=1000"
@@ -111,8 +112,16 @@ in
   # unified memory. 96 GiB = 25165824 4KiB pages. Requires a reboot.
   boot.extraModprobeConfig = ''
     options ttm pages_limit=25165824
-    options ttm page_pool_size=25165824
   '';
+
+  # Nix defaults to one job per CPU and gives every job all 32 cores. ROCm
+  # builds then run hundreds of clang processes at once and push this 128 GiB
+  # machine deep into swap. Cap both levels of parallelism so one build stays
+  # within the memory budget of the shared CPU/GPU pool.
+  nix.settings = {
+    max-jobs = 2;
+    cores = 8;
+  };
 
   # The Sculptor DP monitor briefly drops HPD and reconnects ~3s after
   # DPMS-off. KWin only ignores reconnects within 2s by default, so it treats
