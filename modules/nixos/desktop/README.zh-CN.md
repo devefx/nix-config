@@ -6,10 +6,11 @@
 
 ## 目录内容
 
-| 文件          | 选项                            | 启用的内容                                                         |
-| ------------- | ------------------------------- | ------------------------------------------------------------------ |
-| `default.nix` | —                               | `scanPaths ./.` —— 自动扫描目录里所有文件                          |
+| 文件          | 选项                            | 启用的内容                                                                         |
+| ------------- | ------------------------------- | ---------------------------------------------------------------------------------- |
+| `default.nix` | —                               | `scanPaths ./.` —— 自动扫描目录里所有文件                                          |
 | `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6(Plasma Login Manager、Plasma service、pipewire、打印、显卡、系统字体) |
+| `niri.nix`    | `modules.desktop.niri.enable`   | Niri、greetd、PipeWire、portals、XWayland satellite、打印、显卡                    |
 
 ## 主机如何使用
 

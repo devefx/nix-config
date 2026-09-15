@@ -25,33 +25,120 @@ home/linux/tui.nix            Linux 入口:core + TUI 工具
 home/linux/gui.nix            Linux 入口:core + TUI + GUI
 home/linux/gui/base/          Linux GUI,DE 无关:GTK 主题、Firefox(沙箱)、Chrome、fcitx5 中文输入法、gaming(opt-in)
 home/linux/gui/plasma.nix     Plasma / KDE 用户应用
+home/linux/gui/niri/          Niri 快捷键、窗口规则、Noctalia Shell
 home/hosts/<name>.nix         一台主机一个 home 模块(选一个入口)
 hardening/                    opt-in 沙箱:nixpaks/、bwraps/、profiles/
 ```
 
 ## 主机列表
 
-| 主机    | 角色       | Home 入口       | 桌面         |
-| ------- | ---------- | --------------- | ------------ |
-| `faex1` | 物理桌面机 | `linux/gui.nix` | KDE Plasma 6 |
+| 主机         | 角色       | Home 入口       | 桌面            |
+| ------------ | ---------- | --------------- | --------------- |
+| `faex1`      | 物理桌面机 | `linux/gui.nix` | KDE Plasma 6    |
+| `faex1-niri` | 同一台机器 | `linux/gui.nix` | Niri + Noctalia |
 
 ## 桌面环境
 
 KDE Plasma 6 按 options 开关模式接入,**系统级 / 用户级** 清晰分离:
 
-| 层级   | 位置                               | 内容                                                     |
-| ------ | ---------------------------------- | -------------------------------------------------------- |
+| 层级   | 位置                               | 内容                                                                     |
+| ------ | ---------------------------------- | ------------------------------------------------------------------------ |
 | 系统级 | `modules/nixos/desktop/plasma.nix` | Plasma Login Manager、Plasma service、pipewire、显卡驱动、打印、系统字体 |
-| 用户级 | `home/linux/gui/plasma.nix`        | 桌面应用(kate / ark / qimgv / okular / spectacle …)      |
-| 用户级 | `home/linux/gui/gtk.nix`           | GTK 鼠标/字体主题,让 GTK 应用在 Plasma 里视觉统一        |
+| 用户级 | `home/linux/gui/plasma.nix`        | 桌面应用(kate / ark / qimgv / okular / spectacle …)                      |
+| 用户级 | `home/linux/gui/gtk.nix`           | GTK 鼠标/字体主题,让 GTK 应用在 Plasma 里视觉统一                        |
 
 主机通过 `modules.desktop.plasma.enable = true;` 启用系统层,home 侧选 `gui.nix` 入口自动带入用户层。
+
+Niri 也走同一套 options 分层,并额外提供 `faex1-niri` 输出:
+
+| 层级   | 位置                             | 内容                                                    |
+| ------ | -------------------------------- | ------------------------------------------------------- |
+| 系统级 | `modules/nixos/desktop/niri.nix` | Niri、greetd、PipeWire、portals、XWayland satellite     |
+| 用户级 | `home/linux/gui/niri/`           | KDL 快捷键 / 窗口规则、Noctalia Shell、截图和剪贴板工具 |
+
+切换会话:
+
+```bash
+sudo nixos-rebuild switch --flake .#faex1-niri
+# 回到 Plasma
+sudo nixos-rebuild switch --flake .#faex1
+```
 
 **加新桌面(Hyprland / GNOME / ...)**:在上面两个位置各新加一个 `<de>.nix`, 主机里用
 `modules.desktop.<de>.enable = true;` 启用即可,不用动现有代码。
 
 > nixpkgs 每个 channel 只对应一个 Plasma 版本。`nix flake update nixpkgs` 拉最新(当前
 > `nixos-unstable` 上是 Plasma 6.6)。
+
+## Niri 快捷键
+
+`Mod` 在 TTY 会话中对应 Super。Noctalia Shell 默认使用简体中文(`zh-CN`)。按 `Mod+Shift+/`
+可以打开 niri 内置快捷键提示;完整配置见
+[`keybindings.kdl`](./home/linux/gui/niri/conf/keybindings.kdl)。
+
+### 启动与会话
+
+| 操作               | 快捷键                           |
+| ------------------ | -------------------------------- |
+| 打开终端           | `Mod+Return`、`Mod+Shift+Return` |
+| 打开应用启动器     | `Mod+D`、`Mod+Space`、`Search`   |
+| 锁屏               | `Ctrl+Alt+L`                     |
+| 打开会话菜单       | `Mod+E`                          |
+| 显示快捷键提示     | `Mod+Shift+/`                    |
+| 关闭当前窗口       | `Mod+Q`                          |
+| 退出 niri          | `Ctrl+Alt+Delete`                |
+| 关闭显示器         | `Mod+Shift+P`                    |
+| 切换快捷键拦截状态 | `Mod+Escape`                     |
+
+### 导航
+
+| 操作                       | 快捷键                             |
+| -------------------------- | ---------------------------------- |
+| 焦点移到左/右列            | `Mod+Left/H`、`Mod+Right/L`        |
+| 焦点移到列内上/下窗口      | `Mod+Up/K`、`Mod+Down/J`           |
+| 焦点移到第一列/最后一列    | `Mod+Home`、`Mod+End`              |
+| 焦点移到左/右/上/下显示器  | `Mod+Shift+方向键/HJKL`            |
+| 焦点移到上/下工作区        | `Mod+Page_Up/I`、`Mod+Page_Down/U` |
+| 焦点移到命名工作区 1-5 / 0 | `Mod+1` 至 `Mod+5`、`Mod+0`        |
+
+命名工作区依次为 `1terminal`、`2browser`、`3chat`、`4entertainment`、`5utility` 和 `0other`。
+
+### 移动与布局
+
+| 操作                          | 快捷键                                         |
+| ----------------------------- | ---------------------------------------------- |
+| 左/右移动列                   | `Mod+Ctrl+Left/H`、`Mod+Ctrl+Right/L`          |
+| 在列内上/下移动窗口           | `Mod+Ctrl+Up/K`、`Mod+Ctrl+Down/J`             |
+| 将列移到最前/最后             | `Mod+Ctrl+Home`、`Mod+Ctrl+End`                |
+| 将列移到其他显示器            | `Mod+Shift+Ctrl+方向键/HJKL`                   |
+| 将列移到上/下工作区           | `Mod+Ctrl+Page_Up/I`、`Mod+Ctrl+Page_Down/U`   |
+| 将列移到命名工作区 1-5 / 0    | `Mod+Ctrl+1` 至 `Mod+Ctrl+5`、`Mod+Ctrl+0`     |
+| 上/下移动工作区               | `Mod+Shift+Page_Up/I`、`Mod+Shift+Page_Down/U` |
+| 向左/右合并或拆出窗口         | `Mod+[`、`Mod+]`                               |
+| 将窗口合并到当前列/从列中拆出 | `Mod+,`、`Mod+.`                               |
+| 循环预设列宽                  | `Mod+R`                                        |
+| 循环预设窗口高度/重置高度     | `Mod+Shift+R`、`Mod+Ctrl+R`                    |
+| 最大化列/窗口全屏             | `Mod+F`、`Mod+Shift+F`                         |
+| 扩展列/居中可见列             | `Mod+Ctrl+F`、`Mod+Ctrl+C`                     |
+| 调整列宽                      | `Mod+-`、`Mod+=`                               |
+| 调整窗口高度                  | `Mod+Shift+-`、`Mod+Shift+=`                   |
+| 切换浮动窗口                  | `Mod+V`                                        |
+| 切换标签式列显示              | `Mod+W`                                        |
+
+### 工具与硬件按键
+
+| 操作                           | 快捷键                                        |
+| ------------------------------ | --------------------------------------------- |
+| 剪贴板历史                     | `Mod+Shift+V`                                 |
+| 计算器                         | `Mod+C`                                       |
+| 控制中心                       | `Mod+S`                                       |
+| 使用 Satty 标注截图            | `Print`                                       |
+| 截取整屏/当前窗口              | `Ctrl+Print`、`Alt+Print`                     |
+| 音量加/减/静音                 | `Volume Up`、`Volume Down`、`Volume Mute`     |
+| 麦克风静音                     | `Microphone Mute`                             |
+| 播放/暂停、停止、上一首/下一首 | `Media Play`、`Media Stop`、`Media Prev/Next` |
+| 屏幕亮度加/减                  | `Brightness Up`、`Brightness Down`            |
+| 键盘背光加/减                  | `Keyboard Brightness Up/Down`                 |
 
 ## Home 三层入口
 

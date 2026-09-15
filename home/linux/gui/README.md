@@ -18,7 +18,8 @@ home/linux/gui/
 │   ├── cc-switch.nix    CC Switch — AI provider config manager (native nixpkgs build)
 │   ├── feishin.nix       Feishin — self-hosted music player (Jellyfin)
 │   └── lutris.nix      Linux game launcher (Wine / Proton / GOG / ...)
-└── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
+├── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
+└── niri/               Niri keybinds, window rules, Noctalia Shell
 ```
 
 ## DE-agnostic (`base/`) vs DE-specific (siblings)
@@ -28,6 +29,7 @@ home/linux/gui/
 | `base/gtk.nix`            | GTK theme applies to Firefox / VS Code regardless of which DE or compositor is on |
 | `base/firefox.nix`        | Browser runs on any Linux DE, independent of compositor choice                    |
 | `plasma.nix`              | Plasma / KDE apps only make sense when Plasma is enabled                          |
+| `niri/`                   | Niri keybinds, window rules and Noctalia config only make sense in a Niri session |
 | Future `hyprland/` subdir | Hyprland keybinds, layout — only meaningful when Hyprland is the session          |
 | Future `base/fcitx5.nix`  | Input method works across all DEs                                                 |
 
@@ -48,7 +50,7 @@ Linux-specific user-level GUI configuration that doesn't fit in cross-platform `
 | Should live where        | Examples                                                                               |
 | ------------------------ | -------------------------------------------------------------------------------------- |
 | `home/base/gui/`         | kitty, VS Code, Obsidian — apps with good home-manager support on both Linux and macOS |
-| `modules/nixos/desktop/` | KDE's system service, Plasma Login Manager, pipewire — anything requiring root        |
+| `modules/nixos/desktop/` | KDE's system service, Plasma Login Manager, pipewire — anything requiring root         |
 
 ## Adding a desktop environment's user bits
 

@@ -322,6 +322,26 @@
         "url": "ssh://git@github.com/devefx/nix-secrets.git"
       }
     },
+    "niri": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789127910,
+        "narHash": "sha256-3H8HyOjmnLexX5sKfr4DjkIJyjADVLF4NUwpR+Mqnd8=",
+        "owner": "niri-wm",
+        "repo": "niri",
+        "rev": "9e72e4917ca31baf4010496bf7f4aaf78d34d236",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niri-wm",
+        "repo": "niri",
+        "type": "github"
+      }
+    },
     "nixpak": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -446,6 +466,7 @@
         "home-manager": "home-manager_2",
         "llm-agents": "llm-agents",
         "mysecrets": "mysecrets",
+        "niri": "niri",
         "nixpak": "nixpak",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",

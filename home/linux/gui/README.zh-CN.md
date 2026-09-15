@@ -18,7 +18,8 @@ home/linux/gui/
 │   ├── cc-switch.nix    CC Switch —— AI 供应商配置管理(nixpkgs 原生构建)
 │   ├── feishin.nix       Feishin —— 自托管音乐播放器(Jellyfin)
 │   └── lutris.nix      Linux 游戏启动器(Wine / Proton / GOG 等)
-└── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
+├── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
+└── niri/               Niri 快捷键、窗口规则、Noctalia Shell
 ```
 
 ## DE 无关(`base/`) vs DE 专属(同级其他文件)
@@ -27,6 +28,7 @@ home/linux/gui/
 | ------------------------- | --------------------------------------------------------------------- |
 | `base/gtk.nix`            | GTK 主题对 Firefox / VS Code 等 GTK 应用生效,和用哪个 DE / 合成器无关 |
 | `plasma.nix`              | Plasma / KDE 应用只在 Plasma 启用时有意义                             |
+| `niri/`                   | Niri 快捷键、窗口规则、Noctalia 配置只在 Niri 会话生效                |
 | 以后加 `hyprland/` 子目录 | Hyprland 的快捷键、布局 —— 只在 Hyprland 是当前会话时才有意义         |
 | 以后加 `base/fcitx5.nix`  | 输入法在所有 DE 下都用                                                |
 
@@ -47,7 +49,7 @@ Linux 专属的用户级 GUI 配置,跨平台的 `home/base/gui/` 装不下的:
 | 应该去哪里               | 举例                                                                  |
 | ------------------------ | --------------------------------------------------------------------- |
 | `home/base/gui/`         | VS Code、Obsidian —— 在 Linux 和 macOS 上 home-manager 都支持好的应用 |
-| `modules/nixos/desktop/` | KDE 的系统服务、Plasma Login Manager、pipewire —— 需要 root 的东西     |
+| `modules/nixos/desktop/` | KDE 的系统服务、Plasma Login Manager、pipewire —— 需要 root 的东西    |
 
 ## 新增桌面环境的用户侧
 

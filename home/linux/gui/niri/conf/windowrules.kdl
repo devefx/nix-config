@@ -1,0 +1,191 @@
+// Window rules let you adjust behavior for individual windows.
+// Find more information on the wiki:
+// https://yalter.github.io/niri/Configuration:-Window-Rules
+
+// Terminal applications - open in workspace 1, with blur
+window-rule {
+    match app-id="kitty"
+    open-on-workspace "1terminal"
+    open-maximized true
+    // kitty uses native blur via ext-background-effect
+}
+window-rule {
+    match app-id="foot"
+    open-on-workspace "1terminal"
+    open-maximized true
+    // foot >= 1.26 uses native blur via ext-background-effect,
+    // no compositor-side blur needed
+}
+window-rule {
+    match app-id="Alacritty"
+    open-on-workspace "1terminal"
+    open-maximized true
+    background-effect {
+        blur true
+    }
+}
+window-rule {
+    match app-id="com.mitchellh.ghostty"
+    open-on-workspace "1terminal"
+    open-maximized true
+    // Ghostty native blur via ext-background-effect coming in v1.4;
+    // use compositor-side blur until then
+    background-effect {
+        blur true
+    }
+}
+
+// Web browsers - open in workspace 2
+window-rule {
+    match app-id="firefox"
+    open-on-workspace "2browser"
+    open-maximized true
+}
+window-rule {
+    match app-id="google-chrome"
+    open-on-workspace "2browser"
+    open-maximized true
+}
+window-rule {
+    match app-id="chromium-browser"
+    open-on-workspace "2browser"
+    open-maximized true
+}
+
+// Chat applications - open in workspace 3
+window-rule {
+    // match app-id="org.telegram.desktop"
+    match title="^Telegram"
+    open-on-workspace "3chat"
+}
+window-rule {
+    match app-id="wechat"
+    open-on-workspace "3chat"
+}
+window-rule {
+    match app-id="QQ"
+    open-on-workspace "3chat"
+}
+window-rule {
+    match app-id="io.github.tobagin.karere"
+    open-on-workspace "3chat"
+}
+window-rule {
+    match app-id="ld-linux-x86-64"
+    match title="^iMe"
+    open-on-workspace "3chat"
+}
+
+// Entertainment applications - open in workspace 4
+window-rule {
+    match app-id="steam"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    match app-id="steam_app_default"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    match app-id="heroic"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    match app-id="net.lutris.Lutris"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    match app-id="com.vysp3r.ProtonPlus"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    // Run anime games on Linux
+    match app-id="^moe.launcher"
+    open-on-workspace "4entertainment"
+}
+window-rule {
+    // All *.exe (Windows applications)
+    match app-id=".exe$"
+    open-on-workspace "4entertainment"
+}
+
+// mpv otherwise derives its window height from the video's aspect ratio,
+// which breaks two-by-two tiling. Let niri assign half-height tiles and
+// letterbox the video instead.
+window-rule {
+    match app-id="^mpv$"
+    default-column-width { proportion 0.5; }
+    default-window-height { proportion 0.5; }
+    tiled-state true
+}
+
+// Godot's non-embedded debug game. Keep it floating even for projects that
+// allow resizing, since a tiled debug window is resized away from its
+// configured viewport aspect ratio.
+window-rule {
+    match title=r#"(?i) \(Debug\)$"#
+    open-floating true
+}
+
+// Utility applications - open in workspace 5
+window-rule {
+    match app-id="com.github.johnfactotum.Foliate"
+    open-on-workspace "5utility"
+}
+window-rule {
+    match app-id="thunar"
+    open-on-workspace "5utility"
+}
+window-rule {
+    match app-id="(?i)^clash-verge$"
+    match app-id="^[.]clash-verge-wrapped$"
+    open-on-workspace "5utility"
+}
+window-rule {
+    match app-id="^org[.]kde[.]easyeffects$"
+    open-on-workspace "5utility"
+}
+
+// Other applications - open in workspace 0
+window-rule {
+    match app-id="BambuStudio"
+    open-on-workspace "0other"
+}
+window-rule {
+    match app-id="OrcaSlicer"
+    open-on-workspace "0other"
+}
+window-rule {
+    match app-id="Zoom Workplace"
+    // Zoom Home Page
+    match title="^(Zoom Workplace)( - Free account)?$"
+    open-on-workspace "0other"
+}
+window-rule {
+    match app-id="Zoom Workplace"
+    // Zoom - other windows
+    exclude title="^(Zoom Workplace)( - Free account)?$"
+    open-on-workspace "0other"
+    open-floating true
+}
+window-rule {
+    match app-id="^Zoom$"
+    open-on-workspace "0other"
+}
+window-rule {
+    match app-id="^Zoom$" title="^as_toolbar$"
+    open-floating true
+    default-floating-position x=0 y=16 relative-to="bottom"
+}
+window-rule {
+    match app-id="^Zoom$" title="^zoom_linux_float_video_window$"
+    open-fullscreen true
+}
+
+// Notifications shows bottom right
+window-rule {
+   // match exactly empty string, avoid to be the default behavior
+    match app-id="^$"
+    open-floating true
+    open-focused false
+    default-floating-position x=0 y=0 relative-to="bottom-right"
+}

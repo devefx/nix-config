@@ -26,15 +26,17 @@ home/linux/tui.nix            Linux entry: core + TUI tools
 home/linux/gui.nix            Linux entry: core + TUI + GUI
 home/linux/gui/base/          Linux GUI, DE-agnostic: GTK theme, Firefox (sandboxed), Chrome, fcitx5, gaming (opt-in)
 home/linux/gui/plasma.nix     Plasma / KDE user apps
+home/linux/gui/niri/          Niri keybinds, window rules, Noctalia Shell
 home/hosts/<name>.nix         per-host home module (picks one entry)
 hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
 ```
 
 ## Hosts
 
-| Host    | Role             | Home entry      | Desktop      |
-| ------- | ---------------- | --------------- | ------------ |
-| `faex1` | physical desktop | `linux/gui.nix` | KDE Plasma 6 |
+| Host         | Role             | Home entry      | Desktop         |
+| ------------ | ---------------- | --------------- | --------------- |
+| `faex1`      | physical desktop | `linux/gui.nix` | KDE Plasma 6    |
+| `faex1-niri` | same machine     | `linux/gui.nix` | Niri + Noctalia |
 
 ## Desktop
 
@@ -49,8 +51,88 @@ KDE Plasma 6 is wired via the options pattern:
 Adding another DE (Hyprland, GNOME, ...): drop a new file in each of the two places, host enables
 via `modules.desktop.<name>.enable = true;`.
 
+`faex1-niri` uses the same layering for Niri/Noctalia:
+
+- System-level: `modules/nixos/desktop/niri.nix` — Niri, greetd, PipeWire, portals, XWayland
+  satellite.
+- User-level: `home/linux/gui/niri/` — KDL keybinds/window rules, Noctalia Shell, screenshot and
+  clipboard tools.
+
+Switch sessions with `sudo nixos-rebuild switch --flake .#faex1-niri`; use `.#faex1` to return to
+Plasma.
+
 > NixOS tracks one Plasma release per nixpkgs channel. Use `nix flake update nixpkgs` to pull the
 > latest (currently Plasma 6.6 on `nixos-unstable`).
+
+## Niri shortcuts
+
+`Mod` is Super in a TTY session. Noctalia Shell defaults to Simplified Chinese (`zh-CN`). Press
+`Mod+Shift+/` for niri's built-in hotkey overlay; the full configuration lives in
+[`keybindings.kdl`](./home/linux/gui/niri/conf/keybindings.kdl).
+
+### Launch and session
+
+| Action                    | Shortcut                         |
+| ------------------------- | -------------------------------- |
+| Open terminal             | `Mod+Return`, `Mod+Shift+Return` |
+| Open application launcher | `Mod+D`, `Mod+Space`, `Search`   |
+| Lock screen               | `Ctrl+Alt+L`                     |
+| Open session menu         | `Mod+E`                          |
+| Show hotkey overlay       | `Mod+Shift+/`                    |
+| Close focused window      | `Mod+Q`                          |
+| Quit niri                 | `Ctrl+Alt+Delete`                |
+| Power off monitors        | `Mod+Shift+P`                    |
+| Toggle shortcut inhibitor | `Mod+Escape`                     |
+
+### Navigation
+
+| Action                           | Shortcut                           |
+| -------------------------------- | ---------------------------------- |
+| Focus column left/right          | `Mod+Left/H`, `Mod+Right/L`        |
+| Focus window up/down in a column | `Mod+Up/K`, `Mod+Down/J`           |
+| Focus first/last column          | `Mod+Home`, `Mod+End`              |
+| Focus monitor left/right/up/down | `Mod+Shift+Arrow/HJKL`             |
+| Focus workspace up/down          | `Mod+Page_Up/I`, `Mod+Page_Down/U` |
+| Focus named workspace 1-5 or 0   | `Mod+1` through `Mod+5`, `Mod+0`   |
+
+Workspace names are `1terminal`, `2browser`, `3chat`, `4entertainment`, `5utility`, and `0other`.
+
+### Move and arrange
+
+| Action                                  | Shortcut                                        |
+| --------------------------------------- | ----------------------------------------------- |
+| Move column left/right                  | `Mod+Ctrl+Left/H`, `Mod+Ctrl+Right/L`           |
+| Move window up/down in a column         | `Mod+Ctrl+Up/K`, `Mod+Ctrl+Down/J`              |
+| Move column to first/last position      | `Mod+Ctrl+Home`, `Mod+Ctrl+End`                 |
+| Move column to another monitor          | `Mod+Shift+Ctrl+Arrow/HJKL`                     |
+| Move column to workspace up/down        | `Mod+Ctrl+Page_Up/I`, `Mod+Ctrl+Page_Down/U`    |
+| Move column to named workspace 1-5 or 0 | `Mod+Ctrl+1` through `Mod+Ctrl+5`, `Mod+Ctrl+0` |
+| Move workspace up/down                  | `Mod+Shift+Page_Up/I`, `Mod+Shift+Page_Down/U`  |
+| Consume or expel window left/right      | `Mod+[`, `Mod+]`                                |
+| Consume window into column / expel it   | `Mod+,`, `Mod+.`                                |
+| Cycle preset column width               | `Mod+R`                                         |
+| Cycle preset window height / reset it   | `Mod+Shift+R`, `Mod+Ctrl+R`                     |
+| Maximize column / fullscreen window     | `Mod+F`, `Mod+Shift+F`                          |
+| Expand column / center visible columns  | `Mod+Ctrl+F`, `Mod+Ctrl+C`                      |
+| Adjust column width                     | `Mod+-`, `Mod+=`                                |
+| Adjust window height                    | `Mod+Shift+-`, `Mod+Shift+=`                    |
+| Toggle floating window                  | `Mod+V`                                         |
+| Toggle tabbed column display            | `Mod+W`                                         |
+
+### Utilities and hardware keys
+
+| Action                          | Shortcut                                      |
+| ------------------------------- | --------------------------------------------- |
+| Clipboard history               | `Mod+Shift+V`                                 |
+| Calculator                      | `Mod+C`                                       |
+| Control center                  | `Mod+S`                                       |
+| Annotate screenshot with Satty  | `Print`                                       |
+| Screenshot screen / window      | `Ctrl+Print`, `Alt+Print`                     |
+| Volume up/down/mute             | `Volume Up`, `Volume Down`, `Volume Mute`     |
+| Microphone mute                 | `Microphone Mute`                             |
+| Play/pause, stop, previous/next | `Media Play`, `Media Stop`, `Media Prev/Next` |
+| Screen brightness up/down       | `Brightness Up`, `Brightness Down`            |
+| Keyboard backlight up/down      | `Keyboard Brightness Up/Down`                 |
 
 ## Home entry points (three tiers)
 

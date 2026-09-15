@@ -9,7 +9,7 @@
 }@args:
 let
   name = "faex1";
-  modules = {
+  base-modules = {
     nixos-modules =
       map mylib.relativeToRoot [
         "modules/nixos"
@@ -32,9 +32,22 @@ let
       "home/hosts/${name}.nix"
     ];
   };
+
+  niri-modules = {
+    nixos-modules = base-modules.nixos-modules ++ [
+      {
+        modules.desktop.plasma.enable = lib.mkForce false;
+        modules.desktop.niri.enable = true;
+      }
+    ];
+    home-modules = map mylib.relativeToRoot [
+      "home/hosts/${name}-niri.nix"
+    ];
+  };
 in
 {
   nixosConfigurations = {
-    "${name}" = mylib.nixosSystem (modules // args);
+    "${name}" = mylib.nixosSystem (base-modules // args);
+    "${name}-niri" = mylib.nixosSystem (niri-modules // args);
   };
 }

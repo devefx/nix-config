@@ -39,6 +39,8 @@ in
 
       # Dev/terminal — Nerd Fonts patched JetBrainsMono (icons + ligatures)
       nerd-fonts.jetbrains-mono
+      # Maple Mono NF CN used by Niri, Noctalia and the terminal config.
+      maple-mono.NF-CN
     ];
   };
 }

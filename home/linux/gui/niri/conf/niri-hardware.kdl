@@ -1,0 +1,8 @@
+// faex1 defaults. Add output nodes here after checking the live names with
+// `niri msg outputs`; named workspaces otherwise follow the focused output.
+workspace "1terminal" {}
+workspace "2browser" {}
+workspace "3chat" {}
+workspace "4entertainment" {}
+workspace "5utility" {}
+workspace "0other" {}
