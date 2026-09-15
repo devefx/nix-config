@@ -9,6 +9,9 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.desktop.niri;
+  niriPackage = niri.packages.${pkgs.stdenv.hostPlatform.system}.niri.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ../../../patches/niri-minimize-request.patch ];
+  });
 in
 {
   options.modules.desktop.niri = {
@@ -20,7 +23,7 @@ in
     # GNOME Keyring integration. X11 applications run through
     # xwayland-satellite on demand, so an Xorg server is not required.
     programs.niri.enable = true;
-    programs.niri.package = niri.packages.${pkgs.stdenv.hostPlatform.system}.niri;
+    programs.niri.package = niriPackage;
 
     services.greetd = {
       enable = true;
