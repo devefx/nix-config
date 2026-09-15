@@ -25,6 +25,13 @@
       "ctrl+shift+f" = "show_scrollback";
     };
 
+    # Keep terminal output, CLI errors, and man pages in English even though
+    # the surrounding Niri desktop session uses Chinese GUI messages.
+    environment = {
+      LANGUAGE = "en_US";
+      LC_MESSAGES = "en_US.UTF-8";
+    };
+
     settings = {
       # Clean look — hide title bar, keep rounded window corners.
       hide_window_decorations = "titlebar-and-corners";

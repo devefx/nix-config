@@ -33,5 +33,11 @@
       fcitx5-gtk # GTK app integration
       qt6Packages.fcitx5-chinese-addons # Pinyin / Shuangpin / Wubi / Zhuyin — all in one
     ];
+
+    fcitx5.settings.addons.classicui.globalSection = {
+      Font = "Noto Sans 12";
+      MenuFont = "Noto Sans 12";
+      TrayFont = "Noto Sans 12";
+    };
   };
 }
