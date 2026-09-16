@@ -72,6 +72,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Personal desktop wallpapers, mounted by the Niri session.
+    wallpapers = {
+      url = "github:devefx/wallpapers";
+      flake = false;
+    };
+
     # Private secrets repo (git+ssh, must exist & be reachable from hosts):
     # https://github.com/devefx/nix-secrets
     mysecrets = {

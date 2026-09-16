@@ -471,7 +471,8 @@
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",
         "plasma-manager": "plasma-manager",
-        "pre-commit-hooks": "pre-commit-hooks"
+        "pre-commit-hooks": "pre-commit-hooks",
+        "wallpapers": "wallpapers"
       }
     },
     "systems": {
@@ -522,6 +523,22 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "wallpapers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789493488,
+        "narHash": "sha256-8pxSKtYgTzwHEPQfCeKevFN5wAF+4l7QjOAAayBaslY=",
+        "owner": "devefx",
+        "repo": "wallpapers",
+        "rev": "d92cd0f23178194f18e42b74bec9a65af0ca9237",
+        "type": "github"
+      },
+      "original": {
+        "owner": "devefx",
+        "repo": "wallpapers",
         "type": "github"
       }
     }

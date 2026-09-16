@@ -1,0 +1,93 @@
+diff --git a/Services/Hardware/BrightnessService.qml b/Services/Hardware/BrightnessService.qml
+--- a/Services/Hardware/BrightnessService.qml
++++ b/Services/Hardware/BrightnessService.qml
+@@ -290,6 +290,8 @@ component Monitor: QtObject {
+     property int maxBrightness: 100
+     property bool ignoreNextChange: false
+     property bool initInProgress: false
++    property bool brightnessInitialized: false
++    property int initRetries: 0
+ 
+     // Signal for brightness changes
+     signal brightnessUpdated(real newBrightness)
+@@ -392,6 +394,12 @@ component Monitor: QtObject {
+       }
+     }
+ 
++    readonly property Timer initRetryTimer: Timer {
++      interval: 250
++      repeat: false
++      onTriggered: monitor.initBrightness()
++    }
++
+     // Initialize brightness
+     readonly property Process initProc: Process {
+       stdout: StdioCollector {
+@@ -406,6 +414,7 @@ component Monitor: QtObject {
+             var val = parseInt(dataText);
+             if (!isNaN(val)) {
+               monitor.brightness = val / 101;
++              monitor.brightnessInitialized = true;
+               Logger.d("Brightness", "Apple display brightness:", monitor.brightness);
+             }
+           } else if (monitor.isDdc) {
+@@ -416,6 +425,8 @@ component Monitor: QtObject {
+               if (!isNaN(current) && !isNaN(max) && max > 0) {
+                 monitor.maxBrightness = max;
+                 monitor.brightness = current / max;
++                // A fresh DDC connection can report 0 before the monitor is ready.
++                monitor.brightnessInitialized = current > 0;
+                 Logger.d("Brightness", "DDC brightness:", current + "/" + max + " =", monitor.brightness);
+               }
+             }
+@@ -431,6 +442,7 @@ component Monitor: QtObject {
+               if (!isNaN(current) && !isNaN(max) && max > 0) {
+                 monitor.maxBrightness = max;
+                 monitor.brightness = current / max;
++                monitor.brightnessInitialized = true;
+                 Logger.d("Brightness", "Internal brightness:", current + "/" + max + " =", monitor.brightness);
+                 Logger.d("Brightness", "Using backlight device:", monitor.backlightDevice);
+               }
+@@ -441,11 +453,19 @@ component Monitor: QtObject {
+             }
+           }
+ 
++          if (monitor.brightnessInitialized)
++            monitor.initRetryTimer.stop();
++
+           monitor.initInProgress = false;
+         }
+       }
+       onExited: (exitCode, exitStatus) => {
+         monitor.initInProgress = false;
++        if (!monitor.brightnessInitialized && monitor.brightnessControlAvailable && monitor.initRetries < 8) {
++          monitor.initRetries += 1;
++          monitor.initRetryTimer.interval = Math.min(2000, 250 * monitor.initRetries);
++          monitor.initRetryTimer.restart();
++        }
+       }
+     }
+ 
+@@ -530,3 +550,10 @@ component Monitor: QtObject {
++    function restartBrightnessInit(delay): void {
++      monitor.brightnessInitialized = false;
++      monitor.initRetries = 0;
++      monitor.initRetryTimer.interval = delay;
++      monitor.initRetryTimer.restart();
++    }
++
+     function initBrightness(): void {
+       monitor.initInProgress = true;
+       if (isAppleDisplay) {
+@@ -548,8 +575,8 @@ component Monitor: QtObject {
+       }
+     }
+ 
+-    onBusNumChanged: initBrightness()
+-    onIsDdcChanged: initBrightness()
+-    Component.onCompleted: initBrightness()
++    onBusNumChanged: restartBrightnessInit(0)
++    onIsDdcChanged: restartBrightnessInit(0)
++    Component.onCompleted: restartBrightnessInit(0)
+   }
+ }

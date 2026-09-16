@@ -48,6 +48,8 @@ in
   # Bluetooth — required for the KDE Bluetooth settings panel to show up.
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
+  # External displays use DDC/CI for brightness control on this machine.
+  hardware.i2c.enable = true;
   # BlueZ 5.86 fails to activate A2DP on some speakers with
   # "a2dp-sink profile connect failed: Device or resource busy".
   # Pin 5.84 until nixpkgs ships the fixed 5.87 release.

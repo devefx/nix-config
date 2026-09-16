@@ -2,8 +2,18 @@
   config,
   lib,
   pkgs,
+  wallpapers,
   ...
 }:
+let
+  # Retry DDC brightness reads after login; the monitor may not answer
+  # ddcutil immediately after the output is reconnected.
+  noctaliaShell = pkgs.noctalia-shell.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [
+      ../../../../patches/noctalia-ddc-brightness-retry.patch
+    ];
+  });
+in
 lib.mkIf config.modules.desktop.niri.enable {
   home.sessionVariables = {
     QT_QPA_PLATFORM = "wayland;xcb";
@@ -12,7 +22,8 @@ lib.mkIf config.modules.desktop.niri.enable {
   };
 
   home.packages = [
-    pkgs.noctalia-shell
+    noctaliaShell
+    pkgs.ddcutil # external monitor brightness through DDC/CI
     pkgs.kdePackages.breeze-icons
     pkgs.qt6Packages.qt6ct
     pkgs.papirus-icon-theme
@@ -27,6 +38,8 @@ lib.mkIf config.modules.desktop.niri.enable {
   # ChatGPT runs through XWayland on this scaled output. Fcitx's XCB input
   # panel otherwise uses 96 DPI and renders smaller than native Wayland apps.
   xresources.properties."Xft.dpi" = 192;
+
+  home.file."Pictures/Wallpapers".source = wallpapers;
 
   xdg.configFile = {
     # Keep ~/.config/noctalia as a real directory so Noctalia can generate
