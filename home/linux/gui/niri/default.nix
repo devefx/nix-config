@@ -31,7 +31,8 @@ in
       brightnessctl
       playerctl
       xdg-user-dirs
-      imv
+      qimgv # image viewer; imv-wayland can busy-loop after closing windows
+      file-roller # backend for thunar-archive-plugin
     ];
 
     programs.mpv = {
@@ -72,12 +73,12 @@ in
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
-        "inode/directory" = [ "yazi.desktop" ];
-        "image/*" = [ "imv-dir.desktop" ];
-        "image/gif" = [ "imv-dir.desktop" ];
-        "image/jpeg" = [ "imv-dir.desktop" ];
-        "image/png" = [ "imv-dir.desktop" ];
-        "image/webp" = [ "imv-dir.desktop" ];
+        "inode/directory" = [ "thunar.desktop" ];
+        "image/*" = [ "qimgv.desktop" ];
+        "image/gif" = [ "qimgv.desktop" ];
+        "image/jpeg" = [ "qimgv.desktop" ];
+        "image/png" = [ "qimgv.desktop" ];
+        "image/webp" = [ "qimgv.desktop" ];
         "audio/*" = [ "mpv.desktop" ];
         "video/*" = [ "mpv.desktop" ];
       };
@@ -92,6 +93,36 @@ in
         file:///mnt/portable_apps Portable Apps
         file:///mnt/workspace Workspace
       '';
+      "Thunar/uca.xml" = {
+        force = true;
+        text = ''
+          <?xml version="1.0" encoding="UTF-8"?>
+          <actions>
+            <action>
+              <icon>vscode</icon>
+              <name>在 VS Code 中打开</name>
+              <unique-id>nix-config-open-vscode</unique-id>
+              <command>${pkgs.vscode}/bin/code %f</command>
+              <description>Open the selected folder in VS Code</description>
+              <range></range>
+              <patterns>*</patterns>
+              <startup-notify/>
+              <directories/>
+            </action>
+            <action>
+              <icon>utilities-terminal</icon>
+              <name>在终端中打开</name>
+              <unique-id>nix-config-open-terminal</unique-id>
+              <command>${pkgs.kitty}/bin/kitty --class nix-config-file-manager --working-directory %f</command>
+              <description>Open a terminal in the selected folder</description>
+              <range></range>
+              <patterns>*</patterns>
+              <startup-notify/>
+              <directories/>
+            </action>
+          </actions>
+        '';
+      };
       "niri/config.kdl".source = ./conf/config.kdl;
       "niri/keybindings.kdl".source = ./conf/keybindings.kdl;
       "niri/niri-hardware.kdl".source = ./conf/niri-hardware.kdl;
