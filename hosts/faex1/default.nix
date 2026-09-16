@@ -50,6 +50,18 @@ in
   hardware.bluetooth.powerOnBoot = true;
   # External displays use DDC/CI for brightness control on this machine.
   hardware.i2c.enable = true;
+  hardware.bluetooth.settings = {
+    General.FastConnectable = true;
+    Policy = {
+      AutoEnable = true;
+      ReconnectAttempts = 7;
+      ReconnectIntervals = "1,2,4,8,16,32,64";
+    };
+  };
+  hardware.bluetooth.input.General = {
+    IdleTimeout = 0;
+    UserspaceHID = true;
+  };
   # BlueZ 5.86 fails to activate A2DP on some speakers with
   # "a2dp-sink profile connect failed: Device or resource busy".
   # Pin 5.84 until nixpkgs ships the fixed 5.87 release.
@@ -114,7 +126,89 @@ in
   # unified memory. 96 GiB = 25165824 4KiB pages. Requires a reboot.
   boot.extraModprobeConfig = ''
     options ttm pages_limit=25165824
+    options btusb enable_autosuspend=0
   '';
+
+  # MT7925 can enter a zombie state where HCI stays up but BLE HID devices
+  # no longer reconnect, often with "ACL packet for unknown connection
+  # handle" in the kernel log. Try the trusted mouse at low frequency, and
+  # reset btusb only after repeated failures while nothing else is connected.
+  systemd.services.bluetooth-mouse-reconnect = {
+    description = "Reconnect Logitech MX Anywhere 3S";
+    after = [ "bluetooth.target" ];
+    wants = [ "bluetooth.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellApplication {
+        name = "bluetooth-mouse-reconnect";
+        runtimeInputs = with pkgs; [
+          bluez
+          coreutils
+          gnugrep
+        ];
+        text = ''
+          mouse="D4:EE:50:37:07:1C"
+          state="/run/faex1-bt-mouse-reconnect.failures"
+
+          is_connected() {
+            bluetoothctl info "$mouse" 2>/dev/null | grep -q "Connected: yes"
+          }
+
+          if is_connected; then
+            rm -f "$state"
+            exit 0
+          fi
+
+          if ! bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+            bluetoothctl power on >/dev/null 2>&1 || true
+            sleep 2
+          fi
+
+          bluetoothctl --timeout 12 connect "$mouse" >/dev/null 2>&1 || true
+          sleep 2
+          if is_connected; then
+            rm -f "$state"
+            exit 0
+          fi
+
+          failures=0
+          if [ -r "$state" ]; then
+            failures="$(cat "$state")"
+          fi
+          failures=$((failures + 1))
+          printf '%s\n' "$failures" > "$state"
+
+          if [ "$failures" -lt 4 ]; then
+            exit 0
+          fi
+
+          # Do not interrupt connected audio or other HID devices.
+          if [ -z "$(bluetoothctl devices Connected 2>/dev/null)" ]; then
+            hci_device="$(readlink -f /sys/class/bluetooth/hci0/device 2>/dev/null || true)"
+            hci_interface="$(basename "$hci_device")"
+            if [ -n "$hci_interface" ] && [ -w /sys/bus/usb/drivers/btusb/unbind ]; then
+              printf '%s' "$hci_interface" > /sys/bus/usb/drivers/btusb/unbind
+              sleep 3
+              printf '%s' "$hci_interface" > /sys/bus/usb/drivers/btusb/bind
+              sleep 8
+              bluetoothctl --timeout 15 connect "$mouse" >/dev/null 2>&1 || true
+            fi
+          fi
+
+          printf '0\n' > "$state"
+        '';
+      };
+    };
+  };
+
+  systemd.timers.bluetooth-mouse-reconnect = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";
+      OnUnitActiveSec = "2min";
+      Unit = "bluetooth-mouse-reconnect.service";
+    };
+  };
 
   # Nix defaults to one job per CPU and gives every job all 32 cores. ROCm
   # builds then run hundreds of clang processes at once and push this 128 GiB
