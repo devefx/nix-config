@@ -11,7 +11,7 @@ what they want.
 | ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `default.nix` | —                               | `scanPaths ./.` — auto-imports everything here                                                  |
 | `plasma.nix`  | `modules.desktop.plasma.enable` | KDE Plasma 6 (Plasma Login Manager, Plasma service, pipewire, printing, graphics, system fonts) |
-| `niri.nix`    | `modules.desktop.niri.enable`   | Niri, greetd, PipeWire, portals, XWayland satellite, printing, graphics                         |
+| `niri.nix`    | `modules.desktop.niri.enable`   | Niri, nwg-hello, PipeWire, portals, XWayland satellite, printing, graphics                      |
 
 ## How a host uses it
 

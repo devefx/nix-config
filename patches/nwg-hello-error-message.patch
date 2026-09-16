@@ -1,0 +1,22 @@
+--- a/nwg_hello/ui.py
++++ b/nwg_hello/ui.py
+@@ -102,5 +102,8 @@ class GreeterWindow(Gtk.Window):
+ 
+         self.lbl_message = builder.get_object("lbl-message")
++        self.lbl_message.set_property("name", "lbl-message")
++        self.message_box = builder.get_object("message-box")
++        self.message_box.set_property("name", "message-box")
+         self.lbl_message.set_text("")
+ 
+         self.combo_user = builder.get_object("combo-user")
+@@ -234,4 +234,5 @@ class GreeterWindow(Gtk.Window):
+     def clear_message_label(self, *args):
+         self.lbl_message.set_text("")
++        self.message_box.get_style_context().remove_class("error")
+ 
+     def on_password_icon_press(self, entry, position, event):
+@@ -270,3 +271,4 @@ class GreeterWindow(Gtk.Window):
+             if "error_type" in resp and resp["error_type"] == "auth_error":
+                 self.lbl_message.set_text(self.voc["login-failed"])
++                self.message_box.get_style_context().add_class("error")
+                 self.entry_password.set_text("")

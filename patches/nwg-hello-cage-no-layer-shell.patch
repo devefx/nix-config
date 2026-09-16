@@ -1,0 +1,62 @@
+--- a/nwg_hello/ui.py
++++ b/nwg_hello/ui.py
+@@ -156,31 +156,34 @@ class GreeterWindow(Gtk.Window):
+         self.window.connect('destroy', Gtk.main_quit)
+         self.window.connect("key-release-event", self.handle_keyboard)
+ 
+-        GtkLayerShell.init_for_window(self.window)
+-        GtkLayerShell.set_monitor(self.window, monitor)
+-
+-        if self.settings["layer"].upper() == "BACKGROUND":
+-            GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.BACKGROUND)
+-        elif self.settings["layer"].upper() == "BOTTOM":
+-            GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.BOTTOM)
+-        elif self.settings["layer"].upper() == "TOP":
+-            GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.TOP)
++        if GtkLayerShell.is_supported():
++            GtkLayerShell.init_for_window(self.window)
++            GtkLayerShell.set_monitor(self.window, monitor)
++
++            if self.settings["layer"].upper() == "BACKGROUND":
++                GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.BACKGROUND)
++            elif self.settings["layer"].upper() == "BOTTOM":
++                GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.BOTTOM)
++            elif self.settings["layer"].upper() == "TOP":
++                GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.TOP)
++            else:
++                GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.OVERLAY)
++
++            if self.settings["keyboard-mode"].upper() == "NONE":
++                GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.NONE)
++            elif self.settings["keyboard-mode"].upper() == "ON_DEMAND" or self.settings[
++                "keyboard-mode"].upper() == "ON-DEMAND":
++                GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.ON_DEMAND)
++            else:
++                GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.EXCLUSIVE)
++
++            GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.TOP, True)
++            GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.BOTTOM, True)
++            GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.LEFT, True)
++            GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.RIGHT, True)
++            GtkLayerShell.set_exclusive_zone(self.window, -1)
++            GtkLayerShell.set_namespace(self.window, "nwg-hello")
+         else:
+-            GtkLayerShell.set_layer(self.window, GtkLayerShell.Layer.OVERLAY)
+-
+-        if self.settings["keyboard-mode"].upper() == "NONE":
+-            GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.NONE)
+-        elif self.settings["keyboard-mode"].upper() == "ON_DEMAND" or self.settings[
+-            "keyboard-mode"].upper() == "ON-DEMAND":
+-            GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.ON_DEMAND)
+-        else:
+-            GtkLayerShell.set_keyboard_mode(self.window, GtkLayerShell.KeyboardMode.EXCLUSIVE)
+-
+-        GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.TOP, True)
+-        GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.BOTTOM, True)
+-        GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.LEFT, True)
+-        GtkLayerShell.set_anchor(self.window, GtkLayerShell.Edge.RIGHT, True)
+-        GtkLayerShell.set_exclusive_zone(self.window, -1)
+-        GtkLayerShell.set_namespace(self.window, "nwg-hello")
++            self.window.fullscreen()
+ 
+         self.window.show()

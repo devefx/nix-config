@@ -1,0 +1,16 @@
+--- a/output.c
++++ b/output.c
+@@ -269,6 +269,13 @@ handle_new_output(struct wl_listener *listener, void *data)
+ 
+ 	struct wlr_output_state state = {0};
+ 	wlr_output_state_set_enabled(&state, true);
++	const char *scale_env = getenv("CAGE_OUTPUT_SCALE");
++	if (scale_env != NULL) {
++		double scale = strtod(scale_env, NULL);
++		if (scale > 0.0) {
++			wlr_output_state_set_scale(&state, scale);
++		}
++	}
+ 	if (!wl_list_empty(&wlr_output->modes)) {
+ 		struct wlr_output_mode *preferred_mode = wlr_output_preferred_mode(wlr_output);
+ 		if (preferred_mode) {

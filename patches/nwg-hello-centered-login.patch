@@ -1,0 +1,21 @@
+--- a/nwg_hello/ui.py
++++ b/nwg_hello/ui.py
+@@ -47,6 +47,9 @@ class GreeterWindow(Gtk.Window):
+         form_wrapper = builder.get_object("form-wrapper")
+         form_wrapper.set_property("name", "form-wrapper")
+ 
++        login_card = builder.get_object("login-card")
++        login_card.set_property("name", "login-card")
++
+         lbl_welcome = builder.get_object("lbl-welcome")
+         lbl_welcome.set_text(f'{voc["welcome"]}')
+         lbl_welcome.set_property("name", "welcome-label")
+@@ -185,7 +185,7 @@ class GreeterWindow(Gtk.Window):
+ 
+         self.window.show()
+ 
+-        form_wrapper.set_size_request(monitor.get_geometry().width * 0.37, 0)
++        form_wrapper.set_size_request(-1, 0)
+         self.entry_password.grab_focus()
+ 
+     def handle_keyboard(self, w, event):
