@@ -11,6 +11,12 @@ let
   cfg = config.modules.desktop.niri;
   niriPackage = niri.packages.${pkgs.stdenv.hostPlatform.system}.niri.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [ ../../../patches/niri-minimize-request.patch ];
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace resources/niri-session \
+        --replace-fail \
+          'systemctl --user import-environment' \
+          'systemctl --user import-environment $(printenv | cut -d= -f1 | tr "\n" " ")'
+    '';
   });
 
   cage = pkgs.cage.overrideAttrs (old: {
