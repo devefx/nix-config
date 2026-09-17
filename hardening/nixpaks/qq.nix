@@ -55,13 +55,21 @@ let
           ];
           sockets = {
             x11 = true;
-            wayland = lib.mkForce false;
+            wayland = true;
             pipewire = true;
           };
           env = {
-            # QQ is Electron running under XWayland; fcitx5 needs these
-            # legacy IM variables to attach to the input context.
-            QT_QPA_PLATFORM = "xcb";
+            # Prefer Wayland so Electron uses PipeWire/portals for screenshots.
+            # Keep X11 available for QQ's legacy clipboard integration.
+            QT_QPA_PLATFORM = "wayland;xcb";
+            NIXOS_OZONE_WL = "1";
+            # QQ falls back to grim for screenshots outside KDE. The sandbox
+            # does not expose /run/current-system, so add grim's store path
+            # directly instead of relying on the inherited PATH.
+            PATH = sloth.concat [
+              (sloth.env "PATH")
+              ":${pkgs.grim}/bin"
+            ];
             QT_IM_MODULE = "fcitx";
             GTK_IM_MODULE = "fcitx";
             GTK_PATH = "${pkgs.fcitx5-gtk}/lib/gtk-3.0";

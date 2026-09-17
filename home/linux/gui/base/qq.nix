@@ -21,5 +21,12 @@ in
 
   config = mkIf cfg.enable {
     home.packages = [ pkgs.nixpaks.qq ];
+
+    # QQ creates its own autostart entry with an absolute store path, which
+    # becomes stale after rebuilds and bypasses the XAUTHORITY fallback.
+    xdg.configFile."autostart/com.qq.QQ.desktop" = {
+      source = "${pkgs.nixpaks.qq}/share/applications/com.qq.QQ.desktop";
+      force = true;
+    };
   };
 }
