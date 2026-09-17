@@ -31,6 +31,7 @@ in
       brightnessctl
       playerctl
       xdg-user-dirs
+      thunderbird
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
       file-roller # backend for thunar-archive-plugin
     ];
