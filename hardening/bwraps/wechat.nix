@@ -1,9 +1,7 @@
 # Wechat for Linux, packaged as a bwrap-wrapped AppImage.
 #
-# Upstream AppImage is fetched via web.archive.org (stable snapshot) rather
-# than the raw Tencent URL, so the hash pinning stays reproducible.
-# Archive URL syntax: https://web.archive.org/web/<timestamp>if_/<original>
-# (the `if_` suffix skips the Wayback toolbar injection).
+# Upstream AppImage content is pinned by hash so the moving Tencent URL stays
+# reproducible.
 #
 # Refer:
 # - nixpkgs package: https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/we/wechat/package.nix
@@ -17,10 +15,10 @@ let
   pname = "wechat";
   sources = {
     x86_64-linux = {
-      version = "4.1.1.4";
+      version = "4.1.13.9";
       src = fetchurl {
-        url = "https://web.archive.org/web/20260311102439if_/https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage";
-        hash = "sha256-XxAvFnlljqurGPDgRr+DnuCKbdVvgXBPh02DLHY3Oz8=";
+        url = "https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage";
+        hash = "sha256-ay4g5wAGNy6N37rkDqhkVkUgyHsH0BYLYA7JP3j9XMI=";
       };
     };
   };
@@ -76,8 +74,11 @@ appimageTools.wrapAppImage {
     "--bind \${WECHAT_HOME_DIR} \${HOME}"
     "--bind \${WECHAT_FILES_DIR} \${WECHAT_FILES_DIR}"
     "--chdir \${HOME}"
-    # wechat-universal only supports xcb (no native wayland yet).
-    "--setenv QT_QPA_PLATFORM xcb"
+    # wxutility needs libbz2.so.1.0 from the FHS environment.
+    "--setenv LD_LIBRARY_PATH /usr/lib64"
+    # 4.1.13.9 supports Wayland; prefer it so screenshots use the portal and
+    # fall back to xcb for plugins that still require X11.
+    "--setenv QT_QPA_PLATFORM 'wayland;xcb'"
     "--setenv QT_AUTO_SCREEN_SCALE_FACTOR 1"
     # fcitx5 integration for Chinese input.
     "--setenv QT_IM_MODULE fcitx"
