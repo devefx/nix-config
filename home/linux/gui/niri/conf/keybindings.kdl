@@ -161,6 +161,7 @@ binds {
     // Screenshot Annotation via satty
     Print hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
     Mod+Shift+S hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
+    Alt+A hotkey-overlay-title="微信截图" { spawn-sh "niri-global-shortcut 'Alt+A'"; }
     Ctrl+Print hotkey-overlay-title="截取整屏" { screenshot-screen; }
     Alt+Print hotkey-overlay-title="截取当前窗口" { screenshot-window; }
 
