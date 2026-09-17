@@ -655,6 +655,16 @@ in
       "d '/var/cache/nwg-hello' 0700 greeter greeter - -"
     ];
 
+    # Niri implements the legacy GNOME Shell screenshot API, but not the
+    # InteractiveScreenshot method expected by xdg-desktop-portal-gnome.
+    # Let the wlr portal handle screenshot requests through wlr-screencopy;
+    # other portal interfaces keep using GNOME and GTK.
+    xdg.portal.wlr.enable = true;
+    xdg.portal.config.niri = {
+      "org.freedesktop.impl.portal.Screenshot" = "wlr";
+      "org.freedesktop.impl.portal.ScreenCast" = "wlr";
+    };
+
     environment.systemPackages = with pkgs; [
       papirus-icon-theme
     ];
