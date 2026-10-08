@@ -8,26 +8,25 @@
 # Codex / Gemini CLI): one-click provider switching, MCP / Skills sync,
 # and local usage tracking.
 #
-# Uses the native `pkgs.cc-switch` from nixpkgs (v3.16.5, database schema
-# v11) instead of the upstream AppImage, whose bundled WebKitGTK aborts
-# WebKitWebProcess with EGL errors on faex1 (blank/white window). The
-# nixpkgs build compiles against nixpkgs' webkitgtk_4_1 (2.52.5), where
-# the upstream crash no longer reproduces.
+# Built from source rather than the upstream AppImage, whose bundled
+# WebKitGTK aborts WebKitWebProcess with EGL errors on faex1 (blank/white
+# window). The build compiles against nixpkgs' webkitgtk_4_1, where that
+# crash does not reproduce.
 #
-# NOTE: nixpkgs' cc-switch (3.16.5) only reads database schema v11. A
-# database migrated by newer releases (schema v16, from 3.18.0+) must be
-# reset before launching: `rm ~/.cc-switch/cc-switch.db` (the app then
-# recreates it and providers must be re-added). Once nixpkgs ships
-# cc-switch >= 3.18.0, this NOTE no longer applies.
-#
-# Requires the `nixpkgs` (nixos-unstable) input to be at or after rev
-# 38a4887 (2026-07-25); flake.lock is pinned there already.
+# pkgs/cc-switch bumps nixpkgs' recipe from 3.16.5 (schema v11, unmoved
+# since 2026-07) to upstream 3.20.4 (schema v19). The upgrade is a stepwise
+# in-place migration, so the old requirement to delete
+# ~/.cc-switch/cc-switch.db before launching no longer applies — but it is
+# one-way: downgrading afterwards leaves a v19 database that 3.16.5 refuses
+# to open. See pkgs/cc-switch/default.nix.
 #
 # Gated behind `modules.ccSwitch.enable` — enable in
 # `home/hosts/<name>.nix`.
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.ccSwitch;
+
+  cc-switch = pkgs.callPackage ../../../../pkgs/cc-switch { };
 in
 {
   options.modules.ccSwitch = {
@@ -35,6 +34,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs.cc-switch ];
+    home.packages = [ cc-switch ];
   };
 }
