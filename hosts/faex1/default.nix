@@ -40,9 +40,15 @@ in
 
   networking.hostName = "faex1";
   # local HTTP dev tools
+  # 43127 is DSH Desktop's phone-pairing port. DSH already binds it to 0.0.0.0
+  # but still requires approving the device inside the desktop app; the harness
+  # web UI itself stays on 127.0.0.1:43129 behind its token, not opened here.
   networking.firewall.allowedTCPPorts = [
     8080 # llama-server
     8088 # Claude Code Haha
+    3000 # tele-desk backend
+    5173 # tele-desk frontend (Vite dev server)
+    43127 # DSH Desktop phone pairing
   ];
 
   # Bluetooth — required for the KDE Bluetooth settings panel to show up.
