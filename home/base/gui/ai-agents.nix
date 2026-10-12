@@ -314,6 +314,13 @@ in
       pi-web
       codex-desktop
       dsh-desktop
+      # `dsh plugin` is a thin forwarder to pnpm: it runs `pnpm add <pkg>` in
+      # `~/.dsh/profiles/<name>` and then records the new bundle in that
+      # profile's `package.json`. Plugins therefore live outside the Nix store
+      # by design (bundle resolution checks the profile directory, and the
+      # installation anchor is a read-only store path), so the only thing the
+      # declarative side has to provide is the package manager itself.
+      pkgs.pnpm
     ]
     ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ]
     ++ optionals reaCfg.enable ([ rea ] ++ optionals reaCfg.ghidra reaGhidraProfile);
