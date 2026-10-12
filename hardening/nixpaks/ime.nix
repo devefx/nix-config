@@ -283,11 +283,47 @@ let
   # path only, which is precisely how this regressed the first time (coredumps
   # from 2026-10-05/06 still had FLATPAK_METADATA_TEMPLATE in the environment).
   exePath = lib.getExe script;
+
+  # The nixpak buildEnv below only exposes `script` and the desktop entry, so
+  # `${ime}`'s share/icons never reaches the profile and the app icon does not
+  # resolve anywhere (verified: no org.ime.desktop in the profile hicolor tree).
+  #
+  # On top of that, iMe reports StatusNotifierItem icon names that no installed
+  # icon theme ships, and it switches between them as its status changes:
+  #
+  #   org.ime.desktop-attention-symbolic   Status == NeedsAttention (also sent
+  #                                        as the attention *overlay*)
+  #   org.ime.desktop-symbolic             normal, no unread messages
+  #   org.ime.desktop-mute-symbolic        muted
+  #
+  # These are KDE-style "attention"/state glyph names; breeze, Papirus and
+  # Adwaita all lack them (they ship `org.ime.desktop` only as an app icon, and
+  # Telegram Desktop's equivalent names as `telegram-*`). Quickshell prefers
+  # IconName over the 64x64 IconPixmap iMe also sends, so the name fails to load
+  # and the tray paints its magenta/black missing-icon checkerboard instead of
+  # iMe's own pixmap. Upstream report:
+  # https://github.com/quickshell-mirror/quickshell/issues/1259
+  #
+  # Alias the app icon to every name iMe asks for so the lookup succeeds. This is
+  # a workaround for iMe's names, not a Quickshell fix: the shell still ignores
+  # the pixmap fallback.
+  hicolorIcons = runCommandLocal "ime-desktop-icons" { } ''
+    for name in \
+      ${appId} \
+      ${appId}-symbolic \
+      ${appId}-attention-symbolic \
+      ${appId}-mute-symbolic
+    do
+      install -Dm0644 ${ime}/share/icons/hicolor/512x512/apps/${appId}.png \
+        $out/share/icons/hicolor/512x512/apps/$name.png
+    done
+  '';
 in
 buildEnv {
   inherit (wrapped.config.script) name meta passthru;
   paths = [
     script
+    hicolorIcons
     (makeDesktopItem {
       name = appId;
       desktopName = "iMe";

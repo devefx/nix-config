@@ -10,6 +10,35 @@ include "./niri-hardware.kdl"
 include "./noctalia-shell.kdl"
 include "./spawn-at-startup.kdl"
 
+// Qt only consults the desktop icon theme when a QPA platform theme is loaded.
+// With none set, QIcon::fromTheme() falls back to a hicolor-only lookup, so the
+// fcitx5 tray glyph "input-keyboard-symbolic" -- the one shown while the English
+// layout is active -- resolves to nothing and Quickshell paints its magenta/
+// black missing-icon checkerboard instead. qt6ct.conf selects
+// icon_theme=breeze-dark, so loading the plugin fixes the whole family of tray
+// glyphs that live only in breeze/papirus (input-keyboard-symbolic,
+// user-desktop, application-x-executable, ...).
+//
+// Only the *name* of the platform theme belongs here. The plugin itself is put
+// on noctalia-shell's QT_PLUGIN_PATH by the wrapper override in
+// home/linux/gui/niri/noctalia.nix; setting QT_QPA_PLATFORMTHEME without that
+// leaves Qt with no plugin to load and the icons still fail.
+//
+// This cannot go in home.sessionVariables: Home Manager writes those to
+// $profile/etc/profile.d/hm-session-vars.sh, and nothing in this session sources
+// it. niri.service execs `niri --session` directly, so no login shell runs, and
+// /etc/static/profile has no profile.d loop to pick the file up either.
+//
+// niri's `environment` block is what actually reaches niri's children, and
+// noctalia-shell (i.e. Quickshell, the process that draws the tray) is started
+// from spawn-at-startup.kdl, so it inherits this. Note the block only covers
+// processes niri spawns -- it is not exported to systemd, so systemd-started
+// apps still need their own setting. A config reload only affects children
+// spawned afterwards; noctalia-shell has to be restarted to pick this up.
+environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
 // Input device configuration.
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
