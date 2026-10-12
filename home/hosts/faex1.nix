@@ -6,6 +6,9 @@
   modules.cpp.enable = true;
   modules.rust.enable = true;
   modules.aiAgents.enable = true;
+  # Pi Web binds 0.0.0.0:30141. There is no `PI_WEB_PASSWORD` set, so only
+  # enable this on a network you trust (see the module for how to add one).
+  modules.aiAgents.piWeb.enable = true;
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;
   modules.godotDev.enable = true;
