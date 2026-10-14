@@ -17,7 +17,7 @@ let
     pkgs.godot_4_7.overrideAttrs (old: {
       version = "4.7.2-yoke";
       src = inputs.godot-yoke;
-      sconsFlags = (old.sconsFlags or []) ++ [
+      sconsFlags = (old.sconsFlags or [ ]) ++ [
         "system_certs_path=/etc/ssl/certs/ca-certificates.crt"
       ];
     });
@@ -106,19 +106,54 @@ in
   devShells = forAllSystems (
     system:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfree = true;
+          android_sdk.accept_license = true;
+        };
+      };
+
+      androidEnv = pkgs.androidenv.override { licenseAccepted = true; };
+      ndkVersion = "29.0.14206865";
+
+      androidSdk =
+        (androidEnv.composeAndroidPackages {
+          includeNDK = true;
+          inherit ndkVersion;
+          platformVersions = [ "36" ];
+          buildToolsVersions = [ "36.1.0" ];
+          platformToolsVersion = "37.0.1";
+          cmdLineToolsVersion = "latest";
+          includeCmake = true;
+          cmakeVersions = [ "3.10.2" ];
+        }).androidsdk;
+
+      jdk = pkgs.openjdk17;
+      androidSdkPath = "${androidSdk}/libexec/android-sdk";
     in
     {
       default = pkgs.mkShell {
         packages = with pkgs; [
           bashInteractive
           gcc
+          cargo-ndk
+          androidSdk
+          android-tools
+          jdk
           nixfmt
           deadnix
           statix
           typos
           prettier
         ];
+
+        ANDROID_HOME = androidSdkPath;
+        ANDROID_SDK_ROOT = androidSdkPath;
+        ANDROID_NDK_HOME = "${androidSdkPath}/ndk/${ndkVersion}";
+        ANDROID_NDK_ROOT = "${androidSdkPath}/ndk/${ndkVersion}";
+        JAVA_HOME = jdk.home;
+
         name = "nix-config";
         inherit (self.checks.${system}.pre-commit-check) shellHook;
       };
