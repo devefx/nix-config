@@ -97,6 +97,19 @@ in
       })
   );
 
+  # Kernel 7.2 instead of the 6.18 default: on 6.18 the MT7925 Bluetooth half
+  # (USB 0e8d:7925) intermittently fails the WMT firmware download --
+  # "Wrong op received 6 expected 1" then "Failed to send wmt patch dwnld" --
+  # and does not retry, leaving hci0 unusable until a power cycle; BlueZ then
+  # reports "No default controller available". Measured over nine boots on
+  # each kernel: five failed downloads on 6.18, one on 7.2.
+  #
+  # The 7.x btmtk driver resets the device and retries after a failed download
+  # (upstream 679621a767, first in 7.1-rc) and disables the broken
+  # remote-wakeup path for MT7922/MT7925 (upstream e31d761628), so the adapter
+  # recovers on its own.
+  boot.kernelPackages = pkgs.linuxPackages_7_2;
+
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
   # default of systemd-boot.
@@ -140,73 +153,90 @@ in
 
   # MT7925 can enter a zombie state where HCI stays up but BLE HID devices
   # no longer reconnect, often with "ACL packet for unknown connection
-  # handle" in the kernel log. Try the trusted mouse at low frequency, and
-  # reset btusb only after repeated failures while nothing else is connected.
+  # handle" in the kernel log (67 occurrences on this machine). It can also
+  # fail its WMT firmware download. Try the trusted mouse at low frequency,
+  # and reload the MediaTek USB driver after repeated failures.
   systemd.services.bluetooth-mouse-reconnect = {
     description = "Reconnect Logitech MX Anywhere 3S";
     after = [ "bluetooth.target" ];
     wants = [ "bluetooth.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = pkgs.writeShellApplication {
-        name = "bluetooth-mouse-reconnect";
-        runtimeInputs = with pkgs; [
-          bluez
-          coreutils
-          gnugrep
-        ];
-        text = ''
-          mouse="D4:EE:50:37:07:1C"
-          state="/run/faex1-bt-mouse-reconnect.failures"
+      ExecStart = lib.getExe (
+        pkgs.writeShellApplication {
+          name = "bluetooth-mouse-reconnect";
+          runtimeInputs = with pkgs; [
+            bluez
+            coreutils
+            gnugrep
+            kmod
+            systemd
+          ];
+          text = ''
+            mouse="D4:EE:50:37:07:1C"
+            state="/run/faex1-bt-mouse-reconnect.failures"
 
-          is_connected() {
-            bluetoothctl info "$mouse" 2>/dev/null | grep -q "Connected: yes"
-          }
+            is_connected() {
+              bluetoothctl info "$mouse" 2>/dev/null | grep -q "Connected: yes"
+            }
 
-          if is_connected; then
-            rm -f "$state"
-            exit 0
-          fi
+            reset_bluetooth_stack() {
+              for interface in /sys/bus/usb/drivers/btusb/*:*; do
+                [ -e "$interface" ] || continue
+                printf '%s' "$(basename "$interface")" \
+                  > /sys/bus/usb/drivers/btusb/unbind || true
+              done
 
-          if ! bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
-            bluetoothctl power on >/dev/null 2>&1 || true
-            sleep 2
-          fi
+              sleep 2
+              modprobe -r btusb >/dev/null 2>&1 || true
+              modprobe -r btmtk >/dev/null 2>&1 || true
+              sleep 2
+              modprobe btusb >/dev/null 2>&1 || true
+              sleep 5
 
-          bluetoothctl --timeout 12 connect "$mouse" >/dev/null 2>&1 || true
-          sleep 2
-          if is_connected; then
-            rm -f "$state"
-            exit 0
-          fi
-
-          failures=0
-          if [ -r "$state" ]; then
-            failures="$(cat "$state")"
-          fi
-          failures=$((failures + 1))
-          printf '%s\n' "$failures" > "$state"
-
-          if [ "$failures" -lt 4 ]; then
-            exit 0
-          fi
-
-          # Do not interrupt connected audio or other HID devices.
-          if [ -z "$(bluetoothctl devices Connected 2>/dev/null)" ]; then
-            hci_device="$(readlink -f /sys/class/bluetooth/hci0/device 2>/dev/null || true)"
-            hci_interface="$(basename "$hci_device")"
-            if [ -n "$hci_interface" ] && [ -w /sys/bus/usb/drivers/btusb/unbind ]; then
-              printf '%s' "$hci_interface" > /sys/bus/usb/drivers/btusb/unbind
-              sleep 3
-              printf '%s' "$hci_interface" > /sys/bus/usb/drivers/btusb/bind
+              systemctl restart bluetooth.service >/dev/null 2>&1 || true
               sleep 8
+            }
+
+            if is_connected; then
+              rm -f "$state"
+              exit 0
+            fi
+
+            if ! bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+              bluetoothctl power on >/dev/null 2>&1 || true
+              sleep 2
+            fi
+
+            bluetoothctl --timeout 12 connect "$mouse" >/dev/null 2>&1 || true
+            sleep 2
+            if is_connected; then
+              rm -f "$state"
+              exit 0
+            fi
+
+            failures=0
+            if [ -r "$state" ]; then
+              failures="$(cat "$state")"
+            fi
+            failures=$((failures + 1))
+            printf '%s\n' "$failures" > "$state"
+
+            if [ "$failures" -lt 4 ]; then
+              exit 0
+            fi
+
+            # Do not interrupt connected audio or other HID devices.
+            if [ -z "$(bluetoothctl devices Connected 2>/dev/null)" ]; then
+              reset_bluetooth_stack
+              bluetoothctl power on >/dev/null 2>&1 || true
               bluetoothctl --timeout 15 connect "$mouse" >/dev/null 2>&1 || true
             fi
-          fi
 
-          printf '0\n' > "$state"
-        '';
-      };
+            printf '0\n' > "$state"
+          '';
+        }
+      );
     };
   };
 
