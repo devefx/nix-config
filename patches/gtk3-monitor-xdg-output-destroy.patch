@@ -1,0 +1,46 @@
+Backport of upstream commit 692439ec8d41008f9d9726359013f44d8473ad7b
+("monitor/wayland: Don't leak zxdg_output_v1 proxy"), which landed on the
+gtk-3-24 branch after 3.24.52 and is therefore missing from the tarball
+nixpkgs currently builds.
+
+gdk_wayland_monitor_finalize() destroys the monitor's wl_output but never the
+zxdg_output_v1 proxy created for it by
+gdk_wayland_screen_get_xdg_output(). The proxy keeps a listener whose `data`
+is the monitor itself, so once the monitor is freed the compositor can still
+deliver an xdg_output.name event to a dangling pointer:
+
+  xdg_output_handle_name()
+    g_free (monitor->name);          <-- reads freed memory
+
+This is reachable on any output hotplug. A compositor that repeatedly
+re-adds and removes a connector turns it into a reliable crash: every
+GTK3 client in the session receives the output removal plus a fresh
+xdg_output.name event per cycle, and they all die together.
+
+Observed on this machine with niri and a display whose internal USB hub
+re-enumerates every ~10s, dropping and restoring the DP hotplug line on
+each cycle (2792 times in one boot). Seven GTK3 applications crashed
+within 16 seconds of each other:
+
+  chrome, electron, code, thunar-volman, QQ, Telegram, iMe
+
+All shared the same stack:
+
+  #0  <client>
+  #1  g_free (libglib-2.0.so.0)
+  #2  xdg_output_handle_name (libgdk-3.so.0)
+
+GTK4 already does the right thing; gdkmonitor-wayland.c there calls
+g_clear_pointer (&monitor->xdg_output, zxdg_output_v1_destroy) before
+releasing the wl_output.
+
+--- a/gdk/wayland/gdkmonitor-wayland.c
++++ b/gdk/wayland/gdkmonitor-wayland.c
+@@ -38,6 +38,7 @@ gdk_wayland_monitor_finalize (GObject *object)
+   g_free (monitor->name);
+ 
+   wl_output_destroy (monitor->output);
++  g_clear_pointer (&monitor->xdg_output, zxdg_output_v1_destroy);
+ 
+   G_OBJECT_CLASS (gdk_wayland_monitor_parent_class)->finalize (object);
+ }

@@ -14,6 +14,29 @@
       openldap = prev.openldap.overrideAttrs (old: {
         doCheck = false;
       });
+
+      # gtk3 3.24.52 leaks the zxdg_output_v1 proxy that GDK creates per monitor:
+      # gdk_wayland_monitor_finalize() destroys the wl_output but not the proxy,
+      # so the proxy's listener keeps pointing at the freed monitor. A later
+      # xdg_output.name event then does `g_free (monitor->name)` on freed memory.
+      #
+      #   #0  <client>
+      #   #1  g_free (libglib-2.0.so.0)
+      #   #2  xdg_output_handle_name (libgdk-3.so.0)
+      #
+      # Any output hotplug can hit this. A compositor that repeatedly re-adds and
+      # removes a connector makes it reliable: every GTK3 client gets the removal
+      # plus a fresh name event each cycle, and they all die together. Upstream
+      # fixed it in 692439ec8d41 ("Don't leak zxdg_output_v1 proxy") after
+      # 3.24.52, and GTK4 already destroyed the proxy; see the patch for the full
+      # analysis.
+      #
+      # This is a package bug, not a desktop-feature one, so it is applied for
+      # every host rather than behind a `modules.desktop.*` toggle. It rebuilds
+      # gtk3 and therefore every GTK3 consumer (chrome, electron, vscode, ...).
+      gtk3 = prev.gtk3.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ../../patches/gtk3-monitor-xdg-output-destroy.patch ];
+      });
     })
   ];
 
