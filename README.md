@@ -127,6 +127,7 @@ Workspace names are `1terminal`, `2browser`, `3chat`, `4entertainment`, `5utilit
 | Calculator                      | `Mod+C`                                       |
 | Control center                  | `Mod+S`                                       |
 | Annotate screenshot with Satty  | `Print`                                       |
+| OCR selected screenshot         | `Mod+Shift+O`                                 |
 | Screenshot screen / window      | `Ctrl+Print`, `Alt+Print`                     |
 | Volume up/down/mute             | `Volume Up`, `Volume Down`, `Volume Mute`     |
 | Microphone mute                 | `Microphone Mute`                             |

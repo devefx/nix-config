@@ -30,6 +30,75 @@ let
         "$1"
     '';
   };
+
+  ocrPython = pkgs.python3.withPackages (ps: [ ps.rapidocr-onnxruntime ]);
+  ocrScript = pkgs.writeText "screenshot-ocr.py" ''
+    import sys
+
+    from rapidocr_onnxruntime import RapidOCR
+
+
+    def main() -> int:
+        if len(sys.argv) != 2:
+            print("usage: screenshot-ocr.py IMAGE", file=sys.stderr)
+            return 2
+
+        result, _ = RapidOCR()(sys.argv[1])
+        if not result:
+            return 2
+
+        lines = []
+        for box, text, score in result:
+            if not text or (score is not None and score < 0.3):
+                continue
+            lines.append((min(point[1] for point in box), min(point[0] for point in box), text))
+
+        if not lines:
+            return 2
+
+        lines.sort(key=lambda item: (item[0], item[1]))
+        print("\n".join(text for _, _, text in lines))
+        return 0
+
+
+    if __name__ == "__main__":
+        raise SystemExit(main())
+  '';
+
+  screenshotOcr = pkgs.writeShellApplication {
+    name = "screenshot-ocr";
+    runtimeInputs = [
+      ocrPython
+      pkgs.coreutils
+      pkgs.grim
+      pkgs.libnotify
+      pkgs.slurp
+      pkgs.wl-clipboard
+    ];
+    text = ''
+      image="$(mktemp --suffix=.png)"
+      trap 'rm -f "$image"' EXIT
+
+      geometry="$(slurp -o -d -F monospace)" || exit 0
+
+      # OCR can take several seconds to initialize. Clear the old clipboard
+      # immediately so pasting while OCR runs cannot return a stale result.
+      wl-copy --clear >/dev/null 2>&1 || true
+      notify-send -a "Screenshot OCR" "截图 OCR" "正在识别，完成后会自动复制" >/dev/null 2>&1 || true
+
+      # Let the slurp overlay disappear before capturing the selected region.
+      sleep 0.1
+      grim -g "$geometry" "$image"
+
+      if ! text="$(python3 ${ocrScript} "$image")"; then
+        notify-send -a "Screenshot OCR" "OCR 失败" "未在所选区域识别到文字" >/dev/null 2>&1 || true
+        exit 1
+      fi
+
+      printf '%s\n' "$text" | wl-copy
+      notify-send -a "Screenshot OCR" "截图 OCR" "识别结果已复制" >/dev/null 2>&1 || true
+    '';
+  };
 in
 {
   imports = [ ./noctalia.nix ];
@@ -58,6 +127,7 @@ in
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
       file-roller # backend for thunar-archive-plugin
       globalShortcut
+      screenshotOcr
     ];
 
     programs.mpv = {

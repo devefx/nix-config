@@ -133,6 +133,7 @@ sudo nixos-rebuild switch --flake .#faex1
 | 计算器                         | `Mod+C`                                       |
 | 控制中心                       | `Mod+S`                                       |
 | 使用 Satty 标注截图            | `Print`                                       |
+| 截图识别文字                   | `Mod+Shift+O`                                 |
 | 截取整屏/当前窗口              | `Ctrl+Print`、`Alt+Print`                     |
 | 音量加/减/静音                 | `Volume Up`、`Volume Down`、`Volume Mute`     |
 | 麦克风静音                     | `Microphone Mute`                             |
