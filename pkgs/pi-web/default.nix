@@ -24,18 +24,18 @@
 # supplies the missing lockfile so Nix can fetch a complete, reproducible
 # dependency closure.
 #
-# Note the Pi packages installed here are the 1.1.0 versions pi-web pins,
-# which is deliberately independent of the `pi` CLI this repository takes
-# from the llm-agents flake input (currently 1.0.0). The two do not
-# conflict: pi-web resolves its own copies from its own `node_modules`.
+# Note the Pi packages installed here are the versions pi-web pins, which is
+# deliberately independent of the `pi` CLI this repository takes from the
+# llm-agents flake input. The two do not conflict: pi-web resolves its own
+# copies from its own `node_modules`.
 
 buildNpmPackage (finalAttrs: {
   pname = "pi-web";
-  version = "0.12.0";
+  version = "0.12.1";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@agegr/pi-web/-/pi-web-${finalAttrs.version}.tgz";
-    hash = "sha256-oinYwU5SCW8A40TOZhibjyNbmlGiOcteRmaiXskX+tI=";
+    hash = "sha256-7ZfPJ7sZISyBqdWHMEbMnLKaihH4STxN+enPZ7ERZYk=";
   };
 
   # The published tarball carries no lockfile, and its package.json still
@@ -44,20 +44,30 @@ buildNpmPackage (finalAttrs: {
   # with ENOTCACHED, so drop the block before installing. The committed
   # `package-lock.json` beside this file was generated from the published
   # `dependencies` block alone with
-  # `npm install --package-lock-only --ignore-scripts`, which yields 216
+  # `npm install --package-lock-only --ignore-scripts`, which yields 188
   # entries and no devDependencies at all.
+  #
+  # `postPatch` runs in both derivations buildNpmPackage creates: the
+  # `-npm-deps` one that prefetches the cache from the lockfile, and the main
+  # build. Only the latter has `nodejs` on PATH -- the npm-deps derivation
+  # carries just `prefetch-npm-deps` and stdenv -- so the JSON edit is guarded
+  # on `node` being available. It is only needed for the main build anyway:
+  # prefetch-npm-deps reads the lockfile and never consults package.json.
   postPatch = ''
     cp ${./package-lock.json} package-lock.json
-    node -e '
-      const fs = require("fs");
-      const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-      delete pkg.devDependencies;
-      delete pkg.scripts;
-      fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
-    '
+
+    if command -v node >/dev/null 2>&1; then
+      node -e '
+        const fs = require("fs");
+        const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        delete pkg.devDependencies;
+        delete pkg.scripts;
+        fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+      '
+    fi
   '';
 
-  npmDepsHash = "sha256-HKy/iM+9BGEm2DlqtXDaa8i1jHQkD6bEnJx3IsBA0nk=";
+  npmDepsHash = "sha256-KBaaxduTtFWrJCd0Igvxjok6jnP+EIAlhpgkyZAI4nQ=";
 
   # The tarball is already built; `dontNpmBuild` makes the default
   # `npm run build` a no-op. Lifecycle scripts stay off: the only
