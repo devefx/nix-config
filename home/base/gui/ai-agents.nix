@@ -15,14 +15,14 @@
 # Pi is the official `github.com/earendil-works/pi` coding agent (the npm
 # package is `@earendil-works/pi-coding-agent`). nixpkgs also ships it as
 # `pi-coding-agent`, but that copy is pinned to 0.85.1 while the vendor has
-# moved on; the flake input already tracks 1.0.0, so taking Pi from there
+# moved on; the flake input already tracks 1.2.0, so taking Pi from there
 # keeps it current without adding another input.
 #
 # Pi Web (`pi-web`, pkgs/pi-web) is the community browser front end for that
 # same agent — it reads the sessions and provider credentials the `pi` CLI
 # already has, so it needs no separate login. Note it bundles its own copy of
-# the Pi packages (1.1.0, the version upstream pins) instead of reusing the
-# 1.0.0 CLI from the flake input; the two do not conflict.
+# the Pi packages (1.2.0, the version upstream pins) instead of reusing the
+# 1.2.0 CLI from the flake input; the two do not conflict.
 #
 # The server is long-lived, so `modules.aiAgents.piWeb` runs it as a systemd
 # user service bound to `hostname`:`port` (default 0.0.0.0:30141). The CLI
