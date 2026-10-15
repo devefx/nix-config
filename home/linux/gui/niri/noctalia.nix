@@ -182,4 +182,76 @@ lib.mkIf config.modules.desktop.niri.enable {
     "noctalia/plugins.json".source = ./noctalia/config/plugins.json;
     "qt6ct/qt6ct.conf".source = ./noctalia/qt6ct.conf;
   };
+
+  # Quickshell's IPC client locates the running bar by hashing the config path
+  # it is about to load: the instance directory is
+  # `by-path/<md5 of .../noctalia-shell/shell.qml>`. The noctalia-shell wrapper
+  # bakes `-p <store path>` in at build time, so any rebuild that changes the
+  # package produces a new path while the already-running bar keeps the old
+  # one. Every `noctalia-shell ipc call ...` in keybindings.kdl then fails with
+  #
+  #   No running instances for "<new path>/shell.qml"
+  #
+  # and exits 255, so Mod+Space / Mod+D / XF86Search (launcher), volume,
+  # brightness, media keys, Mod+C, Mod+Shift+V, Mod+S and the locker all go
+  # dead until the bar is restarted. Measured after the 2026-10-15 rebuild: the
+  # running bar was on rmwmx3v03n896ds9lvdakynhv9g55vky while the wrapper on
+  # PATH was 53np1kxh2f6ahbzrsmcaj29pkfjfmgij, so `ipc call launcher toggle`
+  # exited 255 and niri's Mod+Space did nothing.
+  #
+  # Restart the bar only when that path actually changes. The state file is left
+  # untouched whenever the restart cannot be performed, so a later activation
+  # retries instead of recording a path that was never applied.
+  home.activation.restartNoctaliaShellOnPathChange = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    state_file="$HOME/.cache/niri-noctalia-shell-path"
+    shell_dir="${noctaliaShell}/share/noctalia-shell"
+
+    if [ "$(cat "$state_file" 2>/dev/null || true)" != "$shell_dir" ] && [ -z "''${DRY_RUN:-}" ]; then
+      # pgrep is unavailable here: home-manager-yoke.service gets a minimal
+      # coreutils/grep PATH with no procps, so scan /proc directly.
+      bar_pid=""
+      for proc in /proc/[0-9]*; do
+        if tr '\0' ' ' < "$proc/cmdline" 2>/dev/null | grep -q 'quickshell .*-p .*noctalia-shell'; then
+          bar_pid="''${proc#/proc/}"
+          break
+        fi
+      done
+
+      if [ -z "$bar_pid" ]; then
+        # No bar running: nothing to restart. niri's spawn-at-startup starts
+        # the new one at next login.
+        printf '%s' "$shell_dir" > "$state_file"
+      else
+        # NIRI_SOCKET is normally inherited from the systemd user manager,
+        # which imports it at login; fall back to the runtime socket.
+        if [ -z "''${NIRI_SOCKET:-}" ]; then
+          for socket in "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/niri.wayland-*.sock; do
+            if [ -S "$socket" ]; then
+              NIRI_SOCKET="$socket"
+              export NIRI_SOCKET
+              break
+            fi
+          done
+        fi
+
+        # Without a compositor socket the bar cannot be respawned, and
+        # killing it would leave the session without one. Skip and retry.
+        if [ -n "''${NIRI_SOCKET:-}" ]; then
+          kill "$bar_pid" 2>/dev/null || true
+          for _ in $(seq 1 50); do
+            [ -e "/proc/$bar_pid" ] || break
+            sleep 0.1
+          done
+
+          # niri is not on the activation PATH; the system profile path is
+          # the same binary the running compositor uses.
+          niri_bin="$(command -v niri || true)"
+          [ -n "$niri_bin" ] || niri_bin=/run/current-system/sw/bin/niri
+          "$niri_bin" msg action spawn -- "${noctaliaShell}/bin/noctalia-shell" || true
+
+          printf '%s' "$shell_dir" > "$state_file"
+        fi
+      fi
+    fi
+  '';
 }
