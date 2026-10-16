@@ -31,11 +31,11 @@
 
 buildNpmPackage (finalAttrs: {
   pname = "pi-web";
-  version = "0.12.1";
+  version = "0.12.2";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@agegr/pi-web/-/pi-web-${finalAttrs.version}.tgz";
-    hash = "sha256-7ZfPJ7sZISyBqdWHMEbMnLKaihH4STxN+enPZ7ERZYk=";
+    hash = "sha256-Fq/g7h/2O5VCmtc4AtE+U6L4MXJGQT7Ri5L3s2/YbGo=";
   };
 
   # The published tarball carries no lockfile, and its package.json still
