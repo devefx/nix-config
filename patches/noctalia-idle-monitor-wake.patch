@@ -1,0 +1,35 @@
+Manual screen-off must arm the same DPMS-on path that idle screen-off uses.
+
+IPCService's `off` handler only called turnOffMonitors(), so turning the screen
+off by hand left IdleService._screenOffActive false. _restoreMonitors() bails
+out early when that flag is clear, so the next input event never ran
+turnOnMonitors() and the display stayed dark.
+
+Expose IdleService.armScreenOffRestore() and call it before turning the
+monitors off, so a manual blank is recoverable exactly like an idle one.
+
+--- a/Services/Control/IPCService.qml
++++ b/Services/Control/IPCService.qml
+@@ -447,6 +447,9 @@
+       CompositorService.turnOnMonitors();
+     }
+     function off() {
++      // Manual screen-off must use the same wake path as idle screen-off.
++      // The heartbeat monitor will call turnOnMonitors() on the next input.
++      IdleService.armScreenOffRestore();
+       CompositorService.turnOffMonitors();
+     }
+   }
+--- a/Services/Power/IdleService.qml
++++ b/Services/Power/IdleService.qml
+@@ -100,6 +100,10 @@
+     _restoreMonitors();
+   }
+ 
++  function armScreenOffRestore() {
++    _screenOffActive = true;
++  }
++
+   function _restoreMonitors() {
+     if (!_screenOffActive)
+       return;

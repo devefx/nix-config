@@ -1,0 +1,135 @@
+Read each connector's DDC brightness value once per shell session instead of
+on every monitor/bus change.
+
+Noctalia re-runs `ddcutil detect` whenever the monitor list changes, and each
+detected DDC monitor then ran `ddcutil getvcp 10` again from initBrightness().
+The onBusNumChanged / onIsDdcChanged handlers below fire on exactly the events
+that a display hotplug produces, so a connector that flaps costs one extra I2C
+transaction per flap.
+
+That matters on this machine because the YCT panel's internal USB hub
+re-enumerates on its own every ~10s once it starts (kernel marks it
+USB_QUIRK_HUB_SLOW_RESET), taking the DP hotplug line down with it. niri
+re-adds DP-1 each cycle, busNum/isDdc change, and Noctalia answered every one
+of those with another DDC read on the USB-C connector that was already failing
+link training.
+
+Keep DDC brightness control working -- it is the only way to dim this panel --
+but stop the per-hotplug re-read. ddcBrightnessByConnector already caches the
+value for the connector, so initBrightness() returns early when it is present;
+setvcp still runs on demand when the user changes brightness.
+
+Measured before this change: 2792 hub re-enumerations in one boot. Running
+ddcutil by hand does not reset the hub by itself (devnum stayed constant across
+30 detect/getvcp/setvcp calls), so this patch removes a per-flap cost rather
+than claiming DDC is the sole cause.
+
+--- a/Services/Hardware/BrightnessService.qml
++++ b/Services/Hardware/BrightnessService.qml
+@@ -9,6 +9,8 @@
+   id: root
+ 
+   property list<var> ddcMonitors: []
++  property var ddcBrightnessByConnector: ({})
++  property bool ddcInitialized: false
+   readonly property list<Monitor> monitors: variants.instances
+   property bool appleDisplayPresent: false
+   property list<var> availableBacklightDevices: []
+@@ -157,9 +159,8 @@
+   }
+ 
+   onMonitorsChanged: {
+-    ddcMonitors = [];
+     scanBacklightDevices();
+-    if (Settings.data.brightness.enableDdcSupport) {
++    if (Settings.data.brightness.enableDdcSupport && !root.ddcInitialized) {
+       ddcProc.running = true;
+     }
+   }
+@@ -170,10 +171,12 @@
+       if (Settings.data.brightness.enableDdcSupport) {
+         // Re-detect DDC monitors when enabled
+         ddcMonitors = [];
++        root.ddcInitialized = false;
+         ddcProc.running = true;
+       } else {
+         // Clear DDC monitors when disabled
+         ddcMonitors = [];
++        root.ddcInitialized = false;
+       }
+     }
+     function onBacklightDeviceMappingsChanged() {
+@@ -255,6 +258,7 @@
+                                              };
+                                            });
+         root.ddcMonitors = ddcProc.ddcMonitors.filter(m => m.isDdc);
++        root.ddcInitialized = true;
+       }
+     }
+   }
+@@ -278,7 +282,7 @@
+       return brightnessPath !== "";
+     }
+ 
+-    property real brightness
++    property real brightness: root.ddcBrightnessByConnector[modelData.name] ?? 0
+     property real lastBrightness: 0
+     property real queuedBrightness: NaN
+     property bool commandRunning: false
+@@ -320,6 +324,7 @@
+               if (!isNaN(current) && !isNaN(max) && max > 0) {
+                 monitor.maxBrightness = max;
+                 newBrightness = current / max;
++                root.ddcBrightnessByConnector[monitor.modelData.name] = newBrightness;
+               }
+             }
+           } else {
+@@ -415,6 +420,7 @@
+               if (!isNaN(current) && !isNaN(max) && max > 0) {
+                 monitor.maxBrightness = max;
+                 monitor.brightness = current / max;
++                root.ddcBrightnessByConnector[monitor.modelData.name] = monitor.brightness;
+                 Logger.d("Brightness", "DDC brightness:", current + "/" + max + " =", monitor.brightness);
+               }
+             }
+@@ -484,6 +490,8 @@
+ 
+       // Always update internal value and trigger UI feedback immediately
+       monitor.brightness = value;
++      if (isDdc)
++        root.ddcBrightnessByConnector[monitor.modelData.name] = value;
+       monitor.brightnessUpdated(value);
+       root.monitorBrightnessChanged(monitor, monitor.brightness);
+ 
+@@ -528,6 +536,20 @@
+     }
+ 
+     function initBrightness(): void {
++      // Read the current DDC value once per connector per shell session.
++      //
++      // This panel's internal USB hub re-enumerates on its own every ~10s,
++      // which drops the DP hotplug line and makes niri re-add the output.
++      // That changes busNum and isDdc, and the onBusNumChanged /
++      // onIsDdcChanged handlers below then ran another `ddcutil getvcp` each
++      // time -- so every flap cost one more I2C transaction on the very
++      // USB-C connector that was already failing link training.
++      // ddcBrightnessByConnector already holds the value read for this
++      // connector, so a second read is redundant. Adjusting brightness is
++      // unaffected: setvcp still runs on demand.
++      if (isDdc && busNum !== "" && root.ddcBrightnessByConnector[modelData.name] !== undefined) {
++        return;
++      }
+       monitor.initInProgress = true;
+       if (isAppleDisplay) {
+         initProc.command = ["asdbctl", "get"];
+@@ -550,6 +572,9 @@
+ 
+     onBusNumChanged: initBrightness()
+     onIsDdcChanged: initBrightness()
+-    Component.onCompleted: initBrightness()
++    Component.onCompleted: {
++      if (!monitor.isDdc || !root.ddcInitialized)
++        initBrightness();
++    }
+   }
+ }

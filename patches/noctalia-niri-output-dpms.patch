@@ -1,0 +1,41 @@
+Keep niri's DPMS off/on path symmetric, and never remove the output.
+
+An earlier revision ran `niri msg output DP-1 off` before the DPMS-off. That
+removes DP-1 from niri's output list, and the only API that brings a removed
+output back (`niri msg output DP-1 on`) is a no-op for an output niri no longer
+knows about, so the wake path could not restore the display at all.
+
+The DPMS-on side was equally aggressive: it retried `niri msg output DP-1 on`
+15 times and then ran `niri msg action quit --skip-confirmation` as a fallback,
+which tore down the whole session whenever the retries failed.
+
+Both sides now use niri's built-in power-off-monitors / power-on-monitors only.
+This is a comment-only patch against the current Noctalia release.
+
+--- a/Services/Compositor/NiriService.qml
++++ b/Services/Compositor/NiriService.qml
+@@ -247,6 +247,11 @@
+ 
+   function turnOffMonitors() {
+     try {
++      // Do NOT run `niri msg output DP-1 off` before the DPMS-off. That
++      // removes DP-1 from niri's output list, and the only API that brings a
++      // removed output back (`niri msg output DP-1 on`) is a no-op for an
++      // output niri no longer knows about. The wake path then cannot restore
++      // the display at all.
+       Niri.dispatch(["power-off-monitors"]);
+     } catch (e) {
+       Logger.e("NiriService", "Failed to turn off monitors:", e);
+@@ -255,6 +260,12 @@
+ 
+   function turnOnMonitors() {
+     try {
++      // Keep the DPMS-on path symmetric with turnOffMonitors(). An earlier
++      // revision retried `niri msg output DP-1 on` 15x and then ran
++      // `niri msg action quit --skip-confirmation` as a fallback, which tore
++      // down the whole session whenever the retries failed. niri's built-in
++      // DPMS-on is sufficient now that the flapping connector is handled by
++      // the xHCI/USB-hub udev rules in hosts/faex1/default.nix.
+       Niri.dispatch(["power-on-monitors"]);
+     } catch (e) {
+       Logger.e("NiriService", "Failed to turn on monitors:", e);

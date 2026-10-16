@@ -38,9 +38,28 @@ let
   # and makeWrapper silently drops the earlier value when one variable is given
   # more than one --prefix.
 
-  # Noctalia normally re-runs ddcutil whenever the monitor list or bus changes.
-  # This YCT USB-C display resets its hub on DDC queries, so only initialize DDC
-  # once per Noctalia session and never re-query after blanking or reconnecting.
+  # DDC brightness control is the only way to dim this panel, so it stays on
+  # (settings.json keeps enableDdcSupport = true). What has to go is the re-read
+  # on every monitor/bus change: Noctalia re-runs `ddcutil detect` when the
+  # monitor list changes and then ran `ddcutil getvcp` per detected monitor, so
+  # every display hotplug cost one more I2C transaction.
+  #
+  # That is expensive here because this YCT panel's internal USB hub
+  # re-enumerates on its own every ~10s once it starts (the kernel marks it
+  # USB_QUIRK_HUB_SLOW_RESET), taking the DP hotplug line down with it. niri
+  # re-adds DP-1 each cycle, busNum/isDdc change, and Noctalia answered each one
+  # with another DDC read on the USB-C connector that was already failing link
+  # training. 2792 re-enumerations in a single boot.
+  #
+  # The patch keeps DDC working -- setvcp still runs on demand -- but reads each
+  # connector's value once per session and caches it in
+  # ddcBrightnessByConnector.
+  #
+  # Note the limit of the evidence: running `ddcutil detect` / `getvcp` /
+  # `setvcp` by hand does *not* reset the hub on its own (devnum stayed 22 over
+  # 30 queries), and boot -37 stormed on 2026-09-12 before DDC was introduced.
+  # So this removes a per-flap cost; it does not claim DDC is the sole cause.
+  # The underlying fault is the hub firmware.
   noctaliaShell = pkgs.noctalia-shell.overrideAttrs (old: {
     postFixup = (old.postFixup or "") + ''
       wrapProgram $out/bin/noctalia-shell \
@@ -48,96 +67,9 @@ let
     '';
 
     patches = (old.patches or [ ]) ++ [
-      (pkgs.writeText "noctalia-no-ddc-reinit.patch" ''
-        --- a/Services/Hardware/BrightnessService.qml
-        +++ b/Services/Hardware/BrightnessService.qml
-        @@ -9,6 +9,8 @@
-           id: root
-
-           property list<var> ddcMonitors: []
-        +  property var ddcBrightnessByConnector: ({})
-        +  property bool ddcInitialized: false
-           readonly property list<Monitor> monitors: variants.instances
-           property bool appleDisplayPresent: false
-           property list<var> availableBacklightDevices: []
-        @@ -157,9 +159,8 @@
-           }
-
-           onMonitorsChanged: {
-        -    ddcMonitors = [];
-             scanBacklightDevices();
-        -    if (Settings.data.brightness.enableDdcSupport) {
-        +    if (Settings.data.brightness.enableDdcSupport && !root.ddcInitialized) {
-               ddcProc.running = true;
-             }
-           }
-        @@ -170,10 +171,12 @@
-               if (Settings.data.brightness.enableDdcSupport) {
-                 // Re-detect DDC monitors when enabled
-                 ddcMonitors = [];
-        +        root.ddcInitialized = false;
-                 ddcProc.running = true;
-               } else {
-                 // Clear DDC monitors when disabled
-                 ddcMonitors = [];
-        +        root.ddcInitialized = false;
-               }
-             }
-             function onBacklightDeviceMappingsChanged() {
-        @@ -255,6 +258,7 @@
-                                                      };
-                                                    });
-                 root.ddcMonitors = ddcProc.ddcMonitors.filter(m => m.isDdc);
-        +        root.ddcInitialized = true;
-               }
-             }
-           }
-        @@ -278,7 +282,7 @@
-               return brightnessPath !== "";
-             }
-
-        -    property real brightness
-        +    property real brightness: root.ddcBrightnessByConnector[modelData.name] ?? 0
-             property real lastBrightness: 0
-             property real queuedBrightness: NaN
-             property bool commandRunning: false
-        @@ -320,6 +324,7 @@
-                       if (!isNaN(current) && !isNaN(max) && max > 0) {
-                         monitor.maxBrightness = max;
-                         newBrightness = current / max;
-        +                root.ddcBrightnessByConnector[monitor.modelData.name] = newBrightness;
-                       }
-                     }
-                   } else {
-        @@ -415,6 +420,7 @@
-                       if (!isNaN(current) && !isNaN(max) && max > 0) {
-                         monitor.maxBrightness = max;
-                         monitor.brightness = current / max;
-        +                root.ddcBrightnessByConnector[monitor.modelData.name] = monitor.brightness;
-                         Logger.d("Brightness", "DDC brightness:", current + "/" + max + " =", monitor.brightness);
-                       }
-                     }
-        @@ -484,6 +490,8 @@
-
-               // Always update internal value and trigger UI feedback immediately
-               monitor.brightness = value;
-        +      if (isDdc)
-        +        root.ddcBrightnessByConnector[monitor.modelData.name] = value;
-               monitor.brightnessUpdated(value);
-               root.monitorBrightnessChanged(monitor, monitor.brightness);
-
-        @@ -550,6 +558,9 @@
-
-             onBusNumChanged: initBrightness()
-             onIsDdcChanged: initBrightness()
-        -    Component.onCompleted: initBrightness()
-        +    Component.onCompleted: {
-        +      if (!monitor.isDdc || !root.ddcInitialized)
-        +        initBrightness();
-        +    }
-           }
-         }
-      '')
+      ../../../../patches/noctalia-ddc-read-once.patch
+      ../../../../patches/noctalia-idle-monitor-wake.patch
+      ../../../../patches/noctalia-niri-output-dpms.patch
     ];
   });
 in
