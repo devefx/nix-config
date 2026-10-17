@@ -286,7 +286,15 @@ in
           });
       in
       {
-        inherit rocmPackages;
+        # Deliberately NOT `inherit rocmPackages` at the top level. Upstream
+        # 2f0fc932d0c6 made magma prefer `clr.localGpuTargets` over the full
+        # `clr.gpuTargets` list, and the gfx1151 scope sets it to exactly
+        # [ "gfx1151" ] -- which is absent from magma's own supportedGpuTargets.
+        # Promoting the scoped set to the top level therefore makes magma (and
+        # magma-hip, torch's default effectiveMagma) throw
+        # "No supported GPU targets specified. Requested GPU targets: 1151".
+        # Only the torch packages below need the gfx1151 scope, so hand it to
+        # them directly and leave the top-level rocmPackages unscoped.
         python3Packages = prev.python3Packages.overrideScope (
           _pythonFinal: pythonPrev: {
             torch = patchTorchAttrs (
