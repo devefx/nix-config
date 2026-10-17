@@ -7,11 +7,25 @@
 # dpkg state directly, so this wrapper extracts the official .deb and runs it
 # inside an FHS environment with the Electron runtime libraries it needs.
 let
-  version = "26.930.21537";
+  version = "26.1013.31256";
 
+  # Use the versioned APT pool object, never `.../deb/latest/chatgpt_amd64.deb`.
+  # `latest/` is overwritten in place on every release, so a hash pinned to it
+  # stops matching the moment OpenAI ships a build and the whole system fails
+  # to build with "hash mismatch in fixed-output derivation". The pool URL is
+  # immutable: its content is fixed by the version in the path.
+  #
+  # To bump, read the index and copy `Version`, `Filename` and `SHA256`:
+  #
+  #   curl -s https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages
+  #
+  # then convert the SHA256 from hex to SRI with
+  # `nix hash convert --to sri --hash-algo sha256 <hex>`. The URL below is the
+  # index's `Filename` joined onto
+  # `https://persistent.oaistatic.com/codex-app-prod/linux/deb/`.
   src = pkgs.fetchurl {
-    url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb";
-    sha256 = "sha256-YP222JXXdviDH/NaeD3gTNv6KA8PPZclhDFfmOV6olY=";
+    url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_${version}_amd64.deb";
+    hash = "sha256-cMzyub94CY57u/3b8e4Zao/dQr63538W3UL6ujZAMyQ=";
   };
 
   chatgpt-files = pkgs.stdenv.mkDerivation {
