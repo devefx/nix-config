@@ -9,6 +9,13 @@
   # Pi Web binds 0.0.0.0:30141. There is no `PI_WEB_PASSWORD` set, so only
   # enable this on a network you trust (see the module for how to add one).
   modules.aiAgents.piWeb.enable = true;
+  # REA registers as an MCP server for Pi / Pi Web / Codex / DSH and ships its
+  # skill. `ghidra` also installs Ghidra + JDK 21 for the decompiler-backed
+  # tools.
+  modules.aiAgents.rea = {
+    enable = true;
+    ghidra = true;
+  };
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;
   modules.godotDev.enable = true;
