@@ -8,29 +8,6 @@ let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.desktop.niri;
 
-  python = pkgs.python3.withPackages (ps: [ ps.dbus-next ]);
-
-  globalShortcutsBridge = pkgs.writeShellApplication {
-    name = "niri-global-shortcuts";
-    runtimeInputs = [ python ];
-    text = ''
-      exec python3 ${./niri-global-shortcuts.py}
-    '';
-  };
-
-  globalShortcut = pkgs.writeShellApplication {
-    name = "niri-global-shortcut";
-    runtimeInputs = [ pkgs.glib ];
-    text = ''
-      exec gdbus call \
-        --session \
-        --dest org.gnome.Shell \
-        --object-path /org/nixos/NiriGlobalShortcuts \
-        --method org.nixos.NiriGlobalShortcuts.Activate \
-        "$1"
-    '';
-  };
-
   ocrPython = pkgs.python3.withPackages (ps: [ ps.rapidocr-onnxruntime ]);
   ocrScript = pkgs.writeText "screenshot-ocr.py" ''
     import sys
@@ -126,7 +103,6 @@ in
       thunderbird
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
       file-roller # backend for thunar-archive-plugin
-      globalShortcut
       screenshotOcr
     ];
 
@@ -239,24 +215,6 @@ in
         Restart = "on-failure";
         RestartSec = 1;
         TimeoutStopSec = 10;
-      };
-    };
-
-    # xdg-desktop-portal-gnome implements GlobalShortcuts through the GNOME
-    # Shell API, which niri does not provide. Bridge the registration calls so
-    # applications such as WeChat can bind shortcuts and Niri can trigger them.
-    systemd.user.services.niri-global-shortcuts = {
-      Unit = {
-        Description = "Global shortcut bridge for niri";
-        Before = [ "graphical-session.target" ];
-        After = [ "dbus.service" ];
-      };
-      Install.WantedBy = [ "default.target" ];
-      Service = {
-        Type = "simple";
-        ExecStart = lib.getExe globalShortcutsBridge;
-        Restart = "on-failure";
-        RestartSec = 1;
       };
     };
 
