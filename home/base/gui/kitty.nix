@@ -63,6 +63,5 @@
   # ~/.local/share/applications for a relative desktop filename. Keep a
   # user-level copy there so its "Open Terminal Here" icon lookup can find
   # `Icon=kitty` instead of falling back to the generic terminal icon.
-  xdg.dataFile."applications/kitty.desktop".source =
-    "${pkgs.kitty}/share/applications/kitty.desktop";
+  xdg.dataFile."applications/kitty.desktop".source = "${pkgs.kitty}/share/applications/kitty.desktop";
 }

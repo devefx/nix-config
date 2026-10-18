@@ -44,26 +44,28 @@ stdenv.mkDerivation (finalAttrs: {
     makeWrapper
   ];
 
-  buildInputs = runtimeLibs ++ (with pkgs; [
-    stdenv.cc.cc.lib
-    glib
-    gtk3
-    nss
-    dbus
-    atk
-    at-spi2-core
-    cups
-    cairo
-    pango
-    fontconfig
-    freetype
-    expat
-    libudev-zero
-    mesa
-    ocl-icd
-    vulkan-loader
-    zlib
-  ]);
+  buildInputs =
+    runtimeLibs
+    ++ (with pkgs; [
+      stdenv.cc.cc.lib
+      glib
+      gtk3
+      nss
+      dbus
+      atk
+      at-spi2-core
+      cups
+      cairo
+      pango
+      fontconfig
+      freetype
+      expat
+      libudev-zero
+      mesa
+      ocl-icd
+      vulkan-loader
+      zlib
+    ]);
 
   autoPatchelfIgnoreMissingDeps = [
     "liblttng-ust.so.0"
@@ -136,15 +138,17 @@ stdenv.mkDerivation (finalAttrs: {
       --replace-fail "/opt/Emby-Beta/media.emby.client.beta" "$out/bin/media.emby.client.beta"
 
     makeWrapper "$out/lib/emby-client/media.emby.client.beta" "$out/bin/media.emby.client.beta" \
-      --prefix PATH : "${lib.makeBinPath [
-        pkgs.glibc.bin
-        pkgs.coreutils
-        pkgs.procps
-        pkgs.gnugrep
-        pkgs.gawk
-        pkgs.gnused
-        pkgs.xdg-utils
-      ]}" \
+      --prefix PATH : "${
+        lib.makeBinPath [
+          pkgs.glibc.bin
+          pkgs.coreutils
+          pkgs.procps
+          pkgs.gnugrep
+          pkgs.gawk
+          pkgs.gnused
+          pkgs.xdg-utils
+        ]
+      }" \
       --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath runtimeLibs}" \
       --set XKB_CONFIG_ROOT "${pkgs.xkeyboard_config}/share/X11/xkb"
 
