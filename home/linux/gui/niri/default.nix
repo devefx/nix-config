@@ -103,6 +103,23 @@ in
       thunderbird
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
       file-roller # backend for thunar-archive-plugin
+      # file-roller picks its backend by looking these up in PATH. Without
+      # them it falls back to its libarchive code path, which never flags
+      # encrypted entries, so "Extract Here" silently fails on encrypted
+      # archives instead of prompting for the password.
+      _7zz # FrCommand7z: encrypted 7z and zip (7-Zip's own build, not p7zip)
+      unzip # fallback for plain zip archives, and a useful CLI on its own
+      # FrCommandUnarchiver: the only backend that prompts for encrypted RAR.
+      #
+      # Known trade-off, kept deliberately: this makes file-roller list RARs
+      # with `lsar -j`, and fr-process.c accumulates that output in a way that
+      # degrades to O(n^2) (NONBLOCK 16 KiB channel, every line g_list_prepend'ed
+      # to a growing list). Archives with thousands of entries therefore peg one
+      # CPU core for minutes and appear to hang -- and because file-roller is a
+      # single-instance GApplication, the stuck instance also swallows every
+      # later "open archive" request. Unfixed upstream as of 44.7. Remove unar
+      # to get the old behaviour back (no RAR password prompt, but no hang).
+      unar
       screenshotOcr
     ];
 
