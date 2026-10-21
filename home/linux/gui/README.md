@@ -15,9 +15,10 @@ home/linux/gui/
 │   ├── firefox.nix     Firefox (sandboxed — see hardening/nixpaks/firefox.nix)
 │   ├── chrome.nix      Google Chrome (unfree; has its own built-in sandbox)
 │   ├── fcitx5.nix      Chinese input method (Pinyin / Shuangpin / Wubi)
-│   ├── cc-switch.nix    CC Switch — AI provider config manager (native nixpkgs build)
-│   ├── feishin.nix       Feishin — self-hosted music player (Jellyfin)
-│   └── lutris.nix      Linux game launcher (Wine / Proton / GOG / ...)
+│   ├── gaming.nix      Lutris + Proton-GE + Wine (needs modules.desktop.gaming)
+│   ├── cc-switch.nix   CC Switch — AI provider config manager
+│   ├── feishin.nix     Feishin — self-hosted music player (Jellyfin)
+│   └── ...             one opt-in module per app, gated by modules.<app>.enable
 ├── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
 └── niri/               Niri keybinds, window rules, Noctalia Shell
 ```
@@ -31,7 +32,6 @@ home/linux/gui/
 | `plasma.nix`              | Plasma / KDE apps only make sense when Plasma is enabled                          |
 | `niri/`                   | Niri keybinds, window rules and Noctalia config only make sense in a Niri session |
 | Future `hyprland/` subdir | Hyprland keybinds, layout — only meaningful when Hyprland is the session          |
-| Future `base/fcitx5.nix`  | Input method works across all DEs                                                 |
 
 Rule: **if it doesn't depend on a specific DE/WM, put it under `base/`**. If it only makes sense
 with a particular compositor, put it in that compositor's subdir (or a flat `<de>.nix`).

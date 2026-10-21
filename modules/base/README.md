@@ -7,11 +7,15 @@ via `modules/nixos/default.nix`'s `imports = [ ./base ../base ]`.
 
 ## Contents
 
-| File          | Purpose                                                                     |
-| ------------- | --------------------------------------------------------------------------- |
-| `default.nix` | `scanPaths ./.` — picks up every `.nix` sibling automatically               |
-| `nix.nix`     | Nix daemon settings: experimental features, substituters, GC, trusted users |
-| `users.nix`   | User description + SSH authorized keys (main + secondary)                   |
+| File           | Purpose                                                                     |
+| -------------- | --------------------------------------------------------------------------- |
+| `default.nix`  | `scanPaths ./.` — picks up every `.nix` sibling automatically               |
+| `nix.nix`      | Nix daemon settings: experimental features, substituters, GC, trusted users |
+| `fonts.nix`    | System font bundle, gated behind `modules.desktop.fonts.enable`             |
+| `security.nix` | System trust store — installs the local mkcert development CA               |
+
+Users and SSH keys are **not** here: they live in `modules/nixos/base/user-group.nix`, because
+`users.users.*` handling is NixOS-specific.
 
 ## Rules for files here
 

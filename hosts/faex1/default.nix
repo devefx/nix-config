@@ -77,7 +77,7 @@ in
   # https://github.com/bluez/bluez/issues/1898
   hardware.bluetooth.package = lib.mkIf (lib.versionOlder pkgs.bluez.version "5.87") (
     (pkgs.bluez.override {
-      bluez-headers = pkgs.bluez-headers.overrideAttrs (old: {
+      bluez-headers = pkgs.bluez-headers.overrideAttrs (_: {
         version = "5.84";
 
         src = pkgs.fetchurl {

@@ -10,7 +10,6 @@ Factory functions and utility helpers.
 | ----------------- | --------------------------------------------------------------------- |
 | `default.nix`     | Entry point — exposes everything as `mylib.*` via specialArgs         |
 | `nixosSystem.nix` | Factory that wraps `nixpkgs.lib.nixosSystem` with home-manager wiring |
-| `attrs.nix`       | Attrset helper placeholder — add list/attr utilities as you grow      |
 
 ## Key exports (reachable as `mylib.<name>` in any module)
 
@@ -19,7 +18,6 @@ Factory functions and utility helpers.
 | `mylib.nixosSystem`    | Factory — host files call it with `{ nixos-modules, home-modules, ... }`                            |
 | `mylib.scanPaths path` | Returns every `<path>/*.nix` and subdir (except `default.nix`) — used by module `default.nix` files |
 | `mylib.relativeToRoot` | Turns a string like `"modules/nixos"` into an absolute module path                                  |
-| `mylib.attrs`          | Attrset helpers                                                                                     |
 
 ## Why factories
 

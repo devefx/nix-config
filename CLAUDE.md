@@ -51,7 +51,7 @@
 - `lib/genK3s*` / `lib/genKubeVirt*`(k8s / 虚拟机工厂)
 - `nixpkgs-master / nixpkgs-patched / nixpkgs-2505`(多分支 nixpkgs,暂只保留 `nixpkgs` +
   `nixpkgs-stable`)
-- `agenix / disko / preservation / lanzaboote`(加密、分区、无状态、SecureBoot)
+- `disko / preservation / lanzaboote`(分区、无状态、SecureBoot)—— agenix 已包含,见 `secrets/`
 - `catppuccin / nix-gaming / aagl`(主题 & 游戏)
 - `nixos-generators`(多镜像格式)
 - `nixos-apple-silicon`(M 系列芯片)

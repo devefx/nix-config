@@ -294,17 +294,21 @@ let
 
   nwgHelloConfig = pkgs.writeText "nwg-hello.json" (
     builtins.toJSON {
+      # NixOS has no /usr/share/wayland-sessions, which is nwg-hello's default
+      # search path, so the sessions this host ships are declared explicitly.
+      # Each entry is gated on the matching desktop option: a hardcoded entry
+      # for a session that is not installed gives the greeter a menu item that
+      # cannot start (that was the case for "Plasma" on the niri-only output).
       session_dirs = [ ];
-      custom_sessions = [
-        {
+      custom_sessions =
+        lib.optional cfg.enable {
           name = "Niri";
           exec = "niri-session";
         }
-        {
+        ++ lib.optional config.modules.desktop.plasma.enable {
           name = "Plasma";
           exec = "startplasma-wayland";
-        }
-      ];
+        };
       monitor_nums = [ ];
       form_on_monitors = [ ];
       delay_secs = 0;

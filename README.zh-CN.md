@@ -45,7 +45,7 @@ KDE Plasma 6 按 options 开关模式接入,**系统级 / 用户级** 清晰分�
 | ------ | ---------------------------------- | ------------------------------------------------------------------------ |
 | 系统级 | `modules/nixos/desktop/plasma.nix` | Plasma Login Manager、Plasma service、pipewire、显卡驱动、打印、系统字体 |
 | 用户级 | `home/linux/gui/plasma.nix`        | 桌面应用(kate / ark / qimgv / okular / spectacle …)                      |
-| 用户级 | `home/linux/gui/gtk.nix`           | GTK 鼠标/字体主题,让 GTK 应用在 Plasma 里视觉统一                        |
+| 用户级 | `home/linux/gui/base/gtk.nix`      | GTK 鼠标/字体主题,让 GTK 应用在 Plasma 里视觉统一                        |
 
 主机通过 `modules.desktop.plasma.enable = true;` 启用系统层,home 侧选 `gui.nix` 入口自动带入用户层。
 
@@ -215,7 +215,7 @@ just switch <主机> # 构建并切换到主机 <主机>
 just build <主机>  # 只构建不切换
 just update       # 更新所有 flake inputs
 just fmt          # 格式化全部 nix 文件
-just check        # 跑 eval-tests + pre-commit 检查
+just check        # 跑 pre-commit 检查 + 求值所有主机
 ```
 
 ## 架构核心机制(改代码前先懂这四个)

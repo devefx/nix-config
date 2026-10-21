@@ -46,7 +46,7 @@ KDE Plasma 6 is wired via the options pattern:
   graphics, printing, system fonts. Toggled by `modules.desktop.plasma.enable = true;` in the host.
 - User-level: `home/linux/gui/plasma.nix` — desktop apps (kate, ark, qimgv, okular, spectacle, ...)
   installed per-user.
-- Theme: `home/linux/gui/gtk.nix` — GTK cursor/font so GTK apps blend with Plasma.
+- Theme: `home/linux/gui/base/gtk.nix` — GTK cursor/font so GTK apps blend with Plasma.
 
 Adding another DE (Hyprland, GNOME, ...): drop a new file in each of the two places, host enables
 via `modules.desktop.<name>.enable = true;`.
@@ -182,5 +182,5 @@ just switch <h>   # build and switch host <h>
 just build <h>    # build only, don't switch
 just update       # update all flake inputs
 just fmt          # format all nix files
-just check        # run eval-tests + pre-commit hooks
+just check        # run pre-commit hooks + evaluate every host
 ```

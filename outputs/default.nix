@@ -67,41 +67,31 @@ in
     // (allSystems.${system}.packages or { })
   );
 
-  checks = forAllSystems (
-    system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
-      # Real derivation so `nix flake check` accepts it; builds all eval
-      # tests (empty set for now means trivially passes).
-      eval-tests = pkgs.linkFarm "eval-tests" allSystems.${system}.evalTests;
-
-      pre-commit-check = pre-commit-hooks.lib.${system}.run {
-        src = mylib.relativeToRoot ".";
-        hooks = {
-          nixfmt = {
-            enable = true;
-            settings.width = 100;
+  checks = forAllSystems (system: {
+    pre-commit-check = pre-commit-hooks.lib.${system}.run {
+      src = mylib.relativeToRoot ".";
+      hooks = {
+        nixfmt = {
+          enable = true;
+          settings.width = 100;
+        };
+        typos = {
+          enable = true;
+          settings = {
+            write = true;
+            configPath = ".typos.toml";
           };
-          typos = {
-            enable = true;
-            settings = {
-              write = true;
-              configPath = ".typos.toml";
-            };
-          };
-          prettier = {
-            enable = true;
-            settings = {
-              write = true;
-              configPath = ".prettierrc.yaml";
-            };
+        };
+        prettier = {
+          enable = true;
+          settings = {
+            write = true;
+            configPath = ".prettierrc.yaml";
           };
         };
       };
-    }
-  );
+    };
+  });
 
   devShells = forAllSystems (
     system:

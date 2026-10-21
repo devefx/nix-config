@@ -11,6 +11,8 @@ Global variables, injected into every module as `myvars`.
 | `username`                | Primary user — drives home-manager's `users."${myvars.username}"` and system user creation |
 | `userfullname`            | Display name (git config, user description)                                                |
 | `useremail`               | Git commits, sometimes SSH key comment, etc.                                               |
+| `githubUsername`          | GitHub namespace used by git's `url.insteadOf` https→ssh rewrite                           |
+| `stateVersion`            | NixOS / home-manager state version — pinned at install-time release, never bumped          |
 | `initialHashedPassword`   | Login password hash — generate via `mkpasswd -m yescrypt --rounds=11`                      |
 | `mainSshAuthorizedKeys`   | SSH keys that get daily use                                                                |
 | `secondaryAuthorizedKeys` | Backup keys — disaster recovery when the primary key is lost                               |

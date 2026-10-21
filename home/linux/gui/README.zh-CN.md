@@ -15,9 +15,10 @@ home/linux/gui/
 │   ├── firefox.nix     Firefox(沙箱 —— 见 hardening/nixpaks/firefox.nix)
 │   ├── chrome.nix      Google Chrome(unfree,有内置沙箱)
 │   ├── fcitx5.nix      中文输入法(拼音 / 双拼 / 五笔)
-│   ├── cc-switch.nix    CC Switch —— AI 供应商配置管理(nixpkgs 原生构建)
-│   ├── feishin.nix       Feishin —— 自托管音乐播放器(Jellyfin)
-│   └── lutris.nix      Linux 游戏启动器(Wine / Proton / GOG 等)
+│   ├── gaming.nix      Lutris + Proton-GE + Wine(需 modules.desktop.gaming)
+│   ├── cc-switch.nix   CC Switch —— AI 供应商配置管理
+│   ├── feishin.nix     Feishin —— 自托管音乐播放器(Jellyfin)
+│   └── ...             每个应用一个 opt-in 模块,由 modules.<app>.enable 控制
 ├── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
 └── niri/               Niri 快捷键、窗口规则、Noctalia Shell
 ```
@@ -30,7 +31,6 @@ home/linux/gui/
 | `plasma.nix`              | Plasma / KDE 应用只在 Plasma 启用时有意义                             |
 | `niri/`                   | Niri 快捷键、窗口规则、Noctalia 配置只在 Niri 会话生效                |
 | 以后加 `hyprland/` 子目录 | Hyprland 的快捷键、布局 —— 只在 Hyprland 是当前会话时才有意义         |
-| 以后加 `base/fcitx5.nix`  | 输入法在所有 DE 下都用                                                |
 
 规则:**如果不依赖具体 DE/WM,就放 `base/` 下。**
 只在特定合成器下才有意义的,放到那个合成器的子目录(或平铺的 `<de>.nix`)。

@@ -75,6 +75,11 @@
     agenix = {
       url = "github:ryantm/agenix/4835b1dc898959d8547a871ef484930675cb47f1";
       inputs.nixpkgs.follows = "nixpkgs";
+      # agenix pins its own (2025-04) home-manager. Nothing we use depends on
+      # it — `homeManagerModules.age` is a bare path, and the input only feeds
+      # agenix's own darwin `checks` — so following ours is purely about
+      # keeping one home-manager node in flake.lock instead of two.
+      inputs.home-manager.follows = "home-manager";
     };
 
     # Personal desktop wallpapers, mounted by the Niri session.

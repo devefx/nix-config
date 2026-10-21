@@ -11,6 +11,8 @@
 | `username`                | 主用户名 —— 驱动 home-manager 的 `users."${myvars.username}"` 和系统用户创建 |
 | `userfullname`            | 显示名(git 配置、user description)                                           |
 | `useremail`               | git 提交邮箱,SSH key 注释等                                                  |
+| `githubUsername`          | git 的 `url.insteadOf` https→ssh 改写所用的 GitHub 命名空间                  |
+| `stateVersion`            | NixOS / home-manager 的 state version —— 固定为装机时的发行版,不要跟着升级   |
 | `initialHashedPassword`   | 登录密码哈希 —— 用 `mkpasswd -m yescrypt --rounds=11` 生成                   |
 | `mainSshAuthorizedKeys`   | 日常使用的 SSH 公钥                                                          |
 | `secondaryAuthorizedKeys` | 备份公钥 —— 主 key 丢失时的灾备                                              |

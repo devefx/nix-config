@@ -7,11 +7,15 @@
 
 ## 目录内容
 
-| 文件          | 作用                                                                   |
-| ------------- | ---------------------------------------------------------------------- |
-| `default.nix` | `scanPaths ./.` —— 自动扫描同级 `.nix` 文件                            |
-| `nix.nix`     | nix daemon 设置:experimental features、substituters、GC、trusted users |
-| `users.nix`   | 用户描述 + SSH 公钥(主 + 备份)                                         |
+| 文件           | 作用                                                                   |
+| -------------- | ---------------------------------------------------------------------- |
+| `default.nix`  | `scanPaths ./.` —— 自动扫描同级 `.nix` 文件                            |
+| `nix.nix`      | nix daemon 设置:experimental features、substituters、GC、trusted users |
+| `fonts.nix`    | 系统字体包,由 `modules.desktop.fonts.enable` 控制                      |
+| `security.nix` | 系统信任库 —— 安装本地 mkcert 开发 CA                                  |
+
+用户与 SSH 公钥**不在这里**:它们在 `modules/nixos/base/user-group.nix`,因为 `users.users.*`
+是 NixOS 专属的。
 
 ## 放这里的文件必须满足的规则
 

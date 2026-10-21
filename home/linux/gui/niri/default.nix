@@ -217,15 +217,5 @@ in
         TimeoutStopSec = 10;
       };
     };
-
-    # greetd invokes this stable entry point instead of hard-coding a
-    # compositor. It also handles restarting a stale niri user service.
-    home.file.".wayland-session" = {
-      source = pkgs.writeScript "init-session" ''
-        systemctl --user is-active niri.service && systemctl --user stop niri.service
-        exec ${pkgs.niri}/bin/niri-session
-      '';
-      executable = true;
-    };
   };
 }

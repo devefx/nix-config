@@ -1,6 +1,10 @@
 {
   inputs,
   lib,
+  # Declared only so haumea's callPackageWith injects them into `args`, which is
+  # forwarded verbatim to mylib.nixosSystem. `system` / `genSpecialArgs` /
+  # `myvars` are required by that function's argument pattern, so removing any
+  # of them here makes the call fail with "called without required argument".
   myvars,
   mylib,
   system,

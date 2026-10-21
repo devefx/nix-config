@@ -10,8 +10,8 @@
   # that flake under load (provider/consumer db differ); skip checks so
   # rebuilds do not fail on them. The binaries are unaffected.
   nixpkgs.overlays = [
-    (final: prev: {
-      openldap = prev.openldap.overrideAttrs (old: {
+    (_final: prev: {
+      openldap = prev.openldap.overrideAttrs (_: {
         doCheck = false;
       });
 

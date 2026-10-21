@@ -20,6 +20,6 @@ update:
 fmt:
     nix fmt
 
-# Run eval-tests and pre-commit checks.
+# Run pre-commit checks (nixfmt + typos + prettier) and evaluate every host.
 check:
     nix flake check
