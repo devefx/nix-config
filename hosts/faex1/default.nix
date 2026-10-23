@@ -45,8 +45,10 @@ in
   # bridge off production's 43127 onto 43128. DSH already binds it to 0.0.0.0
   # but still requires approving the device inside the desktop app; the harness
   # web UI itself stays on 127.0.0.1:43129 behind its token, not opened here.
+  # llama.cpp is absent on purpose: modules.llamaCppServer declares its port
+  # through `openFirewall`, which keeps the firewall entry tied to `port`
+  # instead of to this list.
   networking.firewall.allowedTCPPorts = [
-    8080 # llama-server
     8088 # Claude Code Haha
     3000 # tele-desk backend
     5173 # tele-desk frontend (Vite dev server)
@@ -364,6 +366,19 @@ in
   modules.secrets.enable = true;
   modules.secrets.smb.enable = true;
   modules.secrets.hf.enable = true;
+
+  # llama.cpp over Vulkan, for the gguf-model-presets tree. Registered as a unit
+  # but never started at boot: it needs ~85-90 GiB of unified memory for a large
+  # GGUF, which is not something to pay for on every boot.
+  #
+  #   sudo systemctl start llama-cpp
+  #
+  # `models.ini` is the model list here — `--models-autoload` loads whichever
+  # entry a client asks for — so there is no per-model configuration below.
+  modules.llamaCppServer = {
+    enable = true;
+    presetsDir = "/home/${myvars.username}/models-presets";
+  };
   modules.desktop.plasma.enable = true;
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;

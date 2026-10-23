@@ -7,9 +7,10 @@
 
 ## 目录内容
 
-| 文件             | 适用场景                                                                                                                                                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `qemu-guest.nix` | NixOS 作为 QEMU/KVM 客户机跑 —— Proxmox VE、KubeVirt、裸 libvirt。启用 qemu-guest-agent、virtio 启动、串口控制台、`boot.growPartition`,关掉 cloud-init。 |
+| 文件             | 适用场景                                                                                                                                                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `llama-cpp.nix`  | llama.cpp 0.7.0 服务(Vulkan 后端),读 `gguf-model-presets` 里的 `models.ini`。形状和 `gufo.nix` 一样,但这个 unit **没有** `wantedBy` —— 只注册、手动启动,因为它和 gufo 抢同样的 ~85-90 GiB 统一内存。端口用 llama.cpp 自己的默认 9931,所以两者不会抢同一个 socket。 |
+| `qemu-guest.nix` | NixOS 作为 QEMU/KVM 客户机跑 —— Proxmox VE、KubeVirt、裸 libvirt。启用 qemu-guest-agent、virtio 启动、串口控制台、`boot.growPartition`,关掉 cloud-init。                                                                                                           |
 
 ## 主机如何使用
 
@@ -25,6 +26,10 @@ nixos-modules = map mylib.relativeToRoot [
 ```
 
 **没有**组级导入,**没有** options 开关 —— 这里是"基础设施,按需取用"。
+
+唯一的例外是 `llama-cpp.nix`:文件仍然要显式 import(import 才注册 `modules.llamaCppServer.*` 选项),
+但服务本身用 `modules.llamaCppServer.enable = true;` 按主机开关 —— 这样一台机器可以只 import
+一次,之后开关它不用再动模块列表。和 gufo 不同,它不会开机自启,细节见文件内注释。
 
 ## 为什么不用 options 开关模式
 

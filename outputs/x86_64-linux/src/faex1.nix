@@ -27,6 +27,9 @@ let
         # you actually reference one.
         "hardening/nixpaks"
         "hardening/bwraps"
+        # llama.cpp server — registers `modules.llamaCppServer.*`, inert until
+        # the host enables it. The unit is never pulled in at boot.
+        "modules/nixos/server/llama-cpp.nix"
         # Full system hardening — uncomment if you want NixOS's hardened
         # profile. Read hardening/profiles/default.nix first, it breaks things.
         # "hardening/profiles"
