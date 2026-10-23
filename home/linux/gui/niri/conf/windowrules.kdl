@@ -111,12 +111,13 @@ window-rule {
 }
 
 // mpv otherwise derives its window height from the video's aspect ratio,
-// which breaks two-by-two tiling. Let niri assign half-height tiles and
-// letterbox the video instead.
+// which breaks two-by-two tiling. Let niri assign full-height tiles and
+// letterbox the video instead (keepaspect-window=no in the mpv config, so mpv
+// does not fight the compositor over the geometry).
 window-rule {
     match app-id="^mpv$"
-    default-column-width { proportion 0.5; }
-    default-window-height { proportion 0.5; }
+    default-column-width { proportion 1.0; }
+    default-window-height { proportion 1.0; }
     tiled-state true
 }
 

@@ -123,24 +123,8 @@ in
       screenshotOcr
     ];
 
-    programs.mpv = {
-      enable = true;
-      defaultProfiles = [ "gpu-hq" ];
-      scripts = [ pkgs.mpvScripts.mpris ];
-      config = {
-        auto-window-resize = false;
-        keepaspect = true;
-        keepaspect-window = false;
-        osc = true;
-        osd-bar = true;
-        panscan = 0.0;
-        wayland-configure-bounds = "yes";
-      };
-      scriptOpts.osc = {
-        boxvideo = true;
-        visibility = "always";
-      };
-    };
+    # mpv lives in base/mpv.nix (modules.mpv) now that it ships the
+    # akFace/mpv.config tree instead of a handful of inline options.
 
     # Godot's XWayland game embedding creates an extra wrapper window whose
     # physical size does not line up with niri's logical, scaled layout.

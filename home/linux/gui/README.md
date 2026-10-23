@@ -18,6 +18,7 @@ home/linux/gui/
 │   ├── gaming.nix      Lutris + Proton-GE + Wine (needs modules.desktop.gaming)
 │   ├── cc-switch.nix   CC Switch — AI provider config manager
 │   ├── feishin.nix     Feishin — self-hosted music player (Jellyfin)
+│   ├── mpv.nix         mpv with the akFace/mpv.config theme (default video player)
 │   └── ...             one opt-in module per app, gated by modules.<app>.enable
 ├── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
 └── niri/               Niri keybinds, window rules, Noctalia Shell

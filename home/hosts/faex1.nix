@@ -33,6 +33,7 @@
   modules.ime.enable = true;
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
+  modules.mpv.enable = true;
   modules.eden.enable = true;
   modules.remmina.enable = true;
   modules.emby.enable = true;
