@@ -174,6 +174,60 @@ Drop a file into `outputs/x86_64-linux/src/<host>.nix`, create `hosts/<host>/`, 
 `home/hosts/<host>.nix`. haumea picks it up automatically. Pick a home entry (`core` / `tui` /
 `gui`) and, if it's a VM, import `modules/nixos/server/qemu-guest.nix`.
 
+## Local inference (gufo)
+
+[gufo](https://github.com/gufo-org/gufo) is an inference engine specialised for Strix Halo
+(`gfx1151`). `modules/nixos/server/gufo.nix` exposes it as `modules.gufo.*` and runs it as a
+systemd-managed OpenAI-compatible server. Prerequisites — both already met here: the user is in the
+`render` / `video` groups, and `ttm.pages_limit` is raised so the iGPU can map tens of GiB of GTT
+(`hosts/faex1/default.nix` sets it to 96 GiB).
+
+Weights stay out of the store (Flash-Next Q4 is ~104 GiB) and the module never fetches or creates
+them. `model` / `mmproj` / `mtpModel` are resolved under `modules.gufo.modelsDir`, which defaults to
+`~/models` — so the indirection lives in a symlink you own, not in a Nix string:
+
+```bash
+ln -s /mnt/data/Shared/github/workspace/gguf-model-presets/models ~/models
+```
+
+Expected layout, plus the fetch recipe (two separate `hf` calls — mixing explicit filenames with
+`--include` makes `hf` silently ignore the glob):
+
+```bash
+D=~/models/Qwen3.8-Flash-Next-UD-Q4_K_XL
+R=38bb39ee97821de2c9009abb7e93950eec396e66
+hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision "$R" \
+  --include "UD-Q4_K_XL/*" --local-dir "$D"
+hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision "$R" --local-dir "$D" \
+  MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf mmproj-BF16.gguf
+```
+
+```
+~/models/Qwen3.8-Flash-Next-UD-Q4_K_XL/
+├── UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-0000{1..4}-of-00004.gguf
+├── MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf
+└── mmproj-BF16.gguf
+```
+
+Then enable it in a host:
+
+```nix
+modules.gufo = {
+  enable = true;
+  port = 8080;
+  # modelsDir = "/srv/llm/models";  # override if ~/models is not where you link
+  context = 262144;  # native context; 90.1 GiB measured on a 96 GiB GTT box
+  sessions = 1;      # each extra session costs ~1.06 GiB; 2x131072 does not fit
+};
+```
+
+Measured device usage on this 96 GiB GTT machine: 1x32768 = 84.25 GiB, 2x32768 = 85.31 GiB, 1x131072
+= 86.76 GiB, 1x262144 = 90.12 GiB. Roughly 82.4 GiB is weights plus fixed overhead, 1.06 GiB per
+session, and 26.8 MiB of KV per 1K tokens — so the model fits its native 256K context on a single
+session without raising `ttm.pages_limit`.
+
+`systemctl status gufo` for state, `curl localhost:8080/v1/models` to verify.
+
 ## Common commands
 
 ```bash

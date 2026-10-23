@@ -28,6 +28,10 @@ let
     // {
       inherit mylib myvars;
       godotYoke = godotYoke system;
+      # Upstream flakes whose outputs modules need; injected here so modules
+      # never reach for the whole `inputs` attrset (which also carries the
+      # private secrets repo).
+      inherit (inputs) gufo;
 
       pkgs-stable = import inputs.nixpkgs-stable {
         inherit system;

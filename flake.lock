@@ -26,6 +26,27 @@
         "type": "github"
       }
     },
+    "audio-cpp": {
+      "inputs": {
+        "nixpkgs": [
+          "gufo",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789940897,
+        "narHash": "sha256-+9tVcd+0TkDxg7JRU7M06Lvm20sXEbuerm62uhm6JKA=",
+        "owner": "0xShug0",
+        "repo": "audio.cpp",
+        "rev": "e3de8e3f3cbfac55ffa58df71426c41550a8598b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "0xShug0",
+        "repo": "audio.cpp",
+        "type": "github"
+      }
+    },
     "bun2nix": {
       "inputs": {
         "flake-parts": [
@@ -195,6 +216,28 @@
       "original": {
         "owner": "vinceliuice",
         "repo": "grub2-themes",
+        "type": "github"
+      }
+    },
+    "gufo": {
+      "inputs": {
+        "audio-cpp": "audio-cpp",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792669783,
+        "narHash": "sha256-7ghj+IPopSA3e5vLhGlTgwvLQlczpDKiRAewe9RC4+M=",
+        "owner": "gufo-org",
+        "repo": "gufo",
+        "rev": "7110c7954ebc85d4a4d96aa0643b102615adca27",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gufo-org",
+        "ref": "v0.21.0",
+        "repo": "gufo",
         "type": "github"
       }
     },
@@ -444,6 +487,7 @@
         "agenix": "agenix",
         "godot-yoke": "godot-yoke",
         "grub2-themes": "grub2-themes",
+        "gufo": "gufo",
         "haumea": "haumea",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",

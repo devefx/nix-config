@@ -9,6 +9,7 @@ Server / VM / appliance modules. **Not** auto-imported — hosts pick specific f
 
 | File             | For                                                                                                                                                                                                                                                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gufo.nix`       | Gufo inference server for AMD Strix Halo (gfx1151) — OpenAI-compatible API over a GGUF model, run as a systemd unit. Registers `modules.gufo.*`; the file itself is imported per host, then enabled with `modules.gufo.enable = true;`.                                                                                         |
 | `llama-cpp.nix`  | llama.cpp 0.7.0 server (Vulkan backend) over the `gguf-model-presets` tree. Same shape as `gufo.nix`, but the unit has no `wantedBy` — it is registered and started by hand, because it competes with gufo for ~85-90 GiB of unified memory. It listens on llama.cpp's own default 9931, so the two do not fight over a socket. |
 | `qemu-guest.nix` | NixOS running as a QEMU/KVM guest — Proxmox VE, KubeVirt, plain libvirt. Adds qemu-guest-agent, virtio bootloader, serial console, `boot.growPartition`, disables cloud-init.                                                                                                                                                   |
 
@@ -27,10 +28,11 @@ nixos-modules = map mylib.relativeToRoot [
 
 No group-level import, no options toggle — this is "infrastructure, pick what you need".
 
-The one exception is `llama-cpp.nix`: the file is still imported explicitly (that is what registers the
-`modules.llamaCppServer.*` options), but the server itself is switched on per host with
-`modules.llamaCppServer.enable = true;` so a host can import it once and toggle it without touching
-the module list. Unlike gufo it is never started at boot — see the note in the file.
+The one exception is `gufo.nix` and `llama-cpp.nix`: the files are still imported explicitly (that
+is what registers the `modules.gufo.*` / `modules.llamaCppServer.*` options), but the servers
+themselves are switched on per host with `enable = true;` so a host can import them once and toggle
+them without touching the module list. gufo is pulled in at boot; llama.cpp is not — see the note in
+each file.
 
 ## Why not the options pattern?
 

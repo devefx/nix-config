@@ -207,6 +207,58 @@ bwraps 两个 overlay(**不占资源**, 不引用任何应用时完全是空跑)
 
 haumea 会自动识别,无需手动 import。
 
+## 本地推理(gufo)
+
+[gufo](https://github.com/gufo-org/gufo) 是专为 Strix Halo(gfx1151)优化的推理引擎, 通过
+`modules/nixos/server/gufo.nix` 暴露成
+`modules.gufo.*`,由 systemd 托管成 OpenAI兼容服务。前置条件(本仓库已满足):用户在 `render` / `video`
+组内,且 `ttm.pages_limit` 已调高(`hosts/faex1/default.nix` 设到 96 GiB)。
+
+模型权重不进 store(Flash-Next Q4 约 104 GiB),模块本身不下载、也不创建这些文件。 `model` / `mmproj` /
+`mtpModel` 都从 `modules.gufo.modelsDir` 派生,默认 `~/models`
+——这样"权重到底放哪块盘"由你自己的符号链接决定,而不是写死在 Nix 字符串里:
+
+```bash
+ln -s /mnt/data/Shared/github/workspace/gguf-model-presets/models ~/models
+```
+
+期望的目录结构,以及下载命令(要拆成两条 `hf` 命令 —— 同时给显式文件名和 `--include` 时 `hf`
+会静默忽略 glob):
+
+```bash
+D=~/models/Qwen3.8-Flash-Next-UD-Q4_K_XL
+R=38bb39ee97821de2c9009abb7e93950eec396e66
+hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision "$R" \
+  --include "UD-Q4_K_XL/*" --local-dir "$D"
+hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision "$R" --local-dir "$D" \
+  MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf mmproj-BF16.gguf
+```
+
+```
+~/models/Qwen3.8-Flash-Next-UD-Q4_K_XL/
+├── UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-0000{1..4}-of-00004.gguf
+├── MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf
+└── mmproj-BF16.gguf
+```
+
+然后在主机里开:
+
+```nix
+modules.gufo = {
+  enable = true;
+  port = 8080;
+  # modelsDir = "/srv/llm/models";  # ~/models 不合适时覆盖
+  context = 262144;  # 原生上下文;96 GiB GTT 机器实测占 90.1 GiB
+  sessions = 1;      # 每个额外 session 约 1.06 GiB;2x131072 放不下
+};
+```
+
+本机 96 GiB GTT 实测显存占用:1x32768 = 84.25 GiB,2x32768 = 85.31 GiB, 1x131072 = 86.76 GiB,1x262144
+= 90.12 GiB。其中约 82.4 GiB 是权重加固定开销,每个 session 1.06 GiB,每 1K token 的 KV 约 26.8 MiB
+—— 所以单 session 就能装下原生 256K 上下文, 不需要调 `ttm.pages_limit`。
+
+`systemctl status gufo` 看状态,`curl localhost:8080/v1/models` 验证。
+
 ## 常用命令
 
 ```bash

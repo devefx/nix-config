@@ -45,9 +45,11 @@ in
   # bridge off production's 43127 onto 43128. DSH already binds it to 0.0.0.0
   # but still requires approving the device inside the desktop app; the harness
   # web UI itself stays on 127.0.0.1:43129 behind its token, not opened here.
-  # llama.cpp is absent on purpose: modules.llamaCppServer declares its port
-  # through `openFirewall`, which keeps the firewall entry tied to `port`
-  # instead of to this list.
+  # The inference engines are absent on purpose: modules.gufo and
+  # modules.llamaCppServer each declare their own port through `openFirewall`,
+  # which keeps the firewall entry tied to `port` instead of to this list.
+  # Verified both ways — `openFirewall = false` removes the port, and changing
+  # `port` moves the entry with it.
   networking.firewall.allowedTCPPorts = [
     8088 # Claude Code Haha
     3000 # tele-desk backend
@@ -367,11 +369,61 @@ in
   modules.secrets.smb.enable = true;
   modules.secrets.hf.enable = true;
 
-  # llama.cpp over Vulkan, for the gguf-model-presets tree. Registered as a unit
-  # but never started at boot: it needs ~85-90 GiB of unified memory for a large
-  # GGUF, which is not something to pay for on every boot.
+  # Gufo — Strix Halo inference server for Qwen3.8 Flash-Next (UD-Q4_K_XL +
+  # shared-Q8 MTP + BF16 vision projector). Runs as a systemd service with an
+  # OpenAI-compatible API.
   #
-  #   sudo systemctl start llama-cpp
+  # The weights live outside the store and outside this repo. The module resolves
+  # `model` / `mmproj` / `mtpModel` under `modelsDir` (default `~/models`), which
+  # is expected to be a symlink the operator owns:
+  #
+  #   ln -s /mnt/data/Shared/github/workspace/gguf-model-presets/models ~/models
+  #
+  # Keeping the indirection in a symlink rather than a Nix string means the same
+  # config works whichever disk the weights end up on.
+  #
+  # Port 8080: gufo owns it. llama.cpp runs from its own unit instead (see
+  # modules.llamaCppServer below), on llama.cpp's default 9931, and is started by
+  # hand — the old ~/.config/autostart entry is no longer what serves it.
+  #
+  # Sizing measured on this box by loading the model at each setting and reading
+  # gpu_device_used_mib from the startup line (96 GiB GTT available):
+  #
+  #   sessions x context    device used
+  #   1 x  32768            86272 MiB  (84.25 GiB)
+  #   2 x  32768            87356 MiB  (85.31 GiB)
+  #   1 x 131072            88846 MiB  (86.76 GiB)
+  #   1 x 262144            92278 MiB  (90.12 GiB)
+  #
+  # Splitting that into terms: ~82.4 GiB of weights plus fixed overhead, 1.06 GiB
+  # per session, and 26.8 MiB of KV per 1K tokens. The model fits 96 GiB at its
+  # native 262144 context on a single session, so no ttm.pages_limit change or
+  # VRAM re-split is needed — the existing 96 GiB GTT cap is enough.
+  #
+  # Configured as one session at native context: a single long-context user
+  # costs 90.1 GiB, and a second session at 131072 would not fit. Flip to
+  # `sessions = 2; context = 32768;` (85.3 GiB) if concurrent clients matter more
+  # than context length.
+  modules.gufo = {
+    enable = true;
+    port = 8080;
+    context = 262144;
+    sessions = 1;
+    cacheDisk = {
+      enable = true;
+      # On the root NVMe: a checkpoint is thousands of 256 KiB files and
+      # /mnt/data is NTFS (and its cache is also pinned in RAM).
+      bytes = 32 * 1024 * 1024 * 1024;
+    };
+  };
+
+  # llama.cpp over Vulkan, for the same gguf-model-presets tree. Registered as a
+  # unit but never started at boot: it needs the same ~85-90 GiB of unified
+  # memory as gufo, so exactly one of the two can be resident. It listens on
+  # 9931, so the two do not fight over a socket. Switch by hand:
+  #
+  #   sudo systemctl stop gufo && sudo systemctl start llama-cpp
+  #   sudo systemctl stop llama-cpp && sudo systemctl start gufo
   #
   # `models.ini` is the model list here — `--models-autoload` loads whichever
   # entry a client asks for — so there is no per-model configuration below.

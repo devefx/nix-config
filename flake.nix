@@ -69,6 +69,14 @@
     # Does NOT follow our nixpkgs (agents pin their own supported versions).
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    # Gufo — inference engine specialised for Strix Halo (gfx1151). Follows our
+    # nixpkgs so its HIP/ROCr build shares the exact ROCm the rest of the
+    # system uses; `modules.gufo` also needs that pin to line up.
+    gufo = {
+      url = "github:gufo-org/gufo/v0.21.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # age-encrypted secrets — asymmetric (age keys). Encrypted `.age` files
     # live in the private nix-secrets repo; decrypted at activation using the
     # host's SSH key.

@@ -27,8 +27,11 @@ let
         # you actually reference one.
         "hardening/nixpaks"
         "hardening/bwraps"
-        # llama.cpp server — registers `modules.llamaCppServer.*`, inert until
-        # the host enables it. The unit is never pulled in at boot.
+        # Gufo inference server — registers `modules.gufo.*`, inert until the
+        # host enables it. See modules/nixos/server/gufo.nix.
+        "modules/nixos/server/gufo.nix"
+        # llama.cpp server — same shape, but the unit is never pulled in at
+        # boot; start it by hand after stopping gufo.
         "modules/nixos/server/llama-cpp.nix"
         # Full system hardening — uncomment if you want NixOS's hardened
         # profile. Read hardening/profiles/default.nix first, it breaks things.
