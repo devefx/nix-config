@@ -158,9 +158,15 @@ binds {
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
+    // Screenshots. The instant bindings write the PNG to disk and the clipboard
+    // directly: nothing stays running afterwards, so the clipboard is served by
+    // wl-copy (which forks into the background) instead of by a live window.
+    Mod+Ctrl+S hotkey-overlay-title="截图并复制到剪贴板" { spawn-sh "set -e; path=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp -o -d -F monospace)\" - | tee \"$path\" | wl-copy --type image/png"; }
+    Mod+Ctrl+Print hotkey-overlay-title="截取整屏并复制到剪贴板" { spawn-sh "set -e; path=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim - | tee \"$path\" | wl-copy --type image/png"; }
+
     // Screenshot Annotation via satty
-    Print hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
-    Mod+Shift+S hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
+    Print hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
+    Mod+Shift+S hotkey-overlay-title="截图并使用 Satty 标注" { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
     Mod+Shift+O hotkey-overlay-title="截图并识别文字" { spawn "screenshot-ocr"; }
     Ctrl+Print hotkey-overlay-title="截取整屏" { screenshot-screen; }
     Alt+Print hotkey-overlay-title="截取当前窗口" { screenshot-window; }
