@@ -253,13 +253,25 @@ in
     };
   };
 
-  # Nix defaults to one job per CPU and gives every job all 32 cores. ROCm
-  # builds then run hundreds of clang processes at once and push this 128 GiB
-  # machine deep into swap. Cap both levels of parallelism so one build stays
-  # within the memory budget of the shared CPU/GPU pool.
+  # max-jobs x cores bounds total parallelism. Two levels need capping:
+  #
+  # - Nix defaults to one job per core and gives every job all 32 cores, so an
+  #   unconstrained build runs hundreds of compiler processes at once.
+  # - `cores` is what ninja inside a single derivation gets.
+  #
+  # 16 fits the common case: measured here, qtwebengine's gcc jobs peak around
+  # 0.2-0.3 GiB each, so 16 of them cost ~5 GiB and the box sits at roughly
+  # 50% CPU with zero memory pressure. The old value of 8 left two thirds of
+  # the cores idle on exactly those builds.
+  #
+  # ROCm/HIP is the exception. Gufo's 264 compile units include 76 HIP objects,
+  # and a single `clang -x hip` process instantiating rocwmma/hipcub/rocprim
+  # templates can reach 2-4 GiB. 16 of those would not fit beside the running
+  # gufo service (85 GiB of GTT leaves ~19 GiB host RAM). For ROCm builds, drop
+  # back with `--cores 8`, or stop gufo first.
   nix.settings = {
     max-jobs = 2;
-    cores = 8;
+    cores = 16;
   };
 
   # The Sculptor DP monitor briefly drops HPD and reconnects ~3s after
