@@ -102,7 +102,7 @@ in
       xdg-user-dirs
       thunderbird
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
-      file-roller # backend for thunar-archive-plugin
+      file-roller # archive manager; Nautilus' extract entries call it via gnome-autoar
       # file-roller picks its backend by looking these up in PATH. Without
       # them it falls back to its libarchive code path, which never flags
       # encrypted entries, so "Extract Here" silently fails on encrypted
@@ -145,7 +145,7 @@ in
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
-        "inode/directory" = [ "thunar.desktop" ];
+        "inode/directory" = [ "org.gnome.Nautilus.desktop" ];
         "image/*" = [ "qimgv.desktop" ];
         "image/gif" = [ "qimgv.desktop" ];
         "image/jpeg" = [ "qimgv.desktop" ];
@@ -165,36 +165,6 @@ in
         file:///mnt/portable_apps Portable Apps
         file:///mnt/workspace Workspace
       '';
-      "Thunar/uca.xml" = {
-        force = true;
-        text = ''
-          <?xml version="1.0" encoding="UTF-8"?>
-          <actions>
-            <action>
-              <icon>vscode</icon>
-              <name>在 VS Code 中打开</name>
-              <unique-id>nix-config-open-vscode</unique-id>
-              <command>${pkgs.vscode}/bin/code %f</command>
-              <description>Open the selected folder in VS Code</description>
-              <range></range>
-              <patterns>*</patterns>
-              <startup-notify/>
-              <directories/>
-            </action>
-            <action>
-              <icon>utilities-terminal</icon>
-              <name>在终端中打开</name>
-              <unique-id>nix-config-open-terminal</unique-id>
-              <command>${pkgs.kitty}/bin/kitty --class nix-config-file-manager --working-directory %f</command>
-              <description>Open a terminal in the selected folder</description>
-              <range></range>
-              <patterns>*</patterns>
-              <startup-notify/>
-              <directories/>
-            </action>
-          </actions>
-        '';
-      };
       "niri/config.kdl".source = ./conf/config.kdl;
       "niri/keybindings.kdl".source = ./conf/keybindings.kdl;
       "niri/niri-hardware.kdl".source = ./conf/niri-hardware.kdl;
@@ -202,6 +172,78 @@ in
       "niri/spawn-at-startup.kdl".source = ./conf/spawn-at-startup.kdl;
       "niri/windowrules.kdl".source = ./conf/windowrules.kdl;
     };
+
+    # Nautilus replaces Thunar's uca.xml. The "open in terminal" action comes
+    # from nautilus-open-any-terminal (system side, configured for kitty), and
+    # "open in VS Code" from this extension. Nautilus has no declarative action
+    # format -- nautilus-actions is dead -- so a python MenuProvider is the
+    # supported path.
+    #
+    # xdg.dataFile, not xdg.configFile: nautilus-python searches
+    # ~/.local/share/nautilus-python/extensions (plus its DATADIR), never
+    # ~/.config. It is loaded at all only because the system module sets
+    # NAUTILUS_4_EXTENSION_DIR (see modules/nixos/desktop/niri.nix).
+    xdg.dataFile."nautilus-python/extensions/nix-config-actions.py".text = ''
+      # Managed by nix-config. Adds "在 VS Code 中打开" to the Nautilus
+      # context menu, the counterpart of the old Thunar custom action.
+
+      from gi.repository import Nautilus, GObject
+      from subprocess import Popen
+
+      VSCODE = "${pkgs.vscode}/bin/code"
+
+
+      class NixConfigActions(GObject.GObject, Nautilus.MenuProvider):
+          def _launch(self, menu, files):
+              args = [VSCODE]
+              # A directory selection means "open this folder as a project",
+              # which is what the Thunar action did with `%f`.
+              if any(f.is_directory() for f in files):
+                  args.append("--new-window")
+              args.extend(f.get_location().get_path() for f in files)
+              Popen(args, start_new_session=True)
+
+          def get_file_items(self, files):
+              if not files:
+                  return []
+              # Only for local files; GVFS/tracker URIs have no plain path.
+              if any(f.get_uri_scheme() != "file" for f in files):
+                  return []
+              item = Nautilus.MenuItem(
+                  name="NixConfigActions::open_vscode",
+                  label="在 VS Code 中打开",
+                  tip="Open the selection in VS Code",
+                  icon="vscode",
+              )
+              item.connect("activate", self._launch, files)
+              return [item]
+
+          def get_background_items(self, current_folder):
+              item = Nautilus.MenuItem(
+                  name="NixConfigActions::open_vscode_bg",
+                  label="在 VS Code 中打开",
+                  tip="Open this folder in VS Code",
+                  icon="vscode",
+              )
+              item.connect("activate", self._launch, [current_folder])
+              return [item]
+    '';
+
+    # nautilus-open-any-terminal ships zh_CN translations ("在此处打开{}"),
+    # but its gettext lookup only probes two hardcoded directories:
+    #
+    #   ~/.local/share/locale
+    #   /usr/share/locale
+    #
+    # On NixOS the catalogs live in the package's own store path
+    # ($out/share/locale), so neither hits and the menu silently stays English
+    # even with LANG=zh_CN.UTF-8. Dropping the catalog into the first probed
+    # directory fixes it without patching the package.
+    #
+    # The path is deliberately the standard <locale>/LC_MESSAGES/<domain>.mo
+    # layout, which is what gettext.translation() expects.
+    xdg.dataFile."locale/zh_CN/LC_MESSAGES/nautilus-open-any-terminal.mo".source =
+      "${pkgs.nautilus-open-any-terminal}/share/locale/zh_CN/LC_MESSAGES/nautilus-open-any-terminal.mo";
 
     systemd.user.services.niri-flake-polkit = {
       Unit = {

@@ -671,7 +671,51 @@ in
 
     environment.systemPackages = with pkgs; [
       papirus-icon-theme
+      # Nautilus is a plain package, not a NixOS module.
+      nautilus
+      nautilus-python
+
+      # Video and audio thumbnails.
+      #
+      # Nautilus delegates thumbnailing to GnomeDesktopThumbnailFactory, which
+      # does not decode anything itself: it looks for a matching entry in
+      # $XDG_DATA_DIRS/thumbnailers/*.thumbnailer and runs that program. The
+      # only such files on this system cover images (gdk-pixbuf, librsvg,
+      # libjxl, libavif), so every video tile fell back to a generic icon.
+      #
+      # ffmpegthumbnailer is the package that ships video/audio entries. Note
+      # that adding GStreamer plugins to nautilus' wrapper does NOT help here
+      # -- that path is not consulted for thumbnails at all.
+      #
+      # Thunar never had this gap because tumbler-ffmpeg registered itself in
+      # the same directory; removing tumbler took the registration with it.
+      ffmpegthumbnailer
     ];
+
+    # The env var below is what makes python extensions load at all: nixpkgs
+    # patches nautilus to read NAUTILUS_4_EXTENSION_DIR, and without it
+    # nautilus only searches its own store path, so nothing in
+    # ~/.local/share/nautilus-python/extensions is ever seen.
+    #
+    # It must be a SINGLE directory. load_module_dir() in nautilus-module.c
+    # passes the value straight to g_dir_open(), which has no notion of a
+    # colon-separated path list -- a `a:b` value fails to open and the failure
+    # is silent, so every extension disappears with no diagnostic. That rules
+    # out lib.makeSearchPath here; the symlink farm below merges the two
+    # sources into one directory instead.
+    #
+    # Both sources are needed: nautilus-python for the python bindings, and
+    # nautilus' own bundled extensions (image properties, totem properties
+    # page) which live in the system path.
+    environment.sessionVariables.NAUTILUS_4_EXTENSION_DIR =
+      lib.mkForce
+        (pkgs.symlinkJoin {
+          name = "nautilus-extensions";
+          paths = [
+            "${pkgs.nautilus-python}/lib/nautilus/extensions-4"
+            "${config.system.path}/lib/nautilus/extensions-4"
+          ];
+        }).outPath;
 
     hardware.graphics.enable = true;
 
@@ -685,15 +729,15 @@ in
 
     services.printing.enable = true;
 
-    # Thunar as the graphical file manager, matching the reference config.
+    # Nautilus (GNOME Files) as the graphical file manager.
     services.gvfs.enable = true;
-    services.tumbler.enable = true;
-    programs.thunar = {
+
+    # Nautilus itself. `tumbler` is Thunar's thumbnailer and does not apply;
+    # Nautilus uses glycin (built into the package) plus the pixbuf loaders it
+    # already wraps.
+    programs.nautilus-open-any-terminal = {
       enable = true;
-      plugins = with pkgs; [
-        thunar-archive-plugin
-        thunar-volman
-      ];
+      terminal = "kitty";
     };
 
     # Unlock the login keyring through greetd, matching the Plasma login path.
