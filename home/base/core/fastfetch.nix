@@ -1,206 +1,131 @@
 let
-  # Nix string literals have no \u escape, so the ESC byte that fastfetch's
-  # cursor-back trick needs is decoded from JSON once here.
+  # fastfetch's config is JSONC, and Nix string literals have no `\u` escape --
+  # writing "\u001b" would reach the terminal as those six characters. The ESC
+  # byte is decoded from JSON once here and interpolated instead.
   esc = builtins.fromJSON "\"\\u001b\"";
+
+  # The Catppuccin cat, byte-for-byte from pfetch's `Catppuccin` ASCII art
+  # (unseen-ninja/pfetch, the fork that added it), with two uniform spaces added
+  # in front of every line.
+  #
+  # The uniform prefix shifts the whole drawing right without deforming it --
+  # the leading spaces *inside* the art (line 1 and line 3) shape the head and
+  # the ear and are untouched. Each line gets the same amount, so the silhouette
+  # is identical, just indented.
+  #
+  # Why indent at all: the art is 11 cells wide at its widest, and fastfetch
+  # left-aligns the logo block, so without the prefix the cat sits flush against
+  # the left edge and looks crowded. `padding.left` would do the same thing, but
+  # it also pushes the info column right; adding the spaces here and taking the
+  # same amount off `padding.right` below keeps the info column where it is.
+  #
+  # Each line is prefixed with ANSI colour 2, which is what pfetch uses for this
+  # art (`read_ascii 2`). kitty maps colour 2 to Macchiato's green #A6DA95
+  # through the active theme, so no hex value is hardcoded here -- change the
+  # kitty theme and the cat follows.
+  #
+  # The trailing U+200E LRM characters on the last line are part of the original
+  # art, not noise -- they keep the glyph from being reordered in RTL contexts.
+  cat = [
+    "   /| ､"
+    "  (°､ ｡ 7"
+    "   |､  ~ヽ"
+    "   じしf_,)〳‎‎"
+  ];
+  catLogo = builtins.concatStringsSep "\n" (map (line: "${esc}[32m${line}") cat);
 in
 {
-  # System info panel — the neofetch-style logo-plus-facts display, using
-  # fastfetch's `examples/26.jsonc` layout: a bordered two-column table
-  # ("Keys" / "Values") with a 16-colour swatch box underneath.
+  # System info panel — the neofetch-style logo-plus-facts display, laid out
+  # like pfetch's rather than fastfetch's own presets: no border, no box-drawing
+  # characters, no colour swatch. Just the cat on the left and a plain
+  # `key  value` column on the right.
   #
   # Configured through home-manager's `programs.fastfetch`, which writes
-  # $XDG_CONFIG_HOME/fastfetch/config.jsonc. The schema is documented at
-  # https://github.com/fastfetch-cli/fastfetch/wiki/Json-Schema
+  # $XDG_CONFIG_HOME/fastfetch/config.jsonc. Schema:
+  # https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json
   #
-  # Not wired into shell startup on purpose: it prints ~30 lines, which is
-  # noise in every new terminal. Run `fastfetch` when you want it.
-  #
-  # Differences from the upstream preset, both deliberate:
-  #
-  #   - The two `publicip` modules are gone. They query an external service on
-  #     every run to report your public address and an approximate location,
-  #     which means a network round-trip (slow on a bad link) and handing your
-  #     IP to a third party for what is a cosmetic line. Add them back if you
-  #     actually want that on screen.
-  #
-  #   - The border width is left as upstream. It is drawn with literal box
-  #     characters plus a `\u001b[60D` cursor-back escape, so it only lines up
-  #     while the value column fits in 60 cells. A long hostname or a CJK
-  #     character in a path will shift the right border.
+  # Printed from bash.nix's initExtra rather than wired in here.
   programs.fastfetch = {
     enable = true;
 
     settings = {
       logo = {
+        # `data-raw` because the art carries its own escape sequences. The
+        # `data` variant would try to interpret them as fastfetch colour
+        # placeholders, and `logo.color` only applies to built-in logos -- a
+        # `data` source ignores it entirely (verified).
+        type = "data-raw";
+        source = catLogo;
+        # pfetch pads the art column to 13 cells. The cat above is 11 cells at
+        # its widest plus the 2-cell prefix, so `right = 1` puts the info column
+        # at cell 14 -- unchanged from before the prefix was added.
+        #
+        # `top = 2` vertically centres the art against the module column. The
+        # module list is 7 lines and the art 4, so the slack is 3 -- an odd
+        # number, which cannot be split evenly; 2 above and 1 below reads as
+        # centred, whereas 1/2 sits visibly high. fastfetch has no "centre the
+        # logo" option: padding is the only vertical control, and trailing
+        # newlines in `source` are stripped, so this offset has to be tuned by
+        # hand whenever a module is added or removed.
         padding = {
           top = 2;
+          left = 0;
+          right = 1;
         };
       };
 
       display = {
-        separator = "";
-        constants = [
-          # CONSTANT {$1} - VERTICAL BARS AT START AND 75th CHARACTERS FORWARD
-          # AND BACKWARD. Every row re-emits this then jumps the cursor back,
-          # which is what keeps the right border aligned without fastfetch
-          # knowing the rendered width.
-          #
-          # The ESC bytes are built with fromJSON rather than written as
-          # "\u001b": Nix string literals have no \u escape, so a literal
-          # \u001b would reach the terminal as those six characters and the
-          # border would render as visible "u001b[90m" noise.
-          "${esc}[90m│                                                            │${esc}[60D${esc}[39m"
-        ];
+        # Two spaces between the (padded) art and the info column, and between
+        # key and value. pfetch uses no separator glyph at all.
+        separator = "  ";
+
+        # pfetch prints lowercase names left-aligned with no separator, values
+        # starting at a fixed column. `width = 8` fits the longest key
+        # (`uptime`) and gives the same look.
+        key = {
+          type = "string";
+          width = 8;
+          color = "green";
+        };
       };
 
       modules = [
-        # --- Top border ---
-        {
-          type = "custom";
-          key = "{#90}╭ Keys ───────╮";
-          format = "{#90}╭ Values ────────────────────────────────────────────────────╮";
-        }
-
-        # --- Identity ---
+        # pfetch's `title` line: user@host, no key. The colours mirror pfetch's
+        # default `PF_COL3` (title in colour 1) and green `@`.
         {
           type = "title";
-          key = "{#90}│ {#92}User        {#90}│";
-          format = "{$1}{user-name}  {#2}[{home-dir}]";
+          key = " ";
+          format = "${esc}[33m{user-name}${esc}[32m@${esc}[33m{host-name}";
         }
         {
-          type = "users";
-          key = "{#90}│ {#92}Users       {#90}│";
-          myselfOnly = false;
-          format = "{$1}{1}@{host-name}{/host-name}localhost{/}{?client-ip}  {#2}[IP:{client-ip}]{?}  [Login time: {login-time}]";
-        }
-        {
-          type = "datetime";
-          key = "{#90}│ {#92}Datetime    {#90}│";
-          format = "{$1}{year}-{month-pretty}-{day-in-month} {hour-pretty}:{minute-pretty}:{second-pretty}  {#2}[{weekday}] [W{week}] [UTC{offset-from-utc}]";
-        }
-        {
-          type = "title";
-          key = "{#90}│ {#93}Host        {#90}│";
-          format = "{$1}{host-name}";
+          type = "os";
+          key = "os";
+          format = "{pretty-name} {codename}";
         }
         {
           type = "host";
-          key = "{#90}│ {#93}Machine     {#90}│";
-          format = "{$1}{name}  {#2}{version}";
-        }
-
-        # --- OS ---
-        {
-          type = "os";
-          key = "{#90}│ {#93}OS          {#90}│";
-          format = "{$1}{?pretty-name}{pretty-name}{?}{/pretty-name}{name}{/} {codename}  {#2}[v{version}] [{arch}]";
+          key = "host";
         }
         {
           type = "kernel";
-          key = "{#90}│ {#93}Kernel      {#90}│";
-          format = "{$1}{sysname}  {#2}[v{release}]";
+          key = "kernel";
         }
         {
           type = "uptime";
-          key = "{#90}│ {#93}Uptime      {#90}│";
-          format = "{$1}{?days}{days} Days + {?}{hours}:{minutes}:{seconds}";
-        }
-
-        # --- Hardware ---
-        {
-          type = "cpu";
-          key = "{#90}│ {#91}CPU         {#90}│";
-          showPeCoreCount = true;
-          temp = true;
-          format = "{$1}{name}  {#2}[C:{core-types}] [{freq-max}]";
+          key = "uptime";
         }
         {
-          type = "gpu";
-          key = "{#90}│ {#91}GPU         {#90}│";
-          detectionMethod = "auto";
-          driverSpecific = true;
-          format = "{$1}{name}  {#2}[C:{core-count}]{?frequency} [{frequency}]{?} {#2}[{type}]";
+          type = "packages";
+          key = "pkgs";
+          # `{all}` sums nix-system + nix-user into one number, which is what
+          # pfetch's `pkgs` line reports. The default fastfetch format would
+          # print both counts separately.
+          format = "{all}";
         }
         {
           type = "memory";
-          key = "{#90}│ {#91}Memory      {#90}│";
-          format = "{$1}{used} / {total} ({percentage})";
-        }
-        {
-          type = "disk";
-          key = "{#90}│ {#91}Disk        {#90}│";
-          format = "{$1}{size-used} / {size-total} ({size-percentage})";
-        }
-        {
-          type = "poweradapter";
-          key = "{#90}│ {#91}Power       {#90}│";
-          format = "{$1}{name}";
-        }
-
-        # --- Session ---
-        {
-          type = "terminal";
-          key = "{#90}│ {#95}Terminal    {#90}│";
-          format = "{$1}{pretty-name}  {#2}[{version}] [PID:{pid}]";
-        }
-        {
-          type = "terminalfont";
-          key = "{#90}│ {#95}Font        {#90}│";
-          format = "{$1}{name}  {#2}[{size}]";
-        }
-        {
-          type = "shell";
-          key = "{#90}│ {#95}Shell       {#90}│";
-          format = "{$1}{pretty-name}  {#2}[v{version}] [PID:{pid}]";
-        }
-
-        # --- Network (local only) ---
-        {
-          type = "localip";
-          key = "{#90}│ {#94}Local IPv4  {#90}│";
-          showPrefixLen = true;
-          showIpv4 = true;
-          showIpv6 = false;
-          showMtu = true;
-          format = "{$1}{ifname}: {ipv4}  {#2}[MTU:{mtu}]";
-        }
-        {
-          type = "localip";
-          key = "{#90}│ {#94}Local IPv6  {#90}│";
-          showPrefixLen = true;
-          showIpv4 = false;
-          showIpv6 = true;
-          showMtu = true;
-          format = "{$1}{ifname}: {ipv6}  {#2}[MTU:{mtu}]";
-        }
-
-        # --- Bottom border ---
-        {
-          type = "custom";
-          key = "{#90}╰─────────────╯";
-          format = "{#90}╰────────────────────────────────────────────────────────────╯";
-        }
-
-        "break"
-
-        # --- Colour swatch: the terminal's own 16-colour palette, so a theme
-        # change can be verified at a glance. Purely diagnostic. ---
-        {
-          type = "custom";
-          key = " ";
-          format = "{#90}╭ Colors ───────────────────────────────────────────────────────────────────╮";
-        }
-        {
-          type = "custom";
-          format = "{#90}│ {#40}    {#41}    {#42}    {#43}    {#44}    {#45}    {#46}    {#47}    {#}                                          {#90}│";
-        }
-        {
-          type = "custom";
-          format = "{#90}│ {#100}    {#101}    {#102}    {#103}    {#104}    {#105}    {#106}    {#107}    {#}                                          {#90}│";
-        }
-        {
-          type = "custom";
-          format = "{#90}╰───────────────────────────────────────────────────────────────────────────╯";
+          key = "memory";
+          format = "{used} / {total}";
         }
       ];
     };

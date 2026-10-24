@@ -74,8 +74,16 @@
       # window-rule in noctalia-shell.kdl sets geometry-corner-radius.
       hide_window_decorations = "titlebar-only";
 
-      # Slight transparency — set to "1.0" for fully opaque.
-      background_opacity = "0.93";
+      # Fully opaque, so the background is the theme's #24273A and nothing else.
+      #
+      # This used to be "0.93". At 93% the terminal blended the theme background
+      # with whatever sat behind the window, so the colour that reached the eye
+      # was not #24273A but #24273A mixed with the wallpaper -- measured #212436
+      # over black, #2A2D3F over a bright wallpaper patch. That is why the
+      # terminal did not match the Catppuccin-Macchiato screenshots, which are
+      # rendered opaque. Transparency is incompatible with "show the theme's
+      # colour exactly"; pick one.
+      background_opacity = "1.0";
 
       # No annoying beep on errors.
       enable_audio_bell = false;
