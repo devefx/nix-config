@@ -32,12 +32,36 @@
       qt6Packages.fcitx5-configtool # GUI config tool
       fcitx5-gtk # GTK app integration
       qt6Packages.fcitx5-chinese-addons # Pinyin / Shuangpin / Wubi / Zhuyin — all in one
+
+      # Catppuccin theme, matching the terminal (kitty, yazi) and the prompt
+      # (starship). An addon rather than a hand-written theme.conf: the package
+      # ships one directory per flavour x accent (56 in total), and fcitx5
+      # finds them because with-addons.nix symlinkJoins every addon into the
+      # fcitx5 package and appends its `share` to XDG_DATA_DIRS.
+      #
+      # `withRoundedCorners` turns on the port's panel.svg/highlight.svg
+      # backgrounds instead of flat rectangles, matching the 20px window radius
+      # niri applies to the rest of the desktop.
+      #
+      # `mauve` for the accent, the same choice as yazi's theme: it is the value
+      # the Catppuccin kitty port uses for its active tab, so the three agree.
+      (catppuccin-fcitx5.override { withRoundedCorners = true; })
     ];
 
+    # `Theme` selects which of the shipped theme directories to use. Only the
+    # name is set here; the colours live in the package above.
     fcitx5.settings.addons.classicui.globalSection = {
       Font = "Noto Sans 12";
       MenuFont = "Noto Sans 12";
       TrayFont = "Noto Sans 12";
+      Theme = "catppuccin-macchiato-mauve";
+
+      # The default is `True` for both, which would tint the panel with the
+      # system colour scheme (KDE/GTK) and override the theme's own surface
+      # colour. The port's #363A4F (surface0) only shows up with these off.
+      UseCustomFont = "False";
+      UseDarkTheme = "False";
+      UseAccentColor = "False";
     };
   };
 }
