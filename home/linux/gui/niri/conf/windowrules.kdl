@@ -83,6 +83,14 @@ window-rule {
     match app-id="steam"
     open-on-workspace "4entertainment"
 }
+// Steam's main window asks for its own width, so the global
+// `default-column-width { proportion 0.5; }` in config.kdl does not apply. Pin
+// the column to the full workspace width instead.
+window-rule {
+    match app-id="steam"
+    match title="^Steam"
+    default-column-width { proportion 1.0; }
+}
 window-rule {
     match app-id="steam_app_default"
     open-on-workspace "4entertainment"

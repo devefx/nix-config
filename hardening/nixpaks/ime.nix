@@ -2,6 +2,7 @@
   lib,
   stdenv,
   runCommandLocal,
+  librsvg,
   glibc,
   fetchurl,
   makeWrapper,
@@ -70,10 +71,19 @@ let
     url = "https://desktop-updates.imem.app/uploads/iMe_Desktop_Linux.tar.xz";
     hash = "sha256-sbT+HAXKQre4nGFws14nFz3hB9ON/9lRrbcwUZJLuKc=";
   };
-  icon = fetchurl {
-    url = "https://imem.app/logo512.png";
-    hash = "sha256-89D/v2C+10vtBWXNnl7eqNlrVg7FKmWeRFf8Qirl+XQ=";
+  # The site rewrite of 2026-10 dropped `logo512.png` (it now 404s) and left
+  # only `favicon.svg`, which is also the icon it declares as
+  # `<link rel="icon">`. Rendering the 512x512 PNG here instead of pointing at
+  # a raster asset keeps the hicolor/512x512 layout -- and every
+  # `install -m0644 $icon` below -- unchanged, and pins the same artwork the
+  # upstream page serves.
+  iconSvg = fetchurl {
+    url = "https://imem.app/favicon.svg";
+    hash = "sha256-XStiS8wi+a9+YQp0MVwJSylc6MyQbCiZBsgycJKHOBo=";
   };
+  icon = runCommandLocal "ime-desktop-icon.png" { nativeBuildInputs = [ librsvg ]; } ''
+    rsvg-convert -w 512 -h 512 ${iconSvg} -o $out
+  '';
   runtimeLibs = [
     stdenv.cc.cc.lib
     glib
