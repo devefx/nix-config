@@ -73,7 +73,7 @@
     # nixpkgs so its HIP/ROCr build shares the exact ROCm the rest of the
     # system uses; `modules.gufo` also needs that pin to line up.
     gufo = {
-      url = "github:gufo-org/gufo/v0.21.0";
+      url = "github:gufo-org/gufo/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
