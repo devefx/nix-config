@@ -28,6 +28,37 @@ in
   programs.vscode = {
     enable = true;
     mutableExtensionsDir = true;
+
+    # The integrated terminal inherits `editor.fontFamily` when
+    # `terminal.integrated.fontFamily` is unset, and both default to
+    # "'Droid Sans Mono', 'monospace', monospace". Droid Sans Mono is not
+    # installed here, so the terminal landed on DejaVu Sans Mono, which has no
+    # Nerd Font glyphs -- every powerline separator and icon from the starship
+    # prompt rendered as a .notdef box. kitty looked fine only because
+    # `programs.kitty.font` names JetBrainsMono Nerd Font explicitly.
+    #
+    # Naming the Nerd Font family here (rather than relying on fontconfig
+    # fallback) is also what upstream recommends: Chromium's fallback picks the
+    # broadest-coverage font it can find, and that heuristic is unreliable on
+    # Linux -- see microsoft/vscode#319988, where the terminal falls back to a
+    # font that also lacks the glyph. Pinning the family skips fallback entirely.
+    profiles.default.userSettings = {
+      "editor.fontFamily" = "'JetBrainsMono Nerd Font', 'JetBrainsMono Nerd Font Mono', monospace";
+      "terminal.integrated.fontFamily" =
+        "'JetBrainsMono Nerd Font Mono', 'JetBrainsMono Nerd Font', monospace";
+      # Draws box-drawing and powerline glyphs at the cell edges so the starship
+      # segments join instead of leaving a seam between blocks.
+      "terminal.integrated.customGlyphs" = true;
+
+      # Previously hand-written in ~/.config/Code/User/settings.json. Now that
+      # this module manages that file, they have to live here or the generated
+      # symlink would drop them.
+      "terminal.integrated.initialHint" = false;
+      "diffEditor.ignoreTrimWhitespace" = false;
+      "explorer.confirmDelete" = false;
+      "git.allowForcePush" = true;
+    };
+
     profiles.default.extensions = [
       pkgs.vscode-extensions.vadimcn.vscode-lldb
       pkgs.vscode-extensions.ms-vscode.cpptools
