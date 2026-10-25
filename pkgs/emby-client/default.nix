@@ -31,11 +31,11 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "emby-client";
-  version = "2.319.0";
+  version = "2.322.0";
 
   src = fetchurl {
     url = "https://pkg.emby.media/apt/pool/main/m/media.emby.client.beta/media.emby.client.beta_${finalAttrs.version}_amd64.deb";
-    hash = "sha256-s6RIBvaG/ucGxalIkBKauMVbEgV649EOzE9hIQCATZs=";
+    hash = "sha256-eLLiUnTQmed0NHM4PIuu3mrqGHPm4w3xDne0mnQLBs0=";
   };
 
   nativeBuildInputs = [

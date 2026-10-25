@@ -33,11 +33,15 @@ let
   # ABI in step with the prebuilt native addons in the bundle.
   nodeRuntime = stdenv.mkDerivation (finalAttrs: {
     pname = "dsh-desktop-node";
-    version = "24.19.0";
+    # Tracks the nixpkgs `nodejs_24` this flake pins rather than nodejs.org's
+    # latest 24.x: the whole point of shipping a runtime is that it matches the
+    # ABI of the prebuilt native addons already in the bundle, and those were
+    # compiled against nixpkgs' Node.
+    version = "24.21.0";
 
     src = fetchurl {
       url = "https://nodejs.org/dist/v${finalAttrs.version}/node-v${finalAttrs.version}-linux-x64.tar.xz";
-      hash = "sha256-FLNC5xIE+BG95hU76OBLYq72PCNv75K1X5yDFUtAlkc=";
+      hash = "sha256-/Y5Z1aURUQ9qKYr7VI8Yx9KxvkBNi0on2U++SfVsstY=";
     };
 
     sourceRoot = "node-v${finalAttrs.version}-linux-x64";

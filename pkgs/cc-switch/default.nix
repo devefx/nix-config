@@ -16,13 +16,13 @@
 # before the first launch.
 cc-switch.overrideAttrs (
   finalAttrs: old: {
-    version = "3.20.4";
+    version = "4.0.20";
 
     src = fetchFromGitHub {
       owner = "farion1231";
       repo = "cc-switch";
       tag = "v${finalAttrs.version}";
-      hash = "sha256-UewKhov4j+qa+319rMFUd+/80ylzPuleC79pEdaBJKI=";
+      hash = "sha256-tHamU9GQxfo+2QvczRFV8qO5ZrQzxiFX3yd3+JKXDQg=";
     };
 
     pnpmDeps = fetchPnpmDeps {
@@ -31,25 +31,28 @@ cc-switch.overrideAttrs (
       src = finalAttrs.src;
       pnpm = pnpm_10;
       fetcherVersion = 3;
-      hash = "sha256-uqY6/WSVsuvfcJsbWMYenaxLp9gDguiMAyb/mepv028=";
+      hash = "sha256-+BKQY+QFdoo+gi5ObGDS0vd6KwG7jsRZIEF7/8/K89Q=";
     };
 
-    cargoHash = "sha256-DdvQ084Aop+rr6ECc5+lEJ4gSxDTtl6sF+ixjj6Dg6Q=";
+    cargoHash = "sha256-ZHndpX18+khp18/KyFSwKGn3uioFOIyAfagjeXC+T30=";
 
     # buildRustPackage derives the vendored-deps derivation from its original
     # argument set, so overriding `cargoHash` alone leaves the old hash on the
     # staging fixed-output derivation that actually does the fetching.
     cargoDeps = old.cargoDeps.overrideAttrs (vendor: {
       vendorStaging = vendor.vendorStaging.overrideAttrs (_: {
-        outputHash = "sha256-DdvQ084Aop+rr6ECc5+lEJ4gSxDTtl6sF+ixjj6Dg6Q=";
+        outputHash = "sha256-ZHndpX18+khp18/KyFSwKGn3uioFOIyAfagjeXC+T30=";
       });
     });
 
-    # Three upstream tests hardcode an FHS layout (`/bin/echo`, an `npm` shim on
-    # PATH) and cannot pass inside the Nix sandbox; the remaining ~2900 pass.
+    # Upstream tests that hardcode an FHS layout (`/bin/echo`, a `bash` or `npm`
+    # shim on PATH) and cannot pass inside the Nix sandbox; the remaining ~4000
+    # pass. 4.0.20 added the two `anchored_upgrade`/`unix_launcher` cases below.
     checkFlags = [
       "--skip=commands::misc::tests::anchored_upgrade::npm_anchor_supplies_sibling_node_to_env_shebang"
+      "--skip=commands::misc::tests::anchored_upgrade::claude_updater_child_inherits_scoped_settings_without_parent_leakage"
       "--skip=commands::misc::tests::probe_version_command_captures_healthy_tool_output"
+      "--skip=commands::misc::tests::unix_launcher_script_passes_env_past_rc_files_and_cleans_up"
       "--skip=session_manager::providers::mcode::tests::mcode_history_uses_visible_roots_and_display_messages"
     ];
   }

@@ -64,7 +64,7 @@
 # official Linux `.deb` and runs it through an FHS environment for NixOS.
 # cc-haha (Claude Code Haha) is a desktop Claude Code workspace with no
 # nixpkgs package, so we wrap its official Linux x86_64 AppImage release
-# (pinned v0.6.8; sha512 taken from the release's latest-linux.yml).
+# (pinned v0.7.5; the hash is the release AppImage's own sha256).
 #
 # Gated behind `modules.aiAgents.enable` — only hosts that actually
 # develop with these agents pull the ~GB of Node / Go / Rust runtimes
@@ -176,16 +176,16 @@ let
   };
 
   cc-haha-icon = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/NanmiCoder/cc-haha/v0.6.8/desktop/src-tauri/icons/128x128.png";
+    url = "https://raw.githubusercontent.com/NanmiCoder/cc-haha/v0.7.5/desktop/src-tauri/icons/128x128.png";
     sha256 = "sha256-Te7Mr3uZATdT1RUleHdY9DN7gUtafwPHDtWN8zKxs0Q=";
   };
 
   cc-haha-appimage = pkgs.appimageTools.wrapType2 {
     pname = "cc-haha-appimage";
-    version = "0.6.8";
+    version = "0.7.5";
     src = pkgs.fetchurl {
-      url = "https://github.com/NanmiCoder/cc-haha/releases/download/v0.6.8/Claude-Code-Haha-0.6.8-linux-x86_64.AppImage";
-      sha512 = "sha512-hIAS/XX9tEMs1LYi1oiYyIMkRaoWxSre4sC7PgWg+xd74FTo5IY3Vd0t5nJ6RyxPfB1EcpOk9RzAhOiSdrCYAQ==";
+      url = "https://github.com/NanmiCoder/cc-haha/releases/download/v0.7.5/Claude-Code-Haha-0.7.5-linux-x86_64.AppImage";
+      sha256 = "sha256-t/dxzsBmakiCcn9PmOM4TBSMMJfyGKzt1MKWHMJsuaI=";
     };
 
     extraInstallCommands = ''

@@ -35,11 +35,11 @@
 # enough and keeps the native `.node` addons on one ABI.
 buildNpmPackage (finalAttrs: {
   pname = "rea-agents";
-  version = "6.5.0";
+  version = "6.7.0";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/rea-agents/-/rea-agents-${finalAttrs.version}.tgz";
-    hash = "sha256-UxcXoG6SymUaq1JpEZD5FvrARCcsAfh14ixeKTIY5pk=";
+    hash = "sha256-IJWKZtuhoBHlCkhr65Rjo0MSjtNoyYT5QGU2LBP1H5A=";
   };
 
   # Upstream's `package.json` carries `scripts.prepare` and `scripts.prepack`,
@@ -61,7 +61,7 @@ buildNpmPackage (finalAttrs: {
     fi
   '';
 
-  npmDepsHash = "sha256-bdfLrhcJujMGmMxjnzRolIgaBKD9H6s699nYPlwAwqE=";
+  npmDepsHash = "sha256-osmsWiATYCazHi2RL3ptkyV/CpRTzlpVprVcL3lvE2M=";
 
   dontNpmBuild = true;
   npmRebuildFlags = [ "--ignore-scripts" ];
