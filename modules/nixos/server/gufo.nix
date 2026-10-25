@@ -348,6 +348,17 @@ in
       default = true;
       description = "Open `port` when `host` is not a loopback address.";
     };
+
+    autoStart = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Pull the unit in at boot (`wantedBy = [ "multi-user.target" ]`). Set to
+        `false` to keep the unit registered but inert, so it only starts when
+        asked for with `systemctl start gufo` — which is what an alternative
+        engine on the same GPU memory wants.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -377,7 +388,7 @@ in
     systemd.services.gufo = {
       description = "Gufo OpenAI-compatible inference server";
       documentation = [ "https://github.com/gufo-org/gufo/blob/main/docs/SERVER.md" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = lib.optional cfg.autoStart "multi-user.target";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
 

@@ -8,11 +8,10 @@
 # llama.cpp server (Vulkan backend) as a systemd unit, for the gguf-model-presets
 # tree that also holds gufo's weights.
 #
-# Deliberately the mirror image of modules/nixos/server/gufo.nix on one point:
-# gufo runs on every boot, this one does not. The two need the same ~85-90 GiB
-# of unified memory and both want port 8080, so only one can be resident.
-# Registering llama.cpp as a unit that starts on demand keeps the switch
-# explicit:
+# Both engines declare an `autoStart` switch (gufo defaults to true, this one to
+# false) because they need the same ~85-90 GiB of unified memory: only one can be
+# resident. With `autoStart` off the unit is registered but inert, so the switch
+# stays explicit:
 #
 #   sudo systemctl start llama-cpp     # after stopping gufo
 #   sudo systemctl stop  llama-cpp     # before starting gufo
@@ -145,6 +144,17 @@ in
       default = true;
       description = "Open `port` when `host` is not a loopback address.";
     };
+
+    autoStart = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Pull the unit in at boot (`wantedBy = [ "multi-user.target" ]`). Off by
+        default: gufo owns the GPU memory and port 8080, so llama.cpp is only
+        started by hand. Flip this to `true` (and turn gufo's `autoStart` off)
+        to invert which engine is resident after boot.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -157,8 +167,10 @@ in
     systemd.services.llama-cpp = {
       description = "llama.cpp OpenAI-compatible server (Vulkan)";
       documentation = [ "https://github.com/ggml-org/llama.cpp/blob/master/docs/server.md" ];
-      # No `wantedBy`: the unit is registered and can be started by hand, but
-      # nothing pulls it in at boot. That is the whole point — see the header.
+      # `autoStart` defaults to false here, so by default nothing pulls this
+      # unit in at boot: it is registered and can be started by hand. That is
+      # the whole point — see the header.
+      wantedBy = lib.optional cfg.autoStart "multi-user.target";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
 

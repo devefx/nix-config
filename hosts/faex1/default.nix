@@ -395,8 +395,9 @@ in
   # config works whichever disk the weights end up on.
   #
   # Port 8080: gufo owns it. llama.cpp runs from its own unit instead (see
-  # modules.llamaCppServer below), on llama.cpp's default 9931, and is started by
-  # hand — the old ~/.config/autostart entry is no longer what serves it.
+  # modules.llamaCppServer below), on llama.cpp's default 9931, and is the one
+  # started at boot — gufo's `autoStart` is off, so the old ~/.config/autostart
+  # entry is no longer what serves it.
   #
   # Sizing measured on this box by loading the model at each setting and reading
   # gpu_device_used_mib from the startup line (96 GiB GTT available):
@@ -418,6 +419,11 @@ in
   # than context length.
   modules.gufo = {
     enable = true;
+    # Off by hand: llama.cpp is the engine that should come up after boot on
+    # this box. Both want the same ~85-90 GiB of unified memory, so exactly one
+    # can be resident; gufo still owns port 8080 and is started with
+    # `sudo systemctl start gufo` (stop llama-cpp first).
+    autoStart = false;
     port = 8080;
     context = 262144;
     sessions = 1;
@@ -429,10 +435,11 @@ in
     };
   };
 
-  # llama.cpp over Vulkan, for the same gguf-model-presets tree. Registered as a
-  # unit but never started at boot: it needs the same ~85-90 GiB of unified
-  # memory as gufo, so exactly one of the two can be resident. It listens on
-  # 9931, so the two do not fight over a socket. Switch by hand:
+  # llama.cpp over Vulkan, for the same gguf-model-presets tree. This is the
+  # engine started at boot (`autoStart = true`); gufo is the on-demand one. They
+  # need the same ~85-90 GiB of unified memory, so exactly one of the two can be
+  # resident. It listens on 9931, so the two do not fight over a socket. Switch
+  # by hand:
   #
   #   sudo systemctl stop gufo && sudo systemctl start llama-cpp
   #   sudo systemctl stop llama-cpp && sudo systemctl start gufo
@@ -441,6 +448,10 @@ in
   # entry a client asks for — so there is no per-model configuration below.
   modules.llamaCppServer = {
     enable = true;
+    # The unit that comes up at boot; gufo's `autoStart` is off above. Switch
+    # the other way with `sudo systemctl stop llama-cpp && sudo systemctl start
+    # gufo`.
+    autoStart = true;
     presetsDir = "/home/${myvars.username}/models-presets";
   };
   modules.desktop.plasma.enable = true;
