@@ -19,31 +19,50 @@
   gtk = {
     enable = true;
 
-    # Colloid covers both GTK 3 and GTK 4, which matters here because Nautilus
-    # 50 is GTK4/libadwaita while the rest of the desktop (Firefox, VS Code,
-    # file pickers) is GTK3. The package also ships GTK2.
+    # Orchis (vinceliuice, Material Design) covers both GTK 3 and GTK 4, which
+    # matters here because Nautilus 50 is GTK4/libadwaita while the rest of the
+    # desktop (Firefox, VS Code, file pickers) is GTK3.
     #
-    # Colloid-Light, not Colloid: the plain `Colloid` variant is a hybrid --
-    # white content area but a dark titlebar/border (wm_bg #242424). Only the
-    # -Light variant is light throughout (wm_bg #F2F2F2).
+    # Orchis-Dark, not Orchis: the plain `Orchis` variant is a hybrid --
+    # theme_bg_color #F2F2F2 (light content) with a dark headerbar/wm_bg
+    # #2C2C2C, which reads as broken once the rest of the desktop is dark. Only
+    # -Dark is dark throughout (window_bg_color #212121, view_bg_color #2C2C2C,
+    # fg white, accent #3281EA).
+    #
+    # No GTK2 from Orchis: upstream's gtk-2.0 themes need a Murrine engine that
+    # nixpkgs no longer packages, so the nixpkgs derivation patches the GTK2
+    # step out (pkgs/by-name/or/orchis-theme/remove-gtk2.patch). gtk2.theme is
+    # nulled below to match.
     theme = {
-      name = "Colloid-Light";
-      package = pkgs.colloid-gtk-theme;
+      name = "Orchis-Dark";
+      package = pkgs.orchis-theme;
     };
 
-    # Same palette as the GTK theme, so the folder glyphs in the file manager
-    # match the window chrome instead of clashing with Papirus.
+    # Papirus-Dark, matching the Qt side exactly: qt6ct.conf, the nwg-hello
+    # greeter (modules/nixos/desktop/niri.nix) and the nixpak sandboxes
+    # (hardening/nixpaks/modules/gui-base.nix) all use Papirus-Dark, so the bar,
+    # the greeter, sandboxed apps and now every GTK app share one icon set.
+    #
+    # Papirus is its own project (PapirusDevelopmentTeam/papirus-icon-theme,
+    # based on the Paper icon set), not an Orchis asset -- Orchis is a GTK theme
+    # only and ships no icons, so this pairing is arbitrary-but-conventional
+    # rather than upstream-matched.
+    #
+    # Inherits=breeze-dark,hicolor, so symbolic glyphs missing from Papirus-Dark
+    # still resolve. Note the previously-used Colloid-Dark inherited
+    # hicolor,breeze (light) instead; Papirus-Dark's fallback chain is the one
+    # the Qt side already validated.
     iconTheme = {
-      name = "Colloid-Light";
-      package = pkgs.colloid-icon-theme;
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
 
-    # Naming a light theme is not enough on its own: without this, GTK still
-    # asks for the dark variant of whatever is active and libadwaita apps stay
-    # dark. Setting it writes gtk-application-prefer-dark-theme=false for
-    # GTK 3, gtk-interface-color-scheme for GTK 4, and prefer-light into the
+    # Naming a dark theme is not enough on its own: without this, libadwaita
+    # apps keep following the default (light) scheme regardless of
+    # gtk-theme-name. Setting it writes gtk-application-prefer-dark-theme=true
+    # for GTK 3, gtk-interface-color-scheme for GTK 4, and prefer-dark into the
     # dconf org/gnome/desktop/interface color-scheme.
-    colorScheme = "light";
+    colorScheme = "dark";
 
     # home-manager writes `gtk-interface-color-scheme` as the bare integer 2/3
     # (see mkGtkSettings in home-manager's modules/misc/gtk/lib.nix). That was
@@ -62,7 +81,7 @@
     #   "gtk-interface-color-scheme" which has a value that cannot be
     #   interpreted.
     #
-    # and then silently fell back to the default scheme -- the light theme was
+    # and then silently fell back to the default scheme -- the dark theme was
     # only taking effect through the other keys. Verified against GTK 4.22.4
     # with a minimal gtk_init() program: "light"/"dark"/"default"/
     # "unsupported" parse cleanly, 2 and 3 both warn.
@@ -88,6 +107,14 @@
       package = pkgs.noto-fonts;
       size = 11;
     };
+
+    # Orchis has no gtk-2.0 directory (see the theme comment above), so naming
+    # it here would point ~/.gtkrc-2.0 at a theme GTK2 cannot find and silently
+    # fall back to Raleigh. There is no GTK2 app on this system that reads the
+    # file anyway -- the gtk+-2.24.33 in the system closure is pulled in by the
+    # Lutris FHS env, not by an app -- so keep the file (cursor/font/icon keys
+    # are still correct) and just drop the theme name.
+    gtk2.theme = null;
 
     # Force-rewrite ~/.gtkrc-2.0 without backup: home-manager fully owns
     # this generated file, and nixpkgs bumps change its content, which

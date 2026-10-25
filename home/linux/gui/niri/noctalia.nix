@@ -92,7 +92,6 @@ lib.mkIf config.modules.desktop.niri.enable {
     noctaliaShell
     pkgs.kdePackages.breeze-icons
     pkgs.qt6Packages.qt6ct
-    pkgs.papirus-icon-theme
     pkgs.app2unit
     pkgs.wlsunset
     pkgs.xrdb
@@ -100,6 +99,14 @@ lib.mkIf config.modules.desktop.niri.enable {
   ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
     pkgs.gpu-screen-recorder
   ];
+
+  # No pkgs.papirus-icon-theme here. The tray lookup above only needs the icon
+  # theme to be reachable through XDG_DATA_DIRS, and home-manager's gtk module
+  # already puts gtk.iconTheme.package into home.packages -- see
+  # home/linux/gui/base/gtk.nix, which names Papirus-Dark. Listing it again here
+  # put the same store path into the profile twice. The copy that must stay is
+  # the *system* one in modules/nixos/desktop/niri.nix: nwg-hello runs as the
+  # greeter user before home-manager activation, so it cannot read this profile.
 
   # ChatGPT runs through XWayland on this scaled output. Fcitx's XCB input
   # panel otherwise uses 96 DPI and renders smaller than native Wayland apps.
