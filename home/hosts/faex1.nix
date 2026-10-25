@@ -39,5 +39,9 @@
   modules.emby.enable = true;
   modules.hongguoTv.enable = true;
   modules.vicinae.enable = true;
+  modules.thunderbird = {
+    enable = true;
+    autostart = true;
+  };
   modules.moonlight.enable = true;
 }

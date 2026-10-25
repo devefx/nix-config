@@ -100,7 +100,6 @@ in
       brightnessctl
       playerctl
       xdg-user-dirs
-      thunderbird
       qimgv # image viewer; imv-wayland can busy-loop after closing windows
       file-roller # archive manager; Nautilus' extract entries call it via gnome-autoar
       # file-roller picks its backend by looking these up in PATH. Without

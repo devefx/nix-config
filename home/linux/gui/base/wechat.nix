@@ -53,5 +53,20 @@ in
       wechatLauncher
       wechatDesktop
     ];
+
+    # WeChat's AppImage writes its own autostart entry on first launch, but that
+    # file is unmanaged: it is a plain file in ~/.config/autostart, it carries
+    # the `X-AppImage-Version` of whichever build wrote it, and if it is ever
+    # removed nothing puts it back. Take it over the same way the QQ module
+    # does, so the entry survives rebuilds and points at the store path.
+    #
+    # `${wechatDesktop}`'s desktop file already has `Exec=wechat %U` --
+    # hardening/bwraps/wechat.nix substitutes `AppRun` for `wechat` -- which
+    # resolves to `wechatLauncher` on PATH, so the focus-existing-window logic
+    # is what actually runs.
+    xdg.configFile."autostart/wechat.desktop" = {
+      source = "${wechatDesktop}/share/applications/wechat.desktop";
+      force = true;
+    };
   };
 }
