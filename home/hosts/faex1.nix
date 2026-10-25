@@ -38,5 +38,6 @@
   modules.remmina.enable = true;
   modules.emby.enable = true;
   modules.hongguoTv.enable = true;
+  modules.vicinae.enable = true;
   modules.moonlight.enable = true;
 }

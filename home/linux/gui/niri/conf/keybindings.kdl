@@ -225,6 +225,11 @@ binds {
     Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
     XF86Search { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
 
+    // Vicinae launcher. It runs as a separate daemon (`vicinae server`, started
+    // by the home-manager module's systemd unit) and the client is just an IPC
+    // call into it, so this only needs to ask the running instance to toggle.
+    Alt+Space hotkey-overlay-title="打开 Vicinae 启动器" { spawn "vicinae" "toggle"; }
+
     // Locker
     CTRL+Alt+L hotkey-overlay-title="锁定屏幕" { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
