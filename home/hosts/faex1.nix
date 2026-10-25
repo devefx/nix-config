@@ -37,5 +37,6 @@
   modules.eden.enable = true;
   modules.remmina.enable = true;
   modules.emby.enable = true;
+  modules.hongguoTv.enable = true;
   modules.moonlight.enable = true;
 }
