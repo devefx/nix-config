@@ -36,7 +36,6 @@
   modules.mpv.enable = true;
   modules.eden.enable = true;
   modules.remmina.enable = true;
-  modules.emby.enable = true;
   modules.hongguoTv.enable = true;
   modules.vicinae.enable = true;
   modules.thunderbird = {
