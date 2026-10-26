@@ -23,11 +23,12 @@ home/base/gui/                跨平台 GUI:kitty、media(ffmpeg / imagemagick �
 home/linux/core.nix           Linux 入口:纯 CLI
 home/linux/tui.nix            Linux 入口:core + TUI 工具
 home/linux/gui.nix            Linux 入口:core + TUI + GUI
-home/linux/gui/base/          Linux GUI,DE 无关:GTK 主题、Firefox(沙箱)、Chrome、fcitx5 中文输入法、gaming(opt-in)
+home/linux/gui/base/          Linux GUI,DE 无关:GTK 主题、Firefox(沙箱)、Chrome、fcitx5 中文输入法、gaming(opt-in)、Joplin
 home/linux/gui/plasma.nix     Plasma / KDE 用户应用
 home/linux/gui/niri/          Niri 快捷键、窗口规则、Noctalia Shell
 home/hosts/<name>.nix         一台主机一个 home 模块(选一个入口)
 hardening/                    opt-in 沙箱:nixpaks/、bwraps/、profiles/
+pkgs/                         本地打包(joplin-plugins/ 钉住第三方 .jpl 插件)
 ```
 
 ## 主机列表

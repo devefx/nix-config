@@ -31,6 +31,18 @@
   modules.telegram.enable = true;
   modules.qq.enable = true;
   modules.ime.enable = true;
+  modules.joplin = {
+    enable = true;
+    plugins = [
+      "editor-themes"
+      "rich-markdown"
+      "diff-view"
+      "table-formatter"
+      "note-overview"
+      "codeblock-autocomplete"
+    ];
+    editorTheme = "sublime";
+  };
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
   modules.mpv.enable = true;

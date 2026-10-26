@@ -24,11 +24,12 @@ home/base/gui/                cross-platform GUI: kitty, media (ffmpeg/imagemagi
 home/linux/core.nix           Linux entry: CLI-only
 home/linux/tui.nix            Linux entry: core + TUI tools
 home/linux/gui.nix            Linux entry: core + TUI + GUI
-home/linux/gui/base/          Linux GUI, DE-agnostic: GTK theme, Firefox (sandboxed), Chrome, fcitx5, gaming (opt-in)
+home/linux/gui/base/          Linux GUI, DE-agnostic: GTK theme, Firefox (sandboxed), Chrome, fcitx5, gaming (opt-in), Joplin
 home/linux/gui/plasma.nix     Plasma / KDE user apps
 home/linux/gui/niri/          Niri keybinds, window rules, Noctalia Shell
 home/hosts/<name>.nix         per-host home module (picks one entry)
 hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
+pkgs/                         local packages (joplin-plugins/ pins the third-party .jpl bundles)
 ```
 
 ## Hosts

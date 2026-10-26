@@ -18,6 +18,7 @@ home/linux/gui/
 │   ├── gaming.nix      Lutris + Proton-GE + Wine(需 modules.desktop.gaming)
 │   ├── cc-switch.nix   CC Switch —— AI 供应商配置管理
 │   ├── feishin.nix     Feishin —— 自托管音乐播放器(Jellyfin)
+│   ├── joplin.nix      Joplin —— 笔记 / 待办应用(支持同步)
 │   ├── mpv.nix         mpv + akFace/mpv.config 主题(默认视频播放器)
 │   └── ...             每个应用一个 opt-in 模块,由 modules.<app>.enable 控制
 ├── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
