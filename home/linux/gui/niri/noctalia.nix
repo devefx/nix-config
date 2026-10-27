@@ -74,6 +74,12 @@ let
   });
 in
 lib.mkIf config.modules.desktop.niri.enable {
+  # Read by modules that must talk to the running bar (ntfy-voice's
+  # do-not-disturb probe). Quickshell's IPC client hashes the config path baked
+  # into the wrapper, so any other noctalia-shell package fails with
+  # "No running instances for <path>".
+  modules.desktop.niri.noctaliaShell = noctaliaShell;
+
   # No `home.sessionVariables` here, deliberately. Home Manager writes those to
   # $profile/etc/profile.d/hm-session-vars.sh, and nothing in this session
   # sources that file: niri.service execs `niri --session` directly so no login

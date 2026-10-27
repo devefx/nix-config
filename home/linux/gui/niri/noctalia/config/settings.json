@@ -469,7 +469,7 @@
     "density": "default",
     "enableBatteryToast": true,
     "enableKeyboardLayoutToast": true,
-    "enableMarkdown": false,
+    "enableMarkdown": true,
     "enableMediaToast": false,
     "enabled": true,
     "location": "top_right",

@@ -20,6 +20,8 @@ home/linux/gui/
 │   ├── feishin.nix     Feishin — self-hosted music player (Jellyfin)
 │   ├── joplin.nix      Joplin — note taking / to-do app with sync
 │   ├── mpv.nix         mpv with the akFace/mpv.config theme (default video player)
+│   ├── ntfy-voice.nix  ntfy → Noctalia notifications + offline Chinese TTS
+│   ├── ntfy-voice.py   Its WebSocket subscriber / notification bridge
 │   └── ...             one opt-in module per app, gated by modules.<app>.enable
 ├── plasma.nix          Plasma / desktop user apps (kate, ark, qimgv, ...)
 └── niri/               Niri keybinds, window rules, Noctalia Shell

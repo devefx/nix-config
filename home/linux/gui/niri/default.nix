@@ -82,6 +82,17 @@ in
 
   options.modules.desktop.niri = {
     enable = mkEnableOption "Niri compositor user configuration";
+
+    # The patched noctalia-shell package this session runs, assigned by
+    # niri/noctalia.nix. Modules that shell out to the bar (ntfy-voice asks it
+    # for the do-not-disturb flag) must use this exact build: Quickshell's IPC
+    # client hashes the config path baked into the wrapper, so a different
+    # noctalia-shell fails with "No running instances for <path>".
+    noctaliaShell = lib.mkOption {
+      type = lib.types.nullOr lib.types.package;
+      default = null;
+      description = "The patched noctalia-shell package this session runs.";
+    };
   };
 
   config = mkIf cfg.enable {

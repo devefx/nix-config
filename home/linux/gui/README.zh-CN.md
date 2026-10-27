@@ -20,6 +20,8 @@ home/linux/gui/
 │   ├── feishin.nix     Feishin —— 自托管音乐播放器(Jellyfin)
 │   ├── joplin.nix      Joplin —— 笔记 / 待办应用(支持同步)
 │   ├── mpv.nix         mpv + akFace/mpv.config 主题(默认视频播放器)
+│   ├── ntfy-voice.nix  ntfy → Noctalia 通知 + 离线中文 TTS
+│   ├── ntfy-voice.py   它的 WebSocket 订阅 / 通知桥接脚本
 │   └── ...             每个应用一个 opt-in 模块,由 modules.<app>.enable 控制
 ├── plasma.nix          Plasma / 桌面用户应用(kate、ark、qimgv ...)
 └── niri/               Niri 快捷键、窗口规则、Noctalia Shell
