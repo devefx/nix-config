@@ -95,6 +95,23 @@ window-rule {
     match app-id="steam_app_default"
     open-on-workspace "4entertainment"
 }
+// RetroArch reports two different app-ids depending on the video driver it
+// picked: the native Wayland path (vulkan_display) sets the xdg_toplevel app_id
+// to com.libretro.RetroArch (WAYLAND_APP_ID in gfx/common/wayland_common.h),
+// while the gl driver runs through xwayland-satellite and inherits the X11
+// WM_CLASS, which RetroArch sets to a lowercase "retroarch" for both res_name
+// and res_class (gfx/common/x11_common.c). Match both, case-insensitively.
+//
+// Width and height are pinned to the full workspace: RetroArch starts at a
+// fixed 1280x720-ish window and, unlike mpv, does not adapt to the tile it is
+// given, so a 0.5 column leaves a small game in the corner of the screen.
+window-rule {
+    match app-id=r#"(?i)^(com[.]libretro[.]RetroArch|retroarch)$"#
+    open-on-workspace "4entertainment"
+    default-column-width { proportion 1.0; }
+    default-window-height { proportion 1.0; }
+    tiled-state true
+}
 window-rule {
     match app-id="heroic"
     open-on-workspace "4entertainment"
