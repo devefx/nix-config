@@ -263,6 +263,11 @@ modules.gufo = {
 
 `systemctl status gufo` 看状态,`curl localhost:8080/v1/models` 验证。
 
+gufo 链接的是一份打过补丁的 ROCr,以及 cache.nixos.org 上并没有的 ROCm 10.1 / LLVM
+24 栈。上游把它们发在 `https://gufo.cachix.org`,所以 `flake.nix`(`nix build` 用)和
+`modules/base/nix.nix` (daemon 用,因而 `nixos-rebuild` 也用)都把它加进了 substituter
+—— 否则每次升级 gufo 都要从源码重编 LLVM 和 ROCm。
+
 ## 常用命令
 
 ```bash

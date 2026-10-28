@@ -10,10 +10,12 @@
 # https://github.com/gufo-org/gufo
 #
 # The package comes straight from the upstream flake (`gufo`, pinned to a
-# release tag in flake.nix, injected by genSpecialArgs). Only `gufo`'s own
-# nixpkgs is replaced by ours, so the HIP/ROCr stack Gufo links against is the
-# exact same ROCm the rest of the system ships — mixing two ROCm versions across
-# one process tree is how you get "Memory critical" / device-probe failures.
+# release tag in flake.nix, injected by genSpecialArgs). Its `nixpkgs` input
+# follows ours, but ROCm does not: upstream builds against its own
+# nixpkgs-rocm10 pin (ROCm 10.1 / LLVM 24, patched ROCr) because the ROCm in
+# nixpkgs (7.2.x, what PyTorch and ComfyUI here use) ships no gfx1151 kernels.
+# Gufo is therefore the only consumer of that stack, and it arrives prebuilt
+# from gufo.cachix.org (see the substituter in modules/base/nix.nix).
 #
 # Prerequisites this module assumes (both already true on faex1):
 #   - the user is in the `render` and `video` groups (modules/nixos/base/user-group.nix)
@@ -87,6 +89,12 @@ let
     (toString cfg.cacheDisk.bytes)
   ];
 
+  # Type=simple is deliberate: the unit is up as soon as the process is spawned,
+  # so `systemctl start` returns immediately instead of blocking for the 20-90 s
+  # the ~104 GiB of weights take to map (plus a 45 s artifact fingerprint on the
+  # first run after an upgrade). Anything proxying this port (magpie → :8080)
+  # answers 502 during that window — that is expected, not a unit failure. Use
+  # `curl localhost:${toString cfg.port}/v1/models` to tell "loading" from "down".
   serveArgs = [
     "serve"
     "--host"
@@ -392,6 +400,13 @@ in
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
 
+      # `StartLimitIntervalSec` is a [Unit] key. NixOS writes `serviceConfig`
+      # into [Service], where systemd ignores it (and warns on every
+      # daemon-reload), which silently kept the default five-restarts-per-10s
+      # limit: after a few load failures the unit stayed failed for good and
+      # every request through a gateway became a 502.
+      unitConfig.StartLimitIntervalSec = 0;
+
       environment = cfg.environment;
 
       serviceConfig = {
@@ -415,8 +430,9 @@ in
         Restart = "on-failure";
         RestartSec = 10;
         # A GPU reset/hang wedges the process for good; the supervisor's job is
-        # to bring it back, not to keep the wedged process alive.
-        StartLimitIntervalSec = 0;
+        # to bring it back, not to keep the wedged process alive. The matching
+        # StartLimitIntervalSec=0 lives in unitConfig above, where systemd
+        # actually reads it.
         KillSignal = "SIGTERM";
         TimeoutStopSec = 60;
       };

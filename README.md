@@ -232,6 +232,11 @@ session without raising `ttm.pages_limit`.
 
 `systemctl status gufo` for state, `curl localhost:8080/v1/models` to verify.
 
+Gufo links against a patched ROCr and a ROCm 10.1 / LLVM 24 stack that cache.nixos.org does not
+carry. Upstream publishes them on `https://gufo.cachix.org`, which both `flake.nix` (for
+`nix build`) and `modules/base/nix.nix` (for the daemon, and therefore `nixos-rebuild`) add as a
+substituter — without it every gufo bump rebuilds LLVM and ROCm from source.
+
 ## Common commands
 
 ```bash

@@ -6,9 +6,15 @@
   nixConfig = {
     extra-substituters = [
       "https://nix-community.cachix.org"
+      # gufo's own cache: the patched ROCr, the ROCm 10.1 / LLVM 24 stack it
+      # links against and the gfx1151 builds are all absent from
+      # cache.nixos.org, so without this every gufo bump compiles LLVM+ROCm
+      # from source (hours). Same keys the upstream flake declares.
+      "https://gufo.cachix.org"
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "gufo.cachix.org-1:rfZe3n4lHINgyoACKzs5EthIZmBNvEyCCtufUpth0PE="
     ];
   };
 
@@ -70,10 +76,11 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
 
     # Gufo — inference engine specialised for Strix Halo (gfx1151). Follows our
-    # nixpkgs so its HIP/ROCr build shares the exact ROCm the rest of the
-    # system uses; `modules.gufo` also needs that pin to line up.
+    # nixpkgs for everything but ROCm: it carries its own nixpkgs-rocm10 pin
+    # (ROCm 10.1 / LLVM 24) because the ROCm in nixpkgs (7.2.x) has no gfx1151
+    # kernels. That closure comes from gufo.cachix.org, see nixConfig above.
     gufo = {
-      url = "github:gufo-org/gufo/v0.23.0";
+      url = "github:gufo-org/gufo/v0.26.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

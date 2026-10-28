@@ -53,11 +53,16 @@
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://nix-community.cachix.org"
+      # gufo (modules/nixos/server/gufo.nix) links against a patched ROCr and
+      # ROCm 10.1 / LLVM 24 that cache.nixos.org does not carry. Upstream
+      # publishes them here; without it a gufo bump rebuilds LLVM+ROCm.
+      "https://gufo.cachix.org"
       "https://cache.nixos.org"
     ];
 
     trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "gufo.cachix.org-1:rfZe3n4lHINgyoACKzs5EthIZmBNvEyCCtufUpth0PE="
     ];
 
     builders-use-substitutes = true;
