@@ -59,6 +59,7 @@
   };
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
+  modules.motrix.enable = true;
   modules.mpv.enable = true;
   modules.eden.enable = true;
   # RetroArch scales its UI from the monitor's reported DPI (EDID here says
