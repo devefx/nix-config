@@ -6,9 +6,13 @@
   ...
 }:
 let
+  truenasCred = config.age.secrets.smb-credentials.path;
+  wd20tCred = config.age.secrets.smb-credentials-wd20t.path;
+
   # Build a CIFS mount for a server share. `cred` is the agenix-decrypted
-  # credentials file path for that server.
-  smbMount = server: cred: share: {
+  # credentials file path for that server; `extraOptions` is appended to the
+  # common option list (only /mnt/ssh needs any).
+  smbMount = server: cred: share: extraOptions: {
     device = "//${server}/${share}";
     fsType = "cifs";
     options = [
@@ -30,7 +34,8 @@ let
       "uid=1000"
       "gid=100"
       "iocharset=utf8"
-    ];
+    ]
+    ++ extraOptions;
   };
 in
 {
@@ -353,24 +358,20 @@ in
   # SMB shares — TrueNAS (192.168.16.251) and Windows Server
   # (192.168.16.206). Credentials are decrypted by agenix
   # (see secrets/nixos.nix).
-  fileSystems."/mnt/portable_apps" =
-    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
-      "portable_apps";
-  fileSystems."/mnt/media" =
-    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
-      "media";
-  fileSystems."/mnt/downloads" =
-    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
-      "downloads";
-  fileSystems."/mnt/archive" =
-    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
-      "archive";
-  fileSystems."/mnt/workspace" =
-    smbMount "192.168.16.251" config.age.secrets.smb-credentials.path
-      "workspace";
-  fileSystems."/mnt/wd_20t" =
-    smbMount "192.168.16.206" config.age.secrets.smb-credentials-wd20t.path
-      "wd_20t";
+  fileSystems."/mnt/portable_apps" = smbMount "192.168.16.251" truenasCred "portable_apps" [ ];
+  fileSystems."/mnt/media" = smbMount "192.168.16.251" truenasCred "media" [ ];
+  fileSystems."/mnt/downloads" = smbMount "192.168.16.251" truenasCred "downloads" [ ];
+  fileSystems."/mnt/archive" = smbMount "192.168.16.251" truenasCred "archive" [ ];
+  fileSystems."/mnt/workspace" = smbMount "192.168.16.251" truenasCred "workspace" [ ];
+  # This share holds SSH private keys, so tighten its permissions: CIFS reports
+  # every file as 0755 by default and `ssh -i` refuses a key that others can
+  # read. `file_mode`/`dir_mode` apply to the whole share, which is fine -- it is
+  # nothing but key material.
+  fileSystems."/mnt/ssh" = smbMount "192.168.16.251" truenasCred "ssh" [
+    "file_mode=0600"
+    "dir_mode=0700"
+  ];
+  fileSystems."/mnt/wd_20t" = smbMount "192.168.16.206" wd20tCred "wd_20t" [ ];
 
   # Pi Web is a systemd *user* service, and the user manager only exists
   # while someone is logged in. Linger keeps it — and therefore Pi Web —

@@ -19,6 +19,14 @@
         ControlPersist = "no";
       };
 
+      # Proxmox VE host. The key lives on the NAS share mounted at /mnt/ssh,
+      # which is why that mount is restricted to file_mode=0600.
+      nginx = {
+        HostName = "192.168.16.246";
+        User = "root";
+        IdentityFile = "/mnt/ssh/pve_nginx";
+      };
+
       # Port 22 is blocked on many networks; use SSH-over-HTTPS.
       "github.com" = {
         HostName = "ssh.github.com";
