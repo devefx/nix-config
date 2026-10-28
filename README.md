@@ -29,6 +29,7 @@ home/linux/gui/plasma.nix     Plasma / KDE user apps
 home/linux/gui/niri/          Niri keybinds, window rules, Noctalia Shell
 home/hosts/<name>.nix         per-host home module (picks one entry)
 hardening/                    opt-in sandboxing: nixpaks/, bwraps/, profiles/
+secrets/                      age-encrypted secrets (agenix); see secrets/README.md
 pkgs/                         local packages (joplin-plugins/ pins the third-party .jpl bundles)
 ```
 

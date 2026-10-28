@@ -380,6 +380,7 @@ in
   modules.secrets.enable = true;
   modules.secrets.smb.enable = true;
   modules.secrets.hf.enable = true;
+  modules.secrets.piWeb.enable = true;
 
   # Gufo — Strix Halo inference server for Qwen3.8 Flash-Next (UD-Q4_K_XL +
   # shared-Q8 MTP + BF16 vision projector). Runs as a systemd service with an

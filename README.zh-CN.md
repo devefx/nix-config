@@ -28,6 +28,7 @@ home/linux/gui/plasma.nix     Plasma / KDE 用户应用
 home/linux/gui/niri/          Niri 快捷键、窗口规则、Noctalia Shell
 home/hosts/<name>.nix         一台主机一个 home 模块(选一个入口)
 hardening/                    opt-in 沙箱:nixpaks/、bwraps/、profiles/
+secrets/                      age 加密的密钥材料(agenix);见 secrets/README.md
 pkgs/                         本地打包(joplin-plugins/ 钉住第三方 .jpl 插件)
 ```
 

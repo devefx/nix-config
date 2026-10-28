@@ -30,6 +30,7 @@ in
     enable = mkEnableOption "age-encrypted secrets (agenix)";
     smb.enable = mkEnableOption "SMB share credentials secret";
     hf.enable = mkEnableOption "Hugging Face token secret";
+    piWeb.enable = mkEnableOption "Pi Web environment file secret (password + PI_WEB_* overrides)";
   };
 
   config = mkIf cfg.enable {
@@ -63,6 +64,18 @@ in
           owner = myvars.username;
           group = "users";
           mode = "0600";
+        };
+      })
+      (mkIf cfg.piWeb.enable {
+        # Read by Pi Web's systemd *user* service as an EnvironmentFile, so the
+        # owner has to be the user, not root: the user manager reads the file
+        # after agenix has decrypted it as root. Contents are
+        # `PI_WEB_PASSWORD=...` lines, nothing else.
+        pi-web = {
+          file = "${mysecrets}/pi-web.age";
+          owner = myvars.username;
+          group = "users";
+          mode = "0400";
         };
       })
     ];
