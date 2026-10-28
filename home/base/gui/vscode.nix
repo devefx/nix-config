@@ -23,6 +23,21 @@ let
       hash = "sha256-8wBOn9P5dfQd6/24rUpIxvFnkBfQW7NBXI+jC8TxQeA=";
     };
   };
+
+  # Remote development over SSH. Not packaged in nixpkgs, so pull it from the
+  # marketplace. The publisher id is `ms-vscode-remote` (not `ms-vscode`),
+  # even though Microsoft publishes it -- `ms-vscode.remote-ssh` does not exist.
+  # The extension is pure JavaScript; the server it installs on the *remote*
+  # host is what needs NixOS-specific handling (see `services.vscode-server`
+  # or `pkgs.vscode-server` on the target machine).
+  remoteSsh = pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+    mktplcRef = {
+      name = "remote-ssh";
+      publisher = "ms-vscode-remote";
+      version = "0.129.2026100915";
+      hash = "sha256-EbCFKQ/qgPtIb2dnmAK0fcUssRB70fH5H4iLWuMyh9U=";
+    };
+  };
 in
 {
   programs.vscode = {
@@ -64,6 +79,7 @@ in
       pkgs.vscode-extensions.ms-vscode.cpptools
       pkgs.vscode-extensions.redhat.vscode-xml
       godotHoverDocs
+      remoteSsh
     ];
   };
 
