@@ -165,11 +165,22 @@ let
   #
   # Its plan report goes to stdout and is discarded; a failure still writes to
   # stderr and aborts the activation.
+  #
+  # `procps` is not optional: REA's doctor probes process ownership with `ps`
+  # before launching a child and aborts with `capability_unavailable` when none
+  # is on `PATH`. home-manager's activation environment has a minimal `PATH` with
+  # no `ps` (hm-setup-env re-exports only DBUS_SESSION_BUS_ADDRESS, DISPLAY,
+  # WAYLAND_DISPLAY, XAUTHORITY and XDG_RUNTIME_DIR), so without this the step
+  # exits non-zero and the whole home-manager-yoke.service fails.
   reaSetup = pkgs.writeShellApplication {
     name = "rea-setup";
     # Ghidra and the JDK on `PATH` are how `rea` discovers them to record in the
     # generated entry, so they are added only when the option is on.
-    runtimeInputs = [ rea ] ++ lib.optionals reaCfg.ghidra reaGhidraSetupPath;
+    runtimeInputs = [
+      rea
+      pkgs.procps
+    ]
+    ++ lib.optionals reaCfg.ghidra reaGhidraSetupPath;
     text = ''
       exec rea setup --client codex --client dsh --skill=false --yes
     '';
