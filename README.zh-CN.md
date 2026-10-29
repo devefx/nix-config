@@ -63,8 +63,10 @@ Niri 也走同一套 options 分层,并额外提供 `faex1-niri` 输出:
 ```bash
 sudo nixos-rebuild switch --flake .#faex1-niri
 # 回到 Plasma
-sudo nixos-rebuild switch --flake .#faex1
+sudo nixos-rebuild switch --flake .#faex1-kde
 ```
+
+等价于 `just switch`（默认 niri）和 `just switch kde`（Plasma）。
 
 **加新桌面(Hyprland / GNOME / ...)**:在上面两个位置各新加一个 `<de>.nix`, 主机里用
 `modules.desktop.<de>.enable = true;` 启用即可,不用动现有代码。

@@ -57,7 +57,7 @@ let
 in
 {
   nixosConfigurations = {
-    "${name}" = mylib.nixosSystem (base-modules // args);
+    "${name}-kde" = mylib.nixosSystem (base-modules // args);
     "${name}-niri" = mylib.nixosSystem (niri-modules // args);
   };
 }

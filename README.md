@@ -37,7 +37,7 @@ pkgs/                         local packages (joplin-plugins/ pins the third-par
 
 | Host         | Role             | Home entry      | Desktop         |
 | ------------ | ---------------- | --------------- | --------------- |
-| `faex1`      | physical desktop | `linux/gui.nix` | KDE Plasma 6    |
+| `faex1-kde`  | physical desktop | `linux/gui.nix` | KDE Plasma 6    |
 | `faex1-niri` | same machine     | `linux/gui.nix` | Niri + Noctalia |
 
 ## Desktop
@@ -60,8 +60,9 @@ via `modules.desktop.<name>.enable = true;`.
 - User-level: `home/linux/gui/niri/` — KDL keybinds/window rules, Noctalia Shell, screenshot and
   clipboard tools.
 
-Switch sessions with `sudo nixos-rebuild switch --flake .#faex1-niri`; use `.#faex1` to return to
-Plasma.
+Switch sessions with `sudo nixos-rebuild switch --flake .#faex1-niri`; use `.#faex1-kde` to return
+to Plasma. The `just switch` recipes wrap the same two targets: `just switch` picks niri,
+`just switch kde` picks Plasma.
 
 > NixOS tracks one Plasma release per nixpkgs channel. Use `nix flake update nixpkgs` to pull the
 > latest (currently Plasma 6.6 on `nixos-unstable`).

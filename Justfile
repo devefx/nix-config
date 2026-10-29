@@ -4,13 +4,32 @@
 default:
     @just --list
 
-# Build and switch to a host config (default: current hostname).
-switch host=`hostname`:
-    sudo nixos-rebuild switch --flake ".#{{host}}"
+# Build and switch to a host config.
+#
+# The two nixosConfigurations share the hardware profile (see
+# outputs/x86_64-linux/src/faex1.nix): `<hostname>-niri` is the session this
+# machine actually runs, `<hostname>-kde` is the Plasma variant. `just switch`
+# therefore targets the niri one, `just switch kde` picks Plasma, and any other
+# value is passed through as a configuration name.
+switch target=`hostname`:
+    sudo nixos-rebuild switch --flake ".#$(just _host {{target}})"
 
 # Dry-build a host config without switching.
-build host=`hostname`:
-    nixos-rebuild build --flake ".#{{host}}"
+build target=`hostname`:
+    nixos-rebuild build --flake ".#$(just _host {{target}})"
+
+# Map a switch/build argument to a nixosConfiguration name: `kde` means
+# <hostname>-kde, the bare hostname means <hostname>-niri, anything else is
+# used verbatim.
+[private]
+_host target:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case "{{target}}" in
+        kde) printf '%s-kde\n' "$(hostname)" ;;
+        "$(hostname)") printf '%s-niri\n' "$(hostname)" ;;
+        *) printf '%s\n' "{{target}}" ;;
+    esac
 
 # Update all flake inputs.
 update:
