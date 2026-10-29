@@ -23,15 +23,14 @@ let
   # `environment` block is also only read at config load, so a wrapper-level
   # setting does not need a session restart to take effect.
   #
-  # Qt6 does not consult QT_STYLE_OVERRIDE in order to pick up a style plugin,
-  # so only the platformtheme plugin is added here. qt6ct.conf's
-  # style=Fusion is already the qt6ct default.
+  # qt6ct.conf carries icon_theme=Papirus-Dark, which is what makes the lookup
+  # above succeed *and* keeps the glyphs legible: a light icon theme rasterises
+  # to rgb(35,37,41) and vanishes against the #111416 bar (see qt6ct.conf for
+  # the rendering details). The tray colorize shader cannot rescue that either.
   #
-  # qt6ct.conf also carries icon_theme=breeze-dark, which is what makes the
-  # lookup above succeed *and* keeps the glyphs legible: the Breeze SVGs use
-  # `fill:currentColor` with a hardcoded dark .ColorScheme-Text, so the light
-  # "breeze" theme rasterises to rgb(35,37,41) and vanishes against the #111416
-  # bar. The tray colorize shader cannot rescue that either -- see qt6ct.conf.
+  # The same conf also selects style=kvantum + theme=OrchisDark, so Quickshell's
+  # own Qt widgets follow the Orchis-Dark theme as well. Both the theme package
+  # and the style plugin are installed by home/linux/gui/niri/qt.nix.
   #
   # Must be a single --prefix for the whole variable. qt6ct is deliberately not
   # in buildInputs: qtHostPathHook would then append the same plugin dir again,
@@ -92,12 +91,14 @@ lib.mkIf config.modules.desktop.niri.enable {
   # `environment` block of conf/config.kdl, where QT_QPA_PLATFORMTHEME=qt6ct now
   # lives. `wayland;xcb` is dropped rather than moved because it is already Qt's
   # own platform fallback order, and the qt6ct plugin needs the wrapper
-  # injection below regardless of which platform is picked.
+  # injection above regardless of which platform is picked.
+  #
+  # qt6ct itself is a home.packages entry in home/linux/gui/niri/qt.nix, next to
+  # the Kvantum theme it drives.
 
   home.packages = [
     noctaliaShell
     pkgs.kdePackages.breeze-icons
-    pkgs.qt6Packages.qt6ct
     pkgs.app2unit
     pkgs.wlsunset
     pkgs.xrdb
@@ -123,9 +124,10 @@ lib.mkIf config.modules.desktop.niri.enable {
   xdg.configFile = {
     # Keep ~/.config/noctalia as a real directory so Noctalia can generate
     # colors.json and other runtime state alongside the declarative files.
+    # qt6ct/qt6ct.conf is written by home/linux/gui/niri/qt.nix, next to the
+    # Kvantum config and the theme packages it depends on.
     "noctalia/settings.json".source = ./noctalia/config/settings.json;
     "noctalia/plugins.json".source = ./noctalia/config/plugins.json;
-    "qt6ct/qt6ct.conf".source = ./noctalia/qt6ct.conf;
   };
 
   # Quickshell's IPC client locates the running bar by hashing the config path

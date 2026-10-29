@@ -78,7 +78,10 @@ let
   };
 in
 {
-  imports = [ ./noctalia.nix ];
+  imports = [
+    ./noctalia.nix
+    ./qt.nix
+  ];
 
   options.modules.desktop.niri = {
     enable = mkEnableOption "Niri compositor user configuration";

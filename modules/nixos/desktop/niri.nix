@@ -653,6 +653,18 @@ in
     environment.pathsToLink = [
       "/share/wayland-sessions"
       "/share/xsessions"
+      # Kvantum themes, i.e. pkgs/orchis-kde's share/Kvantum/Orchis{,-solid}.
+      #
+      # Needed because home-manager runs with `useUserPackages = true`
+      # (lib/nixosSystem.nix), so its packages are merged into
+      # /etc/profiles/per-user/$USER by pkgs.buildEnv -- and buildEnv only links
+      # the subdirectories listed here. /share/themes was already in the list,
+      # which is why the GTK half of Orchis-Dark worked while share/Kvantum was
+      # silently dropped: `bin/kvantummanager` was linked (via /bin) but the
+      # theme directories it looks for were not, so Kvantum fell back to its
+      # built-in default without any error and every Qt window kept Fusion's
+      # light palette.
+      "/share/Kvantum"
     ];
 
     systemd.tmpfiles.rules = [

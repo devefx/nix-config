@@ -1,0 +1,14 @@
+# Kvantum's own configuration. Only the theme name is managed here; everything
+# else Kvantum derives from the theme's .kvconfig/.svg pair.
+#
+# OrchisDark, not Orchis: plain `Orchis` is the light variant (base #F2F2F2),
+# which would reintroduce exactly the light-window problem this change fixes.
+# OrchisDark's window colour is #212121 and its base #2C2C2C -- the same numbers
+# Orchis-Dark's GTK3 gtk.css defines for theme_bg_color and theme_base_color.
+#
+# The theme directory itself is not copied here. pkgs/orchis-kde installs to
+# $out/share/Kvantum/{Orchis,Orchis-solid}, home.packages puts that on
+# XDG_DATA_DIRS, and Kvantum searches XDG_DATA_DIRS/Kvantum/<name> -- so adding
+# the package is what makes the name below resolve.
+[General]
+theme=OrchisDark

@@ -10,14 +10,17 @@ include "./niri-hardware.kdl"
 include "./noctalia-shell.kdl"
 include "./spawn-at-startup.kdl"
 
-// Qt only consults the desktop icon theme when a QPA platform theme is loaded.
-// With none set, QIcon::fromTheme() falls back to a hicolor-only lookup, so the
-// fcitx5 tray glyph "input-keyboard-symbolic" -- the one shown while the English
-// layout is active -- resolves to nothing and Quickshell paints its magenta/
-// black missing-icon checkerboard instead. qt6ct.conf selects
-// icon_theme=breeze-dark, so loading the plugin fixes the whole family of tray
-// glyphs that live only in breeze/papirus (input-keyboard-symbolic,
-// user-desktop, application-x-executable, ...).
+// Qt only consults the desktop icon theme -- and only picks up the qt6ct/Kvantum
+// style -- when a QPA platform theme is loaded. With none set, Qt uses
+// QGenericUnixTheme: QIcon::fromTheme() falls back to a hicolor-only lookup, so
+// the fcitx5 tray glyph "input-keyboard-symbolic" (shown while the English
+// layout is active) resolves to nothing and Quickshell paints its magenta/black
+// missing-icon checkerboard instead, while every widget is drawn by the light
+// Fusion default no matter what qt6ct.conf says.
+//
+// qt6ct.conf (home/linux/gui/niri/qt/qt6ct.conf) then selects style=kvantum and
+// icon_theme=Papirus-Dark, i.e. the Qt half of the Orchis-Dark theme. See
+// home/linux/gui/niri/qt.nix for the full chain.
 //
 // Only the *name* of the platform theme belongs here. The plugin itself is put
 // on noctalia-shell's QT_PLUGIN_PATH by the wrapper override in
@@ -37,6 +40,18 @@ include "./spawn-at-startup.kdl"
 // spawned afterwards; noctalia-shell has to be restarted to pick this up.
 environment {
     QT_QPA_PLATFORMTHEME "qt6ct"
+
+    // Which wayland-decoration-client plugin Qt uses for the title bar. Only
+    // consulted by native-Wayland Qt apps -- under XWayland the X11 window
+    // manager draws the decorations and this is ignored entirely.
+    //
+    // `adwaita` is the name libqadwaitadecorations.so registers (from
+    // pkgs.qadwaitadecorations-qt6, installed in home/linux/gui/niri/qt.nix). Its
+    // dark variant follows the GTK/dconf color-scheme, which
+    // home/linux/gui/base/gtk.nix sets to "dark", landing on #2c2d2f -- close
+    // enough to Orchis-Dark's #212121 window to read as one theme. There is no
+    // Orchis decoration plugin upstream, so this is the closest match.
+    QT_WAYLAND_DECORATION "adwaita"
 }
 
 // Input device configuration.
