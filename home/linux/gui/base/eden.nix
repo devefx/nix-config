@@ -12,6 +12,29 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.eden;
+
+  # pkgs.eden with its icon-search override relaxed, so the title bar gets real
+  # button glyphs.
+  #
+  # MainWindow::UpdateUITheme() replaces QIcon::themeSearchPaths() with just
+  # ":/icons" for every theme except "default"/"colorful". The wayland
+  # decoration plugin looks the title-bar glyphs up (`window-close-symbolic`
+  # etc.) by walking QIcon::themeSearchPaths(), so with only eden's own resource
+  # dir on that list the three buttons render as empty circles. Appending the
+  # paths Qt started with keeps eden's icons winning (they live in ":/icons" and
+  # are searched first) while letting the title bar fall back to Adwaita.
+  #
+  # The global stylesheet is left alone: qdarkstyle supplies the popup
+  # backgrounds, and QT_STYLE_OVERRIDE=fusion (set in the desktop entry) keeps
+  # that stylesheet in charge instead of Kvantum.
+  eden = pkgs.eden.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace src/yuzu/main_window.cpp \
+        --replace-fail \
+        'QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")));' \
+        'QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")) + default_theme_paths);'
+    '';
+  });
 in
 {
   options.modules.eden = {
@@ -19,7 +42,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs.eden ];
+    home.packages = [ eden ];
 
     # Run eden on the native Wayland QPA.
     # eden links qtwayland but takes its QPA platform from the environment, and
@@ -47,10 +70,16 @@ in
       genericName = "Switch Emulator";
       comment = "Multiplatform FOSS Switch 1 emulator written in C++, derived from Yuzu and Sudachi";
       icon = "dev.eden_emu.eden";
-      # Two environment variables, each for a measured reason.
+      # Three environment variables, each for a measured reason.
       #
       # QT_QPA_PLATFORM=wayland -- see above (verified via /proc/<pid>/maps:
       # libqwayland.so instead of libqxcb.so).
+      #
+      # QT_STYLE_OVERRIDE=fusion -- eden's own qdarkstyle sheet gives the combo
+      # popup an opaque background (`QComboBox QAbstractItemView`), but with
+      # Kvantum as the QStyle its PE_PanelMenu draw wins over the stylesheet and
+      # the popup comes out transparent. Forcing Fusion keeps the stylesheet in
+      # charge, so the popup has a background again.
       #
       # QT_PLUGIN_PATH -- eden's own wrapper replaces this with its Qt module
       # plugin dirs (qtwayland, qtsvg, qtdeclarative, ...), none of which
@@ -59,7 +88,7 @@ in
       # config.home.profileDirectory so the username is not hardcoded, and
       # `env VAR=... prog` (rather than a shell) keeps the existing wrapper
       # semantics.
-      exec = "env QT_QPA_PLATFORM=wayland QT_PLUGIN_PATH=${config.home.profileDirectory}/lib/qt-6/plugins eden %f";
+      exec = "env QT_QPA_PLATFORM=wayland QT_STYLE_OVERRIDE=fusion QT_PLUGIN_PATH=${config.home.profileDirectory}/lib/qt-6/plugins eden %f";
       categories = [
         "Game"
         "Emulator"
