@@ -63,6 +63,13 @@ in
     30141 # Pi Web (pi-web)
   ];
 
+  # mDNS for FreeControl's wireless-debug discovery: the app asks adb's own mDNS
+  # backend (`host:mdns:services`) for `_adb-tls-*` services, and the multicast
+  # replies land on 5353. Without this the adb server sees nothing and the app
+  # reports "no devices found" even with wireless debugging on. (Not avahi —
+  # FreeControl does not use it.)
+  networking.firewall.allowedUDPPorts = [ 5353 ];
+
   # Bluetooth — required for the KDE Bluetooth settings panel to show up.
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;

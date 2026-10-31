@@ -9,3 +9,9 @@ extend-exclude = [
 # IntelliJ "Darcula" theme name (registered by the Joplin Editor Themes
 # plugin), not a misspelling of Dracula.
 darcula = "darcula"
+
+# Android's e2fsprogs fork, shipped in platform-tools; not a typo of "make".
+# `extend-identifiers` rather than `extend-words`: typos splits on the digit and
+# otherwise reports the "mke" fragment.
+[default.extend-identifiers]
+mke2fs = "mke2fs"

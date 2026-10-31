@@ -73,6 +73,7 @@
   };
   modules.remmina.enable = true;
   modules.hongguoTv.enable = true;
+  modules.freeControl.enable = true;
   modules.vicinae.enable = true;
   modules.thunderbird = {
     enable = true;
