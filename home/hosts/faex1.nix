@@ -29,6 +29,13 @@
       enable = true;
       ghidra = true;
     };
+
+    # geo-sleuth lands in `~/.agents/skills`, which Pi Web scans through the Pi
+    # SDK, so it is available in the web UI without any extra registration. The
+    # module installs `uv` and `curl` and puts the manylinux wheel libraries on
+    # `LD_LIBRARY_PATH`; reverse image search downloads its own Chromium on the
+    # first `uvx playwright install chromium` — see home/base/gui/ai-agents.nix.
+    geoSleuth.enable = true;
   };
   modules.ccSwitch.enable = true;
   modules.godot.enable = true;

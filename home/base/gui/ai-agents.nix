@@ -60,6 +60,23 @@
 # The bundled `reverse-engineer-anything` skill goes to `~/.agents/skills`,
 # which Pi, DSH (`dsh-skill-filesystem`) and Codex all discover.
 #
+# geo-sleuth (`modules.aiAgents.geoSleuth`, pkgs/geo-sleuth) is a third-party
+# Agent Skill (https://github.com/Oldcircle/geo-sleuth, MIT) that geolocates a
+# photo. It lands in the same `~/.agents/skills` directory, so the `pi` CLI and
+# Pi Web both discover it: Pi Web drives the Pi SDK in-process and scans that
+# folder rather than keeping a skill list of its own, so one `home.file` entry
+# covers both. The scripts carry their own PEP 723 dependency headers and are
+# run through `uv run`, so `uv` and `curl` (which `doctor.py` checks for) are
+# installed with it; the first run resolves torch / transformers / playwright
+# into uv's cache, and reverse image search additionally downloads its own
+# Chromium (`uvx playwright install chromium`) the first time it is used.
+#
+# That browser is deliberately *not* taken from nixpkgs' playwright-driver:
+# `uv run` has no `--constraints`, so the playwright version uv resolves cannot
+# be pinned to the one nixpkgs ships, and a mismatched revision means "executable
+# doesn't exist". Letting playwright download its own Chromium keeps the revision
+# in lockstep; the library path below is what it needs to start on NixOS.
+#
 # Codex desktop comes from pkgs/codex-desktop, which extracts OpenAI's
 # official Linux `.deb` and runs it through an FHS environment for NixOS.
 # cc-haha (Claude Code Haha) is a desktop Claude Code workspace with no
@@ -79,6 +96,7 @@ let
     ;
 
   cfg = config.modules.aiAgents;
+  geoSleuthCfg = cfg.geoSleuth;
   piWebCfg = cfg.piWeb;
   reaCfg = cfg.rea;
 
@@ -86,6 +104,60 @@ let
   dsh-desktop = pkgs.callPackage ../../../pkgs/dsh-desktop { };
   pi-web = pkgs.callPackage ../../../pkgs/pi-web { };
   rea = pkgs.callPackage ../../../pkgs/rea-agents { };
+  geo-sleuth = pkgs.callPackage ../../../pkgs/geo-sleuth { };
+
+  # The skill folder, not a wrapper: `SKILL.md` and the relative paths inside
+  # it (`scripts/`, `data/`, `regions/`) only resolve when the tree is intact.
+  geoSleuthSkill = "${geo-sleuth}/share/geo-sleuth";
+
+  # `uv run` installs each script's PEP 723 dependencies as manylinux wheels,
+  # and those are linked against the FHS library set. NixOS has no /usr/lib,
+  # and `nix-ld` does not help: the extension modules (`PIL._imaging`, `cv2`,
+  # `onnxruntime`, `greenlet`) are dlopen()ed by the Nix python that `uv run`
+  # starts, so the loader searches RPATH, `LD_LIBRARY_PATH` and ld.so.cache —
+  # never nix-ld's stub. Without this, `intake.py` and `ocr.py` die with
+  # `ImportError: libz.so.1` before doing any work.
+  #
+  # Two groups: Pillow / opencv for image preparation and OCR, and everything
+  # the Playwright Chromium needs (reverse image search, street view). The list
+  # is leaf libraries only — no glibc — so it cannot shadow the loader itself.
+  geoSleuthLibraries = with pkgs; [
+    alsa-lib
+    at-spi2-atk
+    atk
+    cairo
+    cups
+    dbus
+    expat
+    freetype
+    gcc.cc.lib
+    glib
+    lcms2
+    libdrm
+    libgbm
+    libGL
+    libjpeg
+    libpng
+    libtiff
+    libwebp
+    libX11
+    libXcomposite
+    libXdamage
+    libXext
+    libXfixes
+    libXi
+    libxkbcommon
+    libXrandr
+    libXrender
+    libXtst
+    libxcb
+    nspr
+    nss
+    openjpeg
+    pango
+    vulkan-loader
+    zlib
+  ];
 
   # Pi has no MCP registration file it owns; `~/.pi/agent/mcp.json` is only
   # written by `pi mcp add` and by REA's own setup, and pi-web's Add Server
@@ -295,6 +367,10 @@ in
       };
     };
 
+    geoSleuth = {
+      enable = mkEnableOption "the geo-sleuth skill (photo geolocation) for Pi and Pi Web";
+    };
+
     rea = {
       enable = mkEnableOption "REA (Reverse Engineer Anything) for Pi / Pi Web / Codex / DSH";
 
@@ -334,14 +410,36 @@ in
       pkgs.pnpm
     ]
     ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ]
-    ++ optionals reaCfg.enable ([ rea ] ++ optionals reaCfg.ghidra reaGhidraProfile);
+    ++ optionals reaCfg.enable ([ rea ] ++ optionals reaCfg.ghidra reaGhidraProfile)
+    # geo-sleuth's scripts are `uv run` entry points: `uv` resolves the PEP 723
+    # dependency blocks and `curl` backs `_net.py` and the doctor's probes.
+    ++ optionals geoSleuthCfg.enable [
+      pkgs.uv
+      pkgs.curl
+    ];
 
     # The extension registers the server for every Pi session (CLI and
     # pi-web). It lives in the agent directory rather than under
     # `~/.config`, matching Pi's own layout.
-    home.file = mkIf reaCfg.enable {
-      ".pi/agent/extensions/rea.ts".source = reaExtension;
-      ".agents/skills/reverse-engineer-anything".source = reaSkill;
+    #
+    # `optionalAttrs` rather than two `mkIf`s: `mkIf a { } // mkIf b { }` keeps
+    # only the second condition, because both sides are `_type = "if"` sets.
+    home.file =
+      lib.optionalAttrs reaCfg.enable {
+        ".pi/agent/extensions/rea.ts".source = reaExtension;
+        ".agents/skills/reverse-engineer-anything".source = reaSkill;
+      }
+      // lib.optionalAttrs geoSleuthCfg.enable {
+        ".agents/skills/geo-sleuth".source = geoSleuthSkill;
+      };
+
+    # The library path has to be session-wide: the skill is run by the agent as
+    # a plain `uv run ...` command, so there is no wrapper to inject it into.
+    # Home Manager writes it to `~/.config/environment.d/`, which the systemd
+    # user manager imports — a running `pi-web` service only picks it up after
+    # `systemctl --user restart pi-web` (or a re-login).
+    home.sessionVariables = mkIf geoSleuthCfg.enable {
+      LD_LIBRARY_PATH = lib.makeLibraryPath geoSleuthLibraries;
     };
 
     # Codex and DSH read MCP servers from files they also write themselves, so
