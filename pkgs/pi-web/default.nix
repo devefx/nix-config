@@ -12,7 +12,7 @@
 # shows the same sessions, providers and project files the `pi` CLI uses.
 #
 # The published npm tarball already contains a finished `next build` output
-# (664 files under `.next/`), so there is no build step here. `dontNpmBuild`
+# (681 files under `.next/`), so there is no build step here. `dontNpmBuild`
 # skips the upstream `build` script, and the devDependency set (playwright,
 # mermaid, katex, typescript, tailwind) never enters the closure.
 #
@@ -24,18 +24,18 @@
 # supplies the missing lockfile so Nix can fetch a complete, reproducible
 # dependency closure.
 #
-# Note the Pi packages installed here are the versions pi-web pins, which is
-# deliberately independent of the `pi` CLI this repository takes from the
-# llm-agents flake input. The two do not conflict: pi-web resolves its own
-# copies from its own `node_modules`.
+# Note the Pi packages installed here are the versions pi-web pins (1.4.0),
+# which is deliberately independent of the `pi` CLI this repository takes from
+# the llm-agents flake input (1.2.0). The two do not conflict: pi-web resolves
+# its own copies from its own `node_modules`.
 
 buildNpmPackage (finalAttrs: {
   pname = "pi-web";
-  version = "0.12.2";
+  version = "0.13.0";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@agegr/pi-web/-/pi-web-${finalAttrs.version}.tgz";
-    hash = "sha256-Fq/g7h/2O5VCmtc4AtE+U6L4MXJGQT7Ri5L3s2/YbGo=";
+    hash = "sha256-3ucPpk7VL7MgUd/EurrCh678ikr1TD0ZAMUeY03t6T0=";
   };
 
   # The published tarball carries no lockfile, and its package.json still
@@ -44,7 +44,7 @@ buildNpmPackage (finalAttrs: {
   # with ENOTCACHED, so drop the block before installing. The committed
   # `package-lock.json` beside this file was generated from the published
   # `dependencies` block alone with
-  # `npm install --package-lock-only --ignore-scripts`, which yields 188
+  # `npm install --package-lock-only --ignore-scripts`, which yields 191
   # entries and no devDependencies at all.
   #
   # `postPatch` runs in both derivations buildNpmPackage creates: the
@@ -67,7 +67,7 @@ buildNpmPackage (finalAttrs: {
     fi
   '';
 
-  npmDepsHash = "sha256-KBaaxduTtFWrJCd0Igvxjok6jnP+EIAlhpgkyZAI4nQ=";
+  npmDepsHash = "sha256-MjENYBI+yM6KbGfgyHZrwyCP4TJGIoGQHbdqbSp6u6k=";
 
   # The tarball is already built; `dontNpmBuild` makes the default
   # `npm run build` a no-op. Lifecycle scripts stay off: the only
@@ -107,11 +107,12 @@ buildNpmPackage (finalAttrs: {
     # identical in every published copy, so anyone who unpacks the npm tarball
     # knows it.
     #
-    # pi-web fixes this at startup by rewriting the values with fresh random
-    # ones, but that needs a writable install directory. The Nix store is
-    # read-only, so the rotation fails, the launcher warns, and it then serves
-    # with the compromised id. Rotating here instead restores the property that
-    # matters: the on-disk id must not be the published one.
+    # pi-web 0.13.0 fixes this itself at startup (`bin/rotate-preview-secrets.js`)
+    # by rewriting the values with fresh random ones, but that needs a writable
+    # install directory. The Nix store is read-only, so the rotation fails, the
+    # launcher warns, and it then serves with whatever is on disk. Rotating here
+    # instead restores the property that matters: the on-disk id must not be the
+    # published one.
     node ${./rotate-preview-secrets.cjs} "$out/libexec/pi-web/.next"
 
     # `bin/pi-web.js` resolves the Next CLI relative to its own package root,
