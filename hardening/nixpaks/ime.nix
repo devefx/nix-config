@@ -64,12 +64,13 @@ let
   # version-addressable one, so `version` is only a human-readable label for
   # when the hash below was last refreshed. Re-fetch with
   #   nix store prefetch-file --json --hash-type sha256 <url>
-  # whenever the hash stops matching; the builds of 2026-10-08 serve
-  # sha256-sbT+HAXKQre4nGFws14nFz3hB9ON/9lRrbcwUZJLuKc=.
-  version = "2026-09-29";
+  # whenever the hash stops matching; the build uploaded 2026-10-30 (tarball
+  # mtime 2026-10-31 00:11 CST) serves
+  # sha256-/nVngh+WXVVIo6orhvJJqjx2Gjt8rHwxGYNlB0R8bFs=.
+  version = "2026-10-31";
   src = fetchurl {
     url = "https://desktop-updates.imem.app/uploads/iMe_Desktop_Linux.tar.xz";
-    hash = "sha256-sbT+HAXKQre4nGFws14nFz3hB9ON/9lRrbcwUZJLuKc=";
+    hash = "sha256-/nVngh+WXVVIo6orhvJJqjx2Gjt8rHwxGYNlB0R8bFs=";
   };
   # The site rewrite of 2026-10 dropped `logo512.png` (it now 404s) and left
   # only `favicon.svg`, which is also the icon it declares as
