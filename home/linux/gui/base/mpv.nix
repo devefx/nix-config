@@ -110,6 +110,23 @@ in
         run cp -f "$newStamp/.manifest" "$stamp.manifest"
         run sh -c "printf '%s\n' $newStamp > '$stamp'"
       fi
+
+      # Menu sizing. menu.lua derives every dimension from menu_item_height
+      # (ui_scale = menu_item_height / 47), so raising it grows font, row
+      # height, padding and menu width together. Upstream only compensates for
+      # HiDPI on macOS (macos_font_scale), so on a 4K scale-2 display the
+      # default 50/52 renders ~14 logical px text; 60/62 lands at ~17.
+      #
+      # Applied on every activation rather than inside the stamp block:
+      # switch-opts rewrites menu_style.conf when a theme is picked from the
+      # right-click menu, and that must not survive a rebuild.
+      menuStyle="$configDir/script-opts/menu_style.conf"
+      if [[ -f "$menuStyle" ]]; then
+        run sed -i -E \
+          -e 's|^menu_item_height=.*|menu_item_height=60|' \
+          -e 's|^menu_item_height_fullscreen=.*|menu_item_height_fullscreen=62|' \
+          "$menuStyle"
+      fi
     '';
   };
 }

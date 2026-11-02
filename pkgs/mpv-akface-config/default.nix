@@ -9,7 +9,7 @@
 let
   # Pinned to the upstream release. Bump `version` and every `hash` in `skins`
   # together when moving to a new release.
-  version = "1.9.27";
+  version = "1.9.29";
 
   # The upstream release publishes one zip per (skin, language) pair. Only the
   # skins listed here are pinned, which keeps `nix flake check` honest: an
@@ -18,18 +18,18 @@ let
     modernz = {
       # ModernZ -- the classic OSC look, thumbnails via thumbfast.
       file = "modernz_zh.zip";
-      hash = "sha256-MTQd0oLP0CWsA0C2mlQTwTX+Fd7Ob2nmZuPY9BR1QvE=";
+      hash = "sha256-FKrFlXf6j26yfyv7B+OsMbXGSYDcgSJSX+1t/oFnmNI=";
     };
     modern_glass = {
       # ModernGlass -- floating glass panels, Inter font, thumbnails via the
       # newer thumbz renderer.
       file = "modern_glass_zh.zip";
-      hash = "sha256-OiPG2S+lnm/fzcNzIozL7CaeRdL1FEI1PQKFgNDZ+xc=";
+      hash = "sha256-wSRfm9B0DlNbagLIoHjIo3mh4fedZurz3P2iMQ8LTJo=";
     };
     uosc = {
       # uosc -- the config used to drive this repo before the akFace tree.
       file = "uosc_zh.zip";
-      hash = "sha256-iqIK6ZD8f0dobaLAVRw7SyGToZVclaG3eSHXunGtqao=";
+      hash = "sha256-ssrPFaPEGB5xNM7wj7TqsYsEN1K9J+eAWIpdmVXOiCs=";
     };
   };
 
