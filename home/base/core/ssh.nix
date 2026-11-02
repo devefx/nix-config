@@ -19,12 +19,15 @@
         ControlPersist = "no";
       };
 
-      # Proxmox VE host. The key lives on the NAS share mounted at /mnt/ssh,
-      # which is why that mount is restricted to file_mode=0600.
+      # The nginx LXC on the Proxmox host (192.168.16.254) -- not PVE itself.
+      # The key deliberately lives in ~/.ssh, not on the NAS share: /mnt/ssh is
+      # CIFS with `x-systemd.idle-timeout=300`, so a VSCode Remote-SSH reconnect
+      # after five idle minutes has to wait for the automount before it can read
+      # the key, and any hiccup on the NAS turns into a failed handshake.
       nginx = {
         HostName = "192.168.16.246";
         User = "root";
-        IdentityFile = "/mnt/ssh/pve_nginx";
+        IdentityFile = "~/.ssh/pve_nginx";
       };
 
       # Port 22 is blocked on many networks; use SSH-over-HTTPS.

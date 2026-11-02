@@ -113,6 +113,19 @@ in
       "explorer.confirmDelete" = false;
       "git.allowForcePush" = true;
 
+      # The LAN's DNS chain (dnsmasq on the router -> OpenClash upstream)
+      # REJECTs Microsoft's telemetry hosts to 0.0.0.0. On a remote where
+      # something already listens on 0.0.0.0:443 -- the `nginx` LXC runs the
+      # *.yooke.top vhosts there -- connecting to 0.0.0.0 loops back to that
+      # nginx, the TLS handshake returns the *.yooke.top certificate, and the
+      # remote extension host dies on the uncaught
+      # `Hostname/IP does not match certificate's altnames` error with exit
+      # code 7. It then restarts every ~24s, which is what Remote-SSH surfaces
+      # as "Cannot reconnect" while the terminal and file operations stall.
+      # Turning telemetry off stops the request from being made at all.
+      "telemetry.telemetryLevel" = "off";
+      "telemetry.enableCrashReporter" = false;
+
       # redhat.java shells out to a JDK. Left unset, the extension offers to
       # download one, which does not work under NixOS; point it at the JDK that
       # is already in the store instead. `mvn` / `gradle` are not implied -- add
