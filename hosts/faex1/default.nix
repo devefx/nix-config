@@ -466,6 +466,49 @@ in
   modules.desktop.plasma.enable = true;
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;
+  # TotK Recomp — everything comes from URLs, so the archive server only has to
+  # keep the cartridge dump, the update, the keys and the firmware. `totk-provision`
+  # (a systemd oneshot) fetches them, decompresses the NSZ and the firmware, and
+  # runs the upstream installer; the game lands in /var/lib/totk/game, writable.
+  #
+  # First boot takes ~9 minutes: ~2 min to download 18 GB over the LAN, then
+  # ~7 min of extract / lift / compile / shader preparation. Later boots skip it
+  # via the `.built` stamp. Saves stay in /var/lib/totk/profile.
+  modules.desktop.totk = {
+    enable = true;
+    source = {
+      base = {
+        url = "https://archive.yooke.top/games/ns/zelda-tears-of-the-kingdom/The%20Legend%20of%20Zelda%20Tears%20of%20the%20Kingdom%20%5B0100F2C0115B6000%5D%5Bv0%5D.xci";
+        hash = "sha256-TF6qsXJivMgY3T6P+UEQ0Qj9iXIDLiHjihJV+4xk7/E=";
+      };
+      update = {
+        url = "https://archive.yooke.top/games/ns/zelda-tears-of-the-kingdom/The%20Legend%20of%20Zelda%20Tears%20of%20the%20Kingdom%20v1.4.3%20%5B0100F2C0115B6800%5D%5Bv720896%5D%5BUPD%5D.nsz";
+        hash = "sha256-OJXWyLloyMOSz8wY2aZd75XdsPB8HUCwXs0jYbDGI1k=";
+      };
+      appImage = {
+        url = "https://github.com/valentderah/totk-pc-recomp/releases/download/v0.3.4/TotK-Setup-x86_64.AppImage";
+        hash = "sha256-EXcDIo+A+pKJpoDUMCZko6iodYrfyw7a61x1TqCm2pk=";
+      };
+      keys = {
+        url = "https://archive.yooke.top/games/ns/prod-keys-v22.5.0.zip";
+        hash = "sha256-63xTaJiLLSoZaadYaDR9gpLt1/Z1UrL8Aa0wxIRXQuI=";
+      };
+      firmware = {
+        url = "https://archive.yooke.top/games/ns/Firmware.22.5.0.zip";
+        hash = "sha256-HBpVZ9U/wYf6DPiiPDhDyjx/GB4KIyJpLcVFjKeIV2U=";
+      };
+      language = "zh-Hans";
+    };
+
+    # Native-resolution rendering on the 4K panel. `render_scale = 100` skips
+    # the game's own 5/6 downscale and the FSR pass on top of it; aniso 16
+    # keeps ground and walls sharp into the distance. Both are read at start.
+    # Drop render_scale to "game" if a dense area dips below 60 fps.
+    settings = {
+      TOTK_RENDER_SCALE = "100";
+      TOTK_ANISO = "16";
+    };
+  };
 
   # Clash Verge with TUN mode: setuid wrapper + privilege service.
   # tunMode needs networking.firewall.checkReversePath to be loose (set automatically).

@@ -63,6 +63,18 @@ in
     map (it: it.nixosConfigurations or { }) nixosSystemValues
   );
 
+  # Exported so another flake can pull a single module without taking this
+  # repository's hosts along:
+  #
+  #   inputs.nix-config.url = "github:devefx/nix-config";
+  #   modules = [ nix-config.nixosModules.totk { modules.desktop.totk = { ... }; } ];
+  #
+  # The module reads `myvars.username` for the default owner of its state
+  # directory; set `modules.desktop.totk.user` when importing it elsewhere.
+  nixosModules = {
+    totk = import ../modules/nixos/desktop/totk.nix;
+  };
+
   packages = forAllSystems (
     system:
     let
