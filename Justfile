@@ -220,3 +220,16 @@ fmt:
 # Run pre-commit checks (nixfmt + typos + prettier) and evaluate every host.
 check:
     nix flake check
+
+# Open the NixOS update board on demand.
+#
+# Builds and runs `packages.nix-outdated` from this flake: a temporary server in
+# the foreground, a full check, and the browser opened. Ctrl+C stops it. Nothing
+# is installed into the system and no systemd unit is involved.
+#
+#   NIX_OUTDATED_PORT=30143    override the port
+#   NIX_OUTDATED_STATE=...     reuse a state dir (default ~/.cache/nix-outdated)
+#   HM_USER=...                home-manager user to evaluate
+outdated:
+    FLAKE_ATTR="$(just _host "$(hostname)")" nix run .#nix-outdated
+

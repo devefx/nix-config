@@ -4,3 +4,7 @@ result-*
 .pre-commit-config.yaml
 *.log
 .DS_Store
+
+# Python bytecode cache (nixos-webui.py is compiled during checks)
+__pycache__/
+*.pyc

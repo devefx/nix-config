@@ -65,8 +65,12 @@ in
 
   packages = forAllSystems (
     system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
     {
       godot-yoke = godotYoke system;
+      nix-outdated = import ../pkgs/nix-outdated { inherit pkgs; };
     }
     // (allSystems.${system}.packages or { })
   );

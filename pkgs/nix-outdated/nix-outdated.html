@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NixOS Updates</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #1b1f24;
+        --muted: #66707a;
+        --border: #dfe3e8;
+        --accent: #2f6feb;
+        --ok: #1a7f37;
+        --warn: #b35900;
+        --bad: #c62828;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14171c;
+          --panel: #1c2027;
+          --text: #e6e9ee;
+          --muted: #9aa4b0;
+          --border: #2c333c;
+          --accent: #6ea8ff;
+          --ok: #4ac26b;
+          --warn: #e3a008;
+          --bad: #ff6b6b;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 650;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 14px;
+      }
+      .meta code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .spacer {
+        flex: 1;
+      }
+      #update-nixpkgs {
+        min-width: 8em;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 7px 14px;
+      }
+      button:hover {
+        border-color: var(--accent);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: progress;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .loading {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: color-mix(in srgb, var(--bg) 82%, transparent);
+        backdrop-filter: blur(2px);
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .loading.show {
+        display: flex;
+      }
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      input[type="search"] {
+        flex: 1 1 260px;
+        max-width: 420px;
+        font: inherit;
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--text);
+      }
+      select {
+        font: inherit;
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--text);
+      }
+      .counts {
+        color: var(--muted);
+        font-size: 13px;
+        display: flex;
+        gap: 14px;
+      }
+      .counts b {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .table-wrap {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        background: color-mix(in srgb, var(--panel) 80%, var(--bg));
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:hover {
+        background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+      }
+      tr.flash {
+        animation: flash 1.4s ease-out;
+      }
+      @keyframes flash {
+        from {
+          background: color-mix(in srgb, var(--accent) 22%, var(--panel));
+        }
+        to {
+          background: transparent;
+        }
+      }
+      .name {
+        font-weight: 600;
+        word-break: break-word;
+      }
+      .desc {
+        color: var(--muted);
+        font-size: 12px;
+        max-width: 46ch;
+      }
+      .desc a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .badge {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .badge.system {
+        border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+        color: var(--accent);
+      }
+      .badge.home {
+        border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+        color: var(--ok);
+      }
+      .badge.outdated {
+        border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+        color: var(--warn);
+      }
+      .badge.current {
+        border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+        color: var(--ok);
+      }
+      .badge.removed {
+        border-color: color-mix(in srgb, var(--bad) 55%, var(--border));
+        color: var(--bad);
+      }
+      .badge.unknown {
+        border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+        color: var(--warn);
+      }
+      .warnings {
+        display: none;
+        margin-bottom: 12px;
+      }
+      .inputs {
+        display: none;
+        margin-bottom: 20px;
+      }
+      .inputs h2 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .warning {
+        padding: 9px 12px;
+        margin-bottom: 6px;
+        border-radius: 8px;
+        border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
+        background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+        color: var(--warn);
+        font-size: 12.5px;
+        word-break: break-word;
+      }
+      .ver {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12.5px;
+        white-space: nowrap;
+      }
+      .ver .arrow {
+        color: var(--muted);
+        padding: 0 4px;
+      }
+      .ver .new {
+        color: var(--warn);
+        font-weight: 600;
+      }
+      .empty {
+        padding: 28px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .status-line {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 18px;
+      }
+      .status-line.error {
+        color: var(--bad);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div id="loading-text">正在检查更新…</div>
+    </div>
+    <header>
+      <div>
+        <h1>NixOS Updates</h1>
+        <div class="meta" id="meta">正在加载…</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="primary" id="update-nixpkgs">更新 nixpkgs</button>
+    </header>
+
+    <div class="warnings" id="warnings"></div>
+
+    <section class="inputs" id="inputs-section">
+      <h2>Flake inputs（GitHub 更新）</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Input</th>
+              <th>旧 commit</th>
+              <th>新 commit</th>
+              <th>状态</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="input-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="搜索软件名或描述…" autocomplete="off" />
+      <select id="filter">
+        <option value="all">全部</option>
+        <option value="outdated">有更新</option>
+        <option value="removed">已移除</option>
+        <option value="unknown">无法检查</option>
+        <option value="current">已是最新</option>
+      </select>
+      <div class="counts" id="counts"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>软件</th>
+            <th>来源</th>
+            <th>当前版本</th>
+            <th>最新版本</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="status-line" id="status"></div>
+
+    <script>
+      const el = {
+        meta: document.getElementById("meta"),
+        rows: document.getElementById("rows"),
+        counts: document.getElementById("counts"),
+        status: document.getElementById("status"),
+        search: document.getElementById("search"),
+        filter: document.getElementById("filter"),
+        loading: document.getElementById("loading"),
+        loadingText: document.getElementById("loading-text"),
+        updateNixpkgs: document.getElementById("update-nixpkgs"),
+        warnings: document.getElementById("warnings"),
+        inputsSection: document.getElementById("inputs-section"),
+        inputRows: document.getElementById("input-rows"),
+      };
+
+      const state = {
+        data: null,
+        lastChecked: 0,
+        updating: null,
+      };
+
+      function esc(value) {
+        return String(value ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+
+      function firstUrl(value) {
+        const raw = String(value ?? "")
+          .trim()
+          .split(/\s+/)[0];
+        return /^https?:\/\//.test(raw) ? raw : "";
+      }
+
+      const VERSION_CELL = {
+        outdated: (p) =>
+          `<span class="ver">${esc(p.version)}<span class="arrow">→</span><span class="new">${esc(p.latest)}</span></span>`,
+        removed: (p) => `<span class="ver">${esc(p.version)}<span class="arrow">→</span>—</span>`,
+        unknown: (p) => `<span class="ver">${esc(p.version)}<span class="arrow">→</span>?</span>`,
+        current: (p) => `<span class="ver">${esc(p.version || "—")}</span>`,
+      };
+
+      const BADGE = {
+        outdated: '<span class="badge outdated">有更新</span>',
+        removed: '<span class="badge removed">已移除</span>',
+        unknown: '<span class="badge unknown">无法检查</span>',
+        current: '<span class="badge current">最新</span>',
+      };
+
+      const LATEST_CELL = {
+        removed: '<span class="ver">已移除</span>',
+        unknown: '<span class="ver">?</span>',
+      };
+
+      function setStatus(text, isError = false) {
+        el.status.textContent = text;
+        el.status.classList.toggle("error", isError);
+      }
+
+      function render() {
+        const data = state.data;
+        if (!data) {
+          el.meta.textContent = "暂无数据";
+          el.inputsSection.style.display = "none";
+          el.rows.innerHTML =
+            '<tr><td colspan="5" class="empty">还没有检查结果，点「检查更新」开始。</td></tr>';
+          return;
+        }
+
+        const nixpkgs = data.nixpkgs || {};
+        const short = (rev) => (rev ? rev.slice(0, 12) : "?");
+        el.meta.innerHTML = [
+          `<span>配置 <code>${esc(data.attr || "?")}</code></span>`,
+          `<span>NixOS <code>${esc(data.nixosVersion || "?")}</code></span>`,
+          `<span>nixpkgs <code>${esc(short(nixpkgs.oldRev))}</code> (${esc(nixpkgs.oldDate || "?")}) → <code>${esc(short(nixpkgs.newRev))}</code> (${esc(nixpkgs.newDate || "?")})</span>`,
+          `<span>检查于 ${esc(new Date(data.generatedAt).toLocaleString())}</span>`,
+        ].join("");
+
+        const counts = data.counts || {};
+        el.counts.innerHTML = [
+          `共 <b>${esc(counts.total ?? 0)}</b>`,
+          `有更新 <b>${esc(counts.outdated ?? 0)}</b>`,
+          `已移除 <b>${esc(counts.removed ?? 0)}</b>`,
+          `无法检查 <b>${esc(counts.unknown ?? 0)}</b>`,
+          `最新 <b>${esc(counts.current ?? 0)}</b>`,
+        ].join("");
+
+        const warnings = data.warnings || [];
+        el.warnings.innerHTML = warnings
+          .map((w) => `<div class="warning">⚠ ${esc(w.source)}: ${esc(w.message)}</div>`)
+          .join("");
+        el.warnings.style.display = warnings.length ? "block" : "none";
+
+        const inputs = (data.inputs || []).sort(
+          (a, b) =>
+            (a.status === "updated" ? 0 : 1) - (b.status === "updated" ? 0 : 1) ||
+            a.name.localeCompare(b.name),
+        );
+        el.inputsSection.style.display = inputs.length ? "block" : "none";
+        el.inputRows.innerHTML = inputs
+          .map((i) => {
+            const short = (rev) => (rev ? rev.slice(0, 12) : "?");
+            const badge =
+              i.status === "updated"
+                ? '<span class="badge outdated">有更新</span>'
+                : '<span class="badge current">最新</span>';
+            const link = i.compare
+              ? `<a href="${esc(i.compare)}" target="_blank" rel="noreferrer">对比</a>`
+              : i.url
+                ? `<a href="${esc(i.url)}" target="_blank" rel="noreferrer">仓库</a>`
+                : "";
+            return `<tr>
+              <td><div class="name">${esc(i.name)}</div><div class="desc">${esc(i.type || "")}</div></td>
+              <td><span class="ver">${esc(short(i.oldRev))}</span><div class="desc">${esc(i.oldDate)}</div></td>
+              <td><span class="ver">${esc(short(i.newRev))}</span><div class="desc">${esc(i.newDate)}</div></td>
+              <td>${badge}</td>
+              <td>${link}</td>
+            </tr>`;
+          })
+          .join("");
+
+        const query = el.search.value.trim().toLowerCase();
+        const filter = el.filter.value;
+        const rank = { outdated: 0, unknown: 1, removed: 2, current: 3 };
+
+        const rows = (data.packages || [])
+          .filter((p) => filter === "all" || p.status === filter)
+          .filter((p) => {
+            if (!query) return true;
+            return (
+              String(p.name).toLowerCase().includes(query) ||
+              String(p.description || "")
+                .toLowerCase()
+                .includes(query)
+            );
+          })
+          .sort(
+            (a, b) =>
+              (rank[a.status] ?? 9) - (rank[b.status] ?? 9) ||
+              String(a.name).localeCompare(String(b.name)),
+          );
+
+        if (rows.length === 0) {
+          el.rows.innerHTML = '<tr><td colspan="5" class="empty">没有匹配的软件。</td></tr>';
+          return;
+        }
+
+        el.rows.innerHTML = rows
+          .map((p) => {
+            const link = firstUrl(p.homepage) || firstUrl(p.changelog);
+            const descParts = [];
+            if (p.description) descParts.push(esc(p.description));
+            if (link) {
+              descParts.push(`<a href="${esc(link)}" target="_blank" rel="noreferrer">主页</a>`);
+            }
+            const desc = descParts.length ? `<div class="desc">${descParts.join(" · ")}</div>` : "";
+            const latest = (VERSION_CELL[p.status] || VERSION_CELL.current)(p);
+            const badge = BADGE[p.status] || BADGE.current;
+            const source =
+              p.source === "home"
+                ? '<span class="badge home">home</span>'
+                : '<span class="badge system">system</span>';
+            const latestCell = p.latest
+              ? `<span class="ver">${esc(p.latest)}</span>`
+              : LATEST_CELL[p.status] || '<span class="ver">—</span>';
+            return `<tr data-name="${esc(p.name)}">
+              <td><div class="name">${esc(p.name)}</div>${desc}</td>
+              <td>${source}</td>
+              <td>${latest}</td>
+              <td>${latestCell}</td>
+              <td>${badge}</td>
+            </tr>`;
+          })
+          .join("");
+      }
+
+      async function loadPackages() {
+        const res = await fetch("/api/packages", { cache: "no-store" });
+        if (res.ok) {
+          state.data = await res.json();
+        }
+        render();
+      }
+
+      async function updateNixpkgs(button) {
+        state.updating = "nixpkgs";
+        button.disabled = true;
+        button.textContent = "更新中";
+        el.loadingText.textContent = "正在更新 nixpkgs…";
+        el.loading.classList.add("show");
+        setStatus("正在更新 nixpkgs…");
+        try {
+          const res = await fetch("/api/update-nixpkgs", {
+            method: "POST",
+            headers: { "X-Nix-Outdated": "1" },
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            const detail = String(data.error || data.stderr || "未知错误").slice(0, 1500);
+            alert(`更新 nixpkgs 失败：\n\n${detail}`);
+            setStatus(`更新 nixpkgs 失败：${detail.split("\n")[0]}`, true);
+            return;
+          }
+          alert("nixpkgs 已更新，重新检查中…");
+          setStatus("nixpkgs 已更新，重新检查中…");
+          await fetch("/api/check", {
+            method: "POST",
+            headers: { "X-Nix-Outdated": "1" },
+          });
+          await refreshStatus();
+        } catch (e) {
+          alert(`更新 nixpkgs 失败：\n\n${e}`);
+          setStatus(`更新 nixpkgs 失败：${e}`, true);
+        } finally {
+          state.updating = null;
+          el.loadingText.textContent = "正在检查更新…";
+          el.loading.classList.remove("show");
+          button.disabled = false;
+          button.textContent = "更新 nixpkgs";
+        }
+      }
+
+      async function refreshStatus() {
+        let status;
+        try {
+          const res = await fetch("/api/status", { cache: "no-store" });
+          status = await res.json();
+        } catch {
+          setStatus("无法连接服务", true);
+          return;
+        }
+
+        if (!state.updating) {
+          el.loading.classList.toggle("show", status.running);
+        }
+
+        if (status.running) {
+          setStatus("正在检查更新…");
+          return;
+        }
+
+        if (status.failed) {
+          setStatus("检查失败，详情见终端输出", true);
+        } else if (status.lastChecked) {
+          setStatus(`上次检查：${new Date(status.lastChecked * 1000).toLocaleString()}`);
+        } else {
+          setStatus("尚未检查");
+        }
+
+        if (status.lastChecked && status.lastChecked !== state.lastChecked) {
+          state.lastChecked = status.lastChecked;
+          await loadPackages();
+        }
+      }
+
+      el.search.addEventListener("input", render);
+      el.filter.addEventListener("change", render);
+
+      el.updateNixpkgs.addEventListener("click", () => updateNixpkgs(el.updateNixpkgs));
+
+      refreshStatus();
+      setInterval(refreshStatus, 2000);
+    </script>
+  </body>
+</html>
