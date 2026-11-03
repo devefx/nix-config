@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  pkgs-stable,
   wallpapers,
   ...
 }:
@@ -59,18 +60,26 @@ let
   # 30 queries), and boot -37 stormed on 2026-09-12 before DDC was introduced.
   # So this removes a per-flap cost; it does not claim DDC is the sole cause.
   # The underlying fault is the hub firmware.
-  noctaliaShell = pkgs.noctalia-shell.overrideAttrs (old: {
-    postFixup = (old.postFixup or "") + ''
-      wrapProgram $out/bin/noctalia-shell \
-        --prefix QT_PLUGIN_PATH : ${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins
-    '';
+  noctaliaShell =
+    let
+      # nixpkgs keeps a `noctalia-shell` alias that throws (v5 is an
+      # incompatible rewrite), so check that it evaluates instead of just
+      # whether the attribute exists.
+      candidate = builtins.tryEval pkgs.noctalia-shell;
+      base = if candidate.success then candidate.value else pkgs-stable.noctalia-shell;
+    in
+    base.overrideAttrs (old: {
+      postFixup = (old.postFixup or "") + ''
+        wrapProgram $out/bin/noctalia-shell \
+          --prefix QT_PLUGIN_PATH : ${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins
+      '';
 
-    patches = (old.patches or [ ]) ++ [
-      ../../../../patches/noctalia-ddc-read-once.patch
-      ../../../../patches/noctalia-idle-monitor-wake.patch
-      ../../../../patches/noctalia-niri-output-dpms.patch
-    ];
-  });
+      patches = (old.patches or [ ]) ++ [
+        ../../../../patches/noctalia-ddc-read-once.patch
+        ../../../../patches/noctalia-idle-monitor-wake.patch
+        ../../../../patches/noctalia-niri-output-dpms.patch
+      ];
+    });
 in
 lib.mkIf config.modules.desktop.niri.enable {
   # Read by modules that must talk to the running bar (ntfy-voice's
