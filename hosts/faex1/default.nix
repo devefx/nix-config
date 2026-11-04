@@ -466,6 +466,32 @@ in
   modules.desktop.plasma.enable = true;
   modules.desktop.gaming.enable = true;
   modules.desktop.fonts.enable = true;
+  # Savage Wind Recomp — Breath of the Wild. Like TotK Recomp, everything comes
+  # from URLs: the provisioner extracts the 1.9.0 ExeFS, merges the update's
+  # BKTR section into the base RomFS and recompiles the game code on this
+  # machine (~5 minutes). Saves stay in /var/lib/savagewind.
+  modules.desktop.savage-wind = {
+    enable = true;
+    appImage = {
+      url = "https://github.com/Revivedx/SavageWindRecomp/releases/download/v0.4.1-alpha.4/Savage_Wind-0.4.1-alpha.4-x86_64.AppImage";
+      hash = "sha256-+QdKUd1WokOEnKho8nDET+fmj1RQ117IikCC/REpkok=";
+    };
+    source = {
+      base = {
+        url = "https://archive.yooke.top/games/ns/zelda-breath-of-the-wild/The%20Legend%20of%20Zelda%20Breath%20of%20the%20Wild%20%5Bv1.6.0%5D%5B01007EF00011E000%5D%5Bv786432%5D%281G%2B1U%2B2D%29.xci";
+        hash = "sha256-77B5C9mIfgYSkl6ca2/GHvGvJfV9T3VrAhSvlnb8fPI=";
+      };
+      update = {
+        url = "https://archive.yooke.top/games/ns/zelda-breath-of-the-wild/The%20Legend%20of%20Zelda%20Breath%20of%20the%20Wild%201.9.0%20%5B01007EF00011E800%5D%5Bv1114112%5D.nsp";
+        hash = "sha256-A4/53wiIW4lSxMibJc6ZQ+mz9gjo9hcrLTXfVJrKa5w=";
+      };
+      keys = {
+        url = "https://archive.yooke.top/games/ns/prod-keys-v22.5.0.zip";
+        hash = "sha256-63xTaJiLLSoZaadYaDR9gpLt1/Z1UrL8Aa0wxIRXQuI=";
+      };
+    };
+  };
+
   # TotK Recomp — everything comes from URLs, so the archive server only has to
   # keep the cartridge dump, the update, the keys and the firmware. `totk-provision`
   # (a systemd oneshot) fetches them, decompresses the NSZ and the firmware, and

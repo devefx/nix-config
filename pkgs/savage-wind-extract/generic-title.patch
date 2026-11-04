@@ -1,0 +1,60 @@
+--- a/extract_exefs.py	2026-11-04 08:03:40.329906667 +0800
++++ b/extract_exefs.py	2026-11-04 08:09:09.806227907 +0800
+@@ -5,6 +5,7 @@
+ Keys stay in memory. No RomFS extraction, executable launch, or network calls.
+ """
+ import argparse
++import os
+ import hashlib
+ import json
+ import struct
+@@ -157,24 +158,40 @@
+     return records
+ 
+ 
++def base_id():
++    """The base title id; TotK's unless SW_BASE_ID says otherwise."""
++    return os.environ.get("SW_BASE_ID", "0100F2C0115B6000")
++
++
++def update_id():
++    """The update title id; TotK's unless SW_UPDATE_ID says otherwise."""
++    return os.environ.get("SW_UPDATE_ID", "0100F2C0115B6800")
++
++
+ def program_nca(records, update=False):
+     if update:
+         programs = [(r, h) for r, h in records if r["content_type"] == 0]
+         require(len(programs) == 1, "Expected one update Program NCA; combined packages are unsupported")
+         record, hdr = programs[0]
+-        require(record["title_id"] == "0100F2C0115B6000", "Update belongs to another game")
++        require(record["title_id"] == base_id(), "Update belongs to another game")
+         require(any(hdr[0x400 + i*512 + 4] == 4 for i in range(4)), "Expected a BKTR update, not a base game")
+-        require(all(r["title_id"] in ("0100F2C0115B6000", "0100F2C0115B6800") for r, _ in records), "Mixed-title update package")
++        require(all(r["title_id"] in (base_id(), update_id()) for r, _ in records), "Mixed-title update package")
+         return record, hdr
+     # Update Program NCAs can retain the base title ID; their Meta NCA carries the update ID.
+-    metadata = [r for r, _ in records if r['content_type'] == 1]
+-    require(len(metadata) <= 1 and all(r['title_id'] == '0100F2C0115B6000' for r in metadata),
+-            'Expected base game metadata; updates, DLC and combined packages are unsupported')
+-    programs = [(r, h) for r, h in records if r['content_type'] == 0]
+-    require(len(programs) == 1, 'Expected one base Program NCA; updates, DLC and combined packages are unsupported')
++    # A combined XCI also carries the DLC Meta NCAs; only the base game's matters.
++    metadata = [r for r, _ in records
++                if r['content_type'] == 1 and r['title_id'] == base_id()]
++    require(len(metadata) <= 1, 'Expected one base game Meta NCA')
++    # DLC NCAs are also content_type 0; the base game's is the one under BASE_ID.
++    # A combined XCI also carries the update's Program NCA under the same title
++    # id; that one is a BKTR patch (section header type 4), the base is not.
++    programs = [(r, h) for r, h in records
++                if r['content_type'] == 0 and r['title_id'] == base_id()
++                and not any(h[0x400 + i * 512 + 4] == 4 for i in range(4))]
++    require(len(programs) == 1, 'Expected one base Program NCA')
+     record, hdr = programs[0]
+-    require(record['title_id'] == '0100F2C0115B6000',
+-            'Expected Tears of the Kingdom base game 1.0.0; updates, DLC and other games are unsupported')
++    require(record['title_id'] == base_id(),
++            'Program NCA belongs to another title')
+     return record, hdr
+ 
+ 

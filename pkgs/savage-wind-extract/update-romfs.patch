@@ -1,0 +1,19 @@
+--- a/extract_romfs.py	2026-11-04 08:03:40.332536319 +0800
++++ b/extract_romfs.py	2026-11-04 08:03:40.332536319 +0800
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env python3
+ """Verify all six IVFC levels, stream a local RomFS image, and index its files."""
+ import argparse
++import os
+ import hashlib
+ import json
+ import struct
+@@ -19,7 +20,7 @@
+     source=Path(manifest['source']);require(source.stat().st_size==manifest['source_size'],'Source size changed')
+     with source.open('rb') as f:
+         _,entries=container_entries(f,source.stat().st_size)
+-        actual,hdr=program_nca(nca_inventory(f,entries,keys))
++        actual,hdr=program_nca(nca_inventory(f,entries,keys), update=os.environ.get('SW_UPDATE')=='1')
+         require(actual['name']==record['name'] and actual['size']==record['size'] and
+                 record_offset(actual)==record_offset(record),'Source Program NCA changed; extract ExeFS again')
+         ctr_key=nca_ctr_key(hdr,keys,common_tickets(f,entries))
