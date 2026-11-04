@@ -221,6 +221,17 @@ fmt:
 check:
     nix flake check
 
+# Reinstall the git hooks (a GC may have removed the pre-commit binary).
+#
+# `nix flake check` installs them through the devShell's shellHook, but the
+# binary it writes into .git/hooks lives at a store path with no gcroot:
+# `nix-collect-garbage` deletes it and every later commit fails with
+# "pre-commit: No such file or directory". The build roots the check so the
+# closure survives GC, and the devShell's hook installs it again.
+hooks:
+    nix build --out-link ~/.local/state/nix-gcroots/pre-commit-check .#checks.x86_64-linux.pre-commit-check
+    nix develop .# -c pre-commit install --install-hooks
+
 # Open the NixOS update board on demand.
 #
 # Builds and runs `packages.nix-outdated` from this flake: a temporary server in
