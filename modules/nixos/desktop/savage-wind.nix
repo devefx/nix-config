@@ -22,6 +22,16 @@
 # `savagewind.ini`, shader caches and saves next to its own data. Only the
 # saves and settings are pulled out into `stateDir`, so a rebuild of the game
 # code keeps them.
+#
+# Gyro aiming needs the controller's raw HID reports from /dev/hidraw*, and
+# reads there are shared: Steam's Steam Input takes the same reports, so with
+# it on the game logs "SDL motion timeout" and falls back to nothing. Buttons
+# and sticks keep working, because those come through the kernel's
+# hid-nintendo driver on evdev, which nothing competes for. Disable Steam
+# Input for this game (Steam: Properties > Controller) to get gyro back; a
+# Cemuhook DSU server is the other route, but it reads hidraw too, so it does
+# not help while Steam Input is on. `SAVAGEWIND_MOTION_LOG=1` prints the
+# sensor stream's health once a second.
 let
   inherit (lib)
     concatStringsSep
@@ -511,6 +521,9 @@ in
       default = { };
       example = {
         SAVAGEWIND_CORES = "8";
+        # One line a second with the fused orientation and the sensor
+        # stream's health, for working out why gyro is not responding.
+        SAVAGEWIND_MOTION_LOG = "1";
       };
       description = "Extra `SAVAGEWIND_*` environment variables for the launcher.";
     };
