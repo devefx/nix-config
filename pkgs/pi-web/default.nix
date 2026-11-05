@@ -24,18 +24,18 @@
 # supplies the missing lockfile so Nix can fetch a complete, reproducible
 # dependency closure.
 #
-# Note the Pi packages installed here are the versions pi-web pins (1.4.0),
+# Note the Pi packages installed here are the versions pi-web pins (1.5.0),
 # which is deliberately independent of the `pi` CLI this repository takes from
 # the llm-agents flake input (1.2.0). The two do not conflict: pi-web resolves
 # its own copies from its own `node_modules`.
 
 buildNpmPackage (finalAttrs: {
   pname = "pi-web";
-  version = "0.13.0";
+  version = "0.15.0";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@agegr/pi-web/-/pi-web-${finalAttrs.version}.tgz";
-    hash = "sha256-3ucPpk7VL7MgUd/EurrCh678ikr1TD0ZAMUeY03t6T0=";
+    hash = "sha256-4VCI9UU/R825RpNfA6iU0CEdyALiuiQCOObXWRNsCvc=";
   };
 
   # The published tarball carries no lockfile, and its package.json still
@@ -44,7 +44,7 @@ buildNpmPackage (finalAttrs: {
   # with ENOTCACHED, so drop the block before installing. The committed
   # `package-lock.json` beside this file was generated from the published
   # `dependencies` block alone with
-  # `npm install --package-lock-only --ignore-scripts`, which yields 191
+  # `npm install --package-lock-only --ignore-scripts`, which yields 192
   # entries and no devDependencies at all.
   #
   # `postPatch` runs in both derivations buildNpmPackage creates: the
@@ -67,7 +67,7 @@ buildNpmPackage (finalAttrs: {
     fi
   '';
 
-  npmDepsHash = "sha256-MjENYBI+yM6KbGfgyHZrwyCP4TJGIoGQHbdqbSp6u6k=";
+  npmDepsHash = "sha256-evHIee562knMAqgG4qs8G+j+aTAchIcIz2ePFHCivS0=";
 
   # The tarball is already built; `dontNpmBuild` makes the default
   # `npm run build` a no-op. Lifecycle scripts stay off: the only
@@ -107,7 +107,7 @@ buildNpmPackage (finalAttrs: {
     # identical in every published copy, so anyone who unpacks the npm tarball
     # knows it.
     #
-    # pi-web 0.13.0 fixes this itself at startup (`bin/rotate-preview-secrets.js`)
+    # pi-web fixes this itself at startup (`bin/rotate-preview-secrets.js`)
     # by rewriting the values with fresh random ones, but that needs a writable
     # install directory. The Nix store is read-only, so the rotation fails, the
     # launcher warns, and it then serves with whatever is on disk. Rotating here
