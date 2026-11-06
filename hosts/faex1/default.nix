@@ -536,6 +536,39 @@ in
     };
   };
 
+  # Syncthing, sharing `/var/lib/savagewind/save` and `/var/lib/totk/profile/save`
+  # with the Syncthing container on docker-media.yooke.top (192.168.16.248). The
+  # server is the copy to fall back on and what survives a reinstall; the
+  # version history kept here covers a save overwritten by a stale copy. The
+  # device id is the server's certificate fingerprint, not a credential, so it
+  # is safe in this public repository; the address is a LAN name, so it does not
+  # reveal a public one either.
+  modules.desktop.syncthing = {
+    enable = true;
+    server = {
+      id = "E7QBDNX-L6RWTOV-43N7IQQ-DIT5XXQ-CXP6XXM-SB3LONA-TVHAP6L-T3PSYAB";
+      addresses = [
+        "tcp://docker-media.yooke.top:22000"
+        "quic://docker-media.yooke.top:22000"
+      ];
+    };
+    # The ids are what the server matches on; the paths are this machine's own
+    # and never travel. The server picks where each id lands when it accepts the
+    # share, so the same id may sit under a completely different path there.
+    folders = {
+      "savage-wind-save" = {
+        path = "/var/lib/savagewind/save";
+        label = "Zelda: Breath of the Wild saves";
+        group = "Zelda";
+      };
+      "totk-save" = {
+        path = "/var/lib/totk/profile/save";
+        label = "Zelda: Tears of the Kingdom saves";
+        group = "Zelda";
+      };
+    };
+  };
+
   # Clash Verge with TUN mode: setuid wrapper + privilege service.
   # tunMode needs networking.firewall.checkReversePath to be loose (set automatically).
   programs.clash-verge = {
