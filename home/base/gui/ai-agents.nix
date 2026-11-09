@@ -159,6 +159,26 @@ let
     zlib
   ];
 
+  # `uv run` is the only entry point the skill uses, so the FHS library path is
+  # attached to uv instead of the session environment. It used to be
+  # `home.sessionVariables.LD_LIBRARY_PATH`, which the systemd user manager
+  # exports to *every* process in the session: that pinned a newer glib (needing
+  # GLIBC_2.43) over the one each program was built against, and the v4 Noctalia
+  # shell from pkgs-stable (glibc 2.42) died at startup with
+  #
+  #   quickshell: libc.so.6: version `GLIBC_2.43' not found
+  #
+  # Wrapping uv scopes the libraries to `uv run` and its children (the python
+  # interpreter, the playwright Chromium it downloads). Running a geo-sleuth
+  # script by hand must therefore go through uv, not a bare `python3`, or the
+  # wheel imports fail with `ImportError: libz.so.1`.
+  geoSleuthUv = pkgs.runCommandLocal "uv-geo-sleuth" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+    mkdir -p $out/bin
+    ln -s ${lib.getExe pkgs.uv} $out/bin/uv
+    wrapProgram $out/bin/uv \
+      --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath geoSleuthLibraries}"
+  '';
+
   # Pi has no MCP registration file it owns; `~/.pi/agent/mcp.json` is only
   # written by `pi mcp add` and by REA's own setup, and pi-web's Add Server
   # dialog edits it as user data. An extension is the declarative seam: Pi
@@ -414,7 +434,7 @@ in
     # geo-sleuth's scripts are `uv run` entry points: `uv` resolves the PEP 723
     # dependency blocks and `curl` backs `_net.py` and the doctor's probes.
     ++ optionals geoSleuthCfg.enable [
-      pkgs.uv
+      geoSleuthUv
       pkgs.curl
     ];
 
@@ -433,14 +453,8 @@ in
         ".agents/skills/geo-sleuth".source = geoSleuthSkill;
       };
 
-    # The library path has to be session-wide: the skill is run by the agent as
-    # a plain `uv run ...` command, so there is no wrapper to inject it into.
-    # Home Manager writes it to `~/.config/environment.d/`, which the systemd
-    # user manager imports — a running `pi-web` service only picks it up after
-    # `systemctl --user restart pi-web` (or a re-login).
-    home.sessionVariables = mkIf geoSleuthCfg.enable {
-      LD_LIBRARY_PATH = lib.makeLibraryPath geoSleuthLibraries;
-    };
+    # No `home.sessionVariables.LD_LIBRARY_PATH` here: exporting it to the whole
+    # session is what broke the Noctalia v4 shell (see geoSleuthUv above).
 
     # Codex and DSH read MCP servers from files they also write themselves, so
     # the entry is merged in place after `writeBoundary` (where home-manager has
