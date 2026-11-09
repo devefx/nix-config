@@ -70,7 +70,20 @@ let
     in
     base.overrideAttrs (old: {
       postFixup = (old.postFixup or "") + ''
+        # --unset before --prefix, deliberately. The session exports
+        # QT_PLUGIN_PATH=<fcitx5-with-addons>/lib/qt-6/plugins (the fcitx5
+        # input-context plugin), and Quickshell picks it up ahead of its own
+        # plugin dirs: context creation then fails and the shell never paints.
+        #
+        #   QRhiGles2: Failed to create context
+        #   ERROR: Failed to create graphics context for
+        #          qs::wayland::layershell::WlrLayershell
+        #
+        # Dropping the inherited value leaves exactly the plugin dirs this
+        # package needs (qt6ct below plus the qs wrapper's own qtbase / qtsvg /
+        # qtdeclarative / qtwayland dirs), all from the same Qt build.
         wrapProgram $out/bin/noctalia-shell \
+          --unset QT_PLUGIN_PATH \
           --prefix QT_PLUGIN_PATH : ${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins
       '';
 
@@ -161,6 +174,22 @@ lib.mkIf config.modules.desktop.niri.enable {
   home.activation.restartNoctaliaShellOnPathChange = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     state_file="$HOME/.cache/niri-noctalia-shell-path"
     shell_dir="${noctaliaShell}/share/noctalia-shell"
+
+    # Noctalia v5 (the C++ rewrite, binary `noctalia`) and v4 (`noctalia-shell`,
+    # Quickshell) cannot coexist: they draw the same bar and own the same
+    # notification name. Switching back from v5 leaves the v5 process running,
+    # because the guard below only fires when *this* build's path changes and v5
+    # has its own state file. Kill it unconditionally (no pgrep here, see below).
+    if [ -z "''${DRY_RUN:-}" ]; then
+      for proc in /proc/[0-9]*; do
+        cmd="$(tr '\0' ' ' < "$proc/cmdline" 2>/dev/null || true)"
+        case "$cmd" in
+          */bin/noctalia|*/bin/noctalia\ *|*/.noctalia-wrapped*)
+            kill "''${proc#/proc/}" 2>/dev/null || true
+            ;;
+        esac
+      done
+    fi
 
     if [ "$(cat "$state_file" 2>/dev/null || true)" != "$shell_dir" ] && [ -z "''${DRY_RUN:-}" ]; then
       # pgrep is unavailable here: home-manager-yoke.service gets a minimal
