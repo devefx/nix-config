@@ -167,6 +167,9 @@ in
       pkgs.vscode-extensions.redhat.vscode-xml
       pkgs.vscode-extensions.shd101wyy.markdown-preview-enhanced
 
+      # Renders CSS/SCSS/LESS/hex color literals inline.
+      pkgs.vscode-extensions.naumovs.color-highlight
+
       # Git history/graph. Replaces the marketplace-only Git Graph.
       pkgs.vscode-extensions.eamodio.gitlens
 
@@ -253,6 +256,7 @@ in
       jnoortheen.nix-ide \
       ms-vscode.cpptools \
       ms-vscode-remote.remote-ssh \
+      naumovs.color-highlight \
       redhat.java \
       redhat.vscode-xml \
       RedMser.godot-hover-docs \
