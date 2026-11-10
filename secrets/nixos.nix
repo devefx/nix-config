@@ -43,14 +43,14 @@ in
 
     age.secrets = mkMerge [
       (mkIf cfg.smb.enable {
-        # TrueNAS (192.168.16.251)
+        # TrueNAS (truenas.yooke.top)
         smb-credentials = {
           file = "${mysecrets}/smb-credentials.age";
           owner = myvars.username;
           group = "users";
           mode = "0600";
         };
-        # Windows Server (192.168.16.206) — wd_20t share
+        # Samba server (samba-server.yooke.top) — wd_20t share
         smb-credentials-wd20t = {
           file = "${mysecrets}/smb-credentials-wd20t.age";
           owner = myvars.username;

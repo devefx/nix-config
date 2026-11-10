@@ -362,23 +362,55 @@ in
     ];
   };
 
-  # SMB shares — TrueNAS (192.168.16.251) and Windows Server
-  # (192.168.16.206). Credentials are decrypted by agenix
+  # SMB shares — TrueNAS (truenas.yooke.top) and the Samba server
+  # (samba-server.yooke.top). Credentials are decrypted by agenix
   # (see secrets/nixos.nix).
-  fileSystems."/mnt/portable_apps" = smbMount "192.168.16.251" truenasCred "portable_apps" [ ];
-  fileSystems."/mnt/media" = smbMount "192.168.16.251" truenasCred "media" [ ];
-  fileSystems."/mnt/downloads" = smbMount "192.168.16.251" truenasCred "downloads" [ ];
-  fileSystems."/mnt/archive" = smbMount "192.168.16.251" truenasCred "archive" [ ];
-  fileSystems."/mnt/workspace" = smbMount "192.168.16.251" truenasCred "workspace" [ ];
+  fileSystems."/mnt/portable_apps" = smbMount "truenas.yooke.top" truenasCred "portable_apps" [ ];
+  fileSystems."/mnt/media" = smbMount "truenas.yooke.top" truenasCred "media" [ ];
+  fileSystems."/mnt/downloads" = smbMount "truenas.yooke.top" truenasCred "downloads" [ ];
+  fileSystems."/mnt/archive" = smbMount "truenas.yooke.top" truenasCred "archive" [ ];
+  fileSystems."/mnt/workspace" = smbMount "truenas.yooke.top" truenasCred "workspace" [ ];
   # This share holds SSH private keys, so tighten its permissions: CIFS reports
   # every file as 0755 by default and `ssh -i` refuses a key that others can
   # read. `file_mode`/`dir_mode` apply to the whole share, which is fine -- it is
   # nothing but key material.
-  fileSystems."/mnt/ssh" = smbMount "192.168.16.251" truenasCred "ssh" [
+  fileSystems."/mnt/ssh" = smbMount "truenas.yooke.top" truenasCred "ssh" [
     "file_mode=0600"
     "dir_mode=0700"
   ];
-  fileSystems."/mnt/wd_20t" = smbMount "192.168.16.206" wd20tCred "wd_20t" [ ];
+  # The 20 TB disk on the Samba server. Its sidebar label in Nautilus is set
+  # by the GTK bookmark in home/linux/gui/niri/default.nix (WD-20T).
+  # `vers=3.0` is a workaround: the kernel CIFS client gets BAD_NETWORK_NAME
+  # from this server when it negotiates the default SMB 3.1.1 dialect, while
+  # smbclient works at every dialect.
+  fileSystems."/mnt/wd_20t" = smbMount "samba-server.yooke.top" wd20tCred "wd_20t" [
+    "vers=3.0"
+  ];
+
+  # A NAS reboot used to leave these shares stuck: a burst of failed automount
+  # attempts hits systemd's default start limit (5 starts / 10 s), the mount
+  # unit stays failed, and the automount never retries -- the directory looks
+  # empty long after the server is back. Drop-ins keep the fstab-generated
+  # units and only lift the rate limit.
+  environment.etc = lib.listToAttrs (
+    map
+      (unit: {
+        name = "systemd/system/${unit}.d/overrides.conf";
+        value.text = ''
+          [Unit]
+          StartLimitIntervalSec=0
+        '';
+      })
+      [
+        "mnt-portable_apps.mount"
+        "mnt-media.mount"
+        "mnt-downloads.mount"
+        "mnt-archive.mount"
+        "mnt-workspace.mount"
+        "mnt-ssh.mount"
+        "mnt-wd_20t.mount"
+      ]
+  );
 
   # Pi Web is a systemd *user* service, and the user manager only exists
   # while someone is logged in. Linger keeps it — and therefore Pi Web —
