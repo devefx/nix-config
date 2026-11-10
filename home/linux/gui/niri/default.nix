@@ -189,6 +189,7 @@ in
         file:///mnt/portable_apps Portable Apps
         file:///mnt/workspace Workspace
         file:///mnt/ssh SSH
+        file:///mnt/wd_20t WD-20T
       '';
       "niri/config.kdl".source = ./conf/config.kdl;
       "niri/keybindings.kdl".source = ./conf/keybindings.kdl;
