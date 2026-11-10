@@ -1,0 +1,21 @@
+--- a/src/server/mod.rs	2026-11-10 19:54:29.360285249 +0800
++++ b/src/server/mod.rs	2026-11-10 19:54:29.373620765 +0800
+@@ -1532,8 +1532,16 @@
+             .world
+             .get::<&client::wl_surface::WlSurface>(entity)
+             .unwrap();
+-        let needs_satellite_decorations =
+-            wl_decoration.is_none() && window.attrs.decorations.is_none_or(|d| d.is_serverside());
++        // Spotify draws its own title bar, so a satellite decoration would
++        // appear as a second one stacked on top of it.
++        let is_spotify = window
++            .attrs
++            .class
++            .as_deref()
++            .is_some_and(|class| class.eq_ignore_ascii_case("spotify"));
++        let needs_satellite_decorations = !is_spotify
++            && wl_decoration.is_none()
++            && window.attrs.decorations.is_none_or(|d| d.is_serverside());
+         let (sat_decoration, buf) = needs_satellite_decorations
+             .then(|| {
+                 DecorationsDataSatellite::try_new(

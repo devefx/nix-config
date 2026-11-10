@@ -66,6 +66,7 @@
   };
   modules.feishin.enable = true;
   modules.tsukimi.enable = true;
+  modules.spotify.enable = true;
   modules.motrix.enable = true;
   modules.binance.enable = true;
   modules.mpv.enable = true;

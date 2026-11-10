@@ -135,6 +135,17 @@ window-rule {
     open-on-workspace "4entertainment"
 }
 
+// Spotify — full-workspace tile on the entertainment workspace, no frame.
+window-rule {
+    match app-id=r#"(?i)^spotify$"#
+    open-on-workspace "4entertainment"
+    default-column-width { proportion 1.0; }
+    default-window-height { proportion 1.0; }
+    tiled-state true
+    focus-ring { off; }
+    border { off; }
+}
+
 // mpv otherwise derives its window height from the video's aspect ratio,
 // which breaks two-by-two tiling. Let niri assign full-height tiles and
 // letterbox the video instead (keepaspect-window=no in the mpv config, so mpv
