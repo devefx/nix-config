@@ -96,15 +96,16 @@ in
   options.modules.desktop.niri = {
     enable = mkEnableOption "Niri compositor user configuration";
 
-    # The patched noctalia-shell package this session runs, assigned by
-    # niri/noctalia.nix. Modules that shell out to the bar (ntfy-voice asks it
-    # for the do-not-disturb flag) must use this exact build: Quickshell's IPC
-    # client hashes the config path baked into the wrapper, so a different
-    # noctalia-shell fails with "No running instances for <path>".
-    noctaliaShell = lib.mkOption {
+    # The noctalia package this session runs, assigned by niri/noctalia.nix.
+    # Modules that shell out to the bar (ntfy-voice asks it for the
+    # do-not-disturb flag) use this build so the CLI and the daemon stay in
+    # lockstep. v5's IPC socket is keyed by the Wayland display rather than the
+    # store path, so any noctalia build could reach the instance, but matching
+    # builds avoid protocol drift across upgrades.
+    noctalia = lib.mkOption {
       type = lib.types.nullOr lib.types.package;
       default = null;
-      description = "The patched noctalia-shell package this session runs.";
+      description = "The noctalia package this session runs.";
     };
   };
 
@@ -192,7 +193,7 @@ in
       "niri/config.kdl".source = ./conf/config.kdl;
       "niri/keybindings.kdl".source = ./conf/keybindings.kdl;
       "niri/niri-hardware.kdl".source = ./conf/niri-hardware.kdl;
-      "niri/noctalia-shell.kdl".source = ./conf/noctalia-shell.kdl;
+      "niri/noctalia.kdl".source = ./conf/noctalia.kdl;
       "niri/spawn-at-startup.kdl".source = ./conf/spawn-at-startup.kdl;
       "niri/windowrules.kdl".source = ./conf/windowrules.kdl;
     };

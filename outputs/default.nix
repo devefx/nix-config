@@ -30,8 +30,10 @@ let
       godotYoke = godotYoke system;
       # Upstream flakes whose outputs modules need; injected here so modules
       # never reach for the whole `inputs` attrset (which also carries the
-      # private secrets repo).
+      # private secrets repo). Noctalia is injected under a different name
+      # because its modules call the package itself `noctalia`.
       inherit (inputs) gufo;
+      noctaliaFlake = inputs.noctalia;
 
       pkgs-stable = import inputs.nixpkgs-stable {
         inherit system;

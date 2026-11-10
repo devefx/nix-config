@@ -81,10 +81,10 @@ NOTIFICATIONS = DBusAddress(
     interface="org.freedesktop.Notifications",
 )
 RESPECT_DND = os.environ.get("NTFY_VOICE_RESPECT_DND", "1") == "1"
-# Must be the *same* noctalia-shell build the running bar was started from: the
-# IPC socket is looked up by the md5 of the config path baked into that wrapper,
-# so an unpatched package would just answer "No running instances".
-NOCTALIA_SHELL = os.environ.get("NTFY_VOICE_NOCTALIA_SHELL") or "noctalia-shell"
+# Noctalia v5's IPC socket is `$XDG_RUNTIME_DIR/noctalia-<WAYLAND_DISPLAY>.sock`,
+# so any noctalia binary reaches the running shell; the session's own build is
+# used anyway so the CLI and the daemon cannot drift apart across upgrades.
+NOCTALIA = os.environ.get("NTFY_VOICE_NOCTALIA") or "noctalia"
 
 STATE_DIR = os.path.join(
     os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "ntfy-voice"
@@ -183,18 +183,18 @@ def auth_headers():
 
 
 def quiet_now():
-    """True when Noctalia is in do-not-disturb (or performance) mode.
+    """True when Noctalia's do-not-disturb mode is on.
 
-    Best effort by design: after a rebuild the running bar may still be the
-    previous store path, in which case the IPC call exits 255. Talking over a
-    stale DND flag would silence alerts indefinitely, so a failed lookup means
-    "not quiet".
+    `noctalia msg notification-dnd-status` prints "on" or "off". Best effort by
+    design: the call fails whenever the shell is not running or not reachable,
+    and talking over a stale DND flag would silence alerts indefinitely, so a
+    failed lookup means "not quiet".
     """
     if not RESPECT_DND:
         return False
     try:
         result = subprocess.run(
-            [NOCTALIA_SHELL, "ipc", "call", "state", "all"],
+            [NOCTALIA, "msg", "notification-dnd-status"],
             capture_output=True,
             text=True,
             timeout=5,
@@ -204,11 +204,7 @@ def quiet_now():
         return False
     if result.returncode != 0:
         return False
-    try:
-        state = json.loads(result.stdout).get("state") or {}
-    except ValueError:
-        return False
-    return bool(state.get("doNotDisturb") or state.get("noctaliaPerformanceMode"))
+    return result.stdout.strip() == "on"
 
 
 def find_link(message):

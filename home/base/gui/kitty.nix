@@ -71,7 +71,7 @@
       # bar with CSD buttons, which clashed with niri's decoration-less look.
       #
       # The 20px corner radius comes from niri, not kitty: the catch-all
-      # window-rule in noctalia-shell.kdl sets geometry-corner-radius.
+      # window-rule in noctalia.kdl sets geometry-corner-radius.
       hide_window_decorations = "titlebar-only";
 
       # Fully opaque, so the background is the theme's #24273A and nothing else.

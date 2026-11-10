@@ -7,37 +7,21 @@
 include "./keybindings.kdl"
 include "./windowrules.kdl"
 include "./niri-hardware.kdl"
-include "./noctalia-shell.kdl"
+include "./noctalia.kdl"
 include "./spawn-at-startup.kdl"
 
 // Qt only consults the desktop icon theme -- and only picks up the qt6ct/Kvantum
 // style -- when a QPA platform theme is loaded. With none set, Qt uses
-// QGenericUnixTheme: QIcon::fromTheme() falls back to a hicolor-only lookup, so
-// the fcitx5 tray glyph "input-keyboard-symbolic" (shown while the English
-// layout is active) resolves to nothing and Quickshell paints its magenta/black
-// missing-icon checkerboard instead, while every widget is drawn by the light
-// Fusion default no matter what qt6ct.conf says.
+// QGenericUnixTheme: QIcon::fromTheme() falls back to a hicolor-only lookup and
+// every widget is drawn by the light Fusion default no matter what qt6ct.conf
+// says. qt6ct.conf (niri/qt/qt6ct.conf) selects style=kvantum and
+// icon_theme=Papirus-Dark; see niri/qt.nix for the full chain.
 //
-// qt6ct.conf (home/linux/gui/niri/qt/qt6ct.conf) then selects style=kvantum and
-// icon_theme=Papirus-Dark, i.e. the Qt half of the Orchis-Dark theme. See
-// home/linux/gui/niri/qt.nix for the full chain.
-//
-// Only the *name* of the platform theme belongs here. The plugin itself is put
-// on noctalia-shell's QT_PLUGIN_PATH by the wrapper override in
-// home/linux/gui/niri/noctalia.nix; setting QT_QPA_PLATFORMTHEME without that
-// leaves Qt with no plugin to load and the icons still fail.
-//
-// This cannot go in home.sessionVariables: Home Manager writes those to
-// $profile/etc/profile.d/hm-session-vars.sh, and nothing in this session sources
-// it. niri.service execs `niri --session` directly, so no login shell runs, and
-// /etc/static/profile has no profile.d loop to pick the file up either.
-//
-// niri's `environment` block is what actually reaches niri's children, and
-// noctalia-shell (i.e. Quickshell, the process that draws the tray) is started
-// from spawn-at-startup.kdl, so it inherits this. Note the block only covers
-// processes niri spawns -- it is not exported to systemd, so systemd-started
-// apps still need their own setting. A config reload only affects children
-// spawned afterwards; noctalia-shell has to be restarted to pick this up.
+// Noctalia v5 is not a Qt application, so this now exists for the remaining Qt
+// apps in the session (fcitx5 and friends). niri's `environment` block only
+// reaches processes niri spawns -- systemd-started apps get the same value from
+// qt.nix's systemd.user.sessionVariables instead -- and a config reload only
+// affects children spawned afterwards.
 environment {
     QT_QPA_PLATFORMTHEME "qt6ct"
 
@@ -52,6 +36,26 @@ environment {
     // enough to Orchis-Dark's #212121 window to read as one theme. There is no
     // Orchis decoration plugin upstream, so this is the closest match.
     QT_WAYLAND_DECORATION "adwaita"
+
+    // Noctalia v5 launches Terminal=true desktop entries through this instead of
+    // v4's launcher setting (appLauncher.terminalCommand was "kitty -e").
+    TERMINAL "kitty"
+}
+
+// Frosted glass. Noctalia publishes blur regions for its bar, panels, dock,
+// notifications and OSD, and the terminal window-rules below request blur too,
+// so this is what decides how "frosted" the shell looks. More passes = stronger
+// blur (niri's default is 3); offset is the sample distance per pass. Pushing
+// passes to 5 was tried and made the panels read as solid: past a point the
+// wallpaper is blurred into a flat colour and the surface stops looking
+// translucent at all. 3 passes / 2.5 offset keeps the panel background clearly
+// frosted while the shell's cards (75% opaque in the current "glass" panel mode)
+// still pick up that texture instead of looking painted on.
+blur {
+    passes 3
+    offset 2.5
+    noise 0.02
+    saturation 1.2
 }
 
 // Input device configuration.

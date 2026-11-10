@@ -2,140 +2,76 @@
   config,
   lib,
   pkgs,
-  pkgs-stable,
+  noctaliaFlake,
   wallpapers,
   ...
 }:
 let
-  # Quickshell draws the system tray with QIcon::fromTheme(), and Qt only
-  # consults the desktop icon theme when a QPA platform theme plugin is loaded.
-  # Without one, Qt falls back to a hicolor-only lookup, so every tray glyph
-  # that only lives in breeze/papirus fails to load and Quickshell paints its
-  # magenta/black missing-icon checkerboard instead:
+  # Noctalia v5 is a ground-up C++/Wayland rewrite: a different binary
+  # (`noctalia`), a different IPC (`noctalia msg ...`) and a TOML config. It is
+  # therefore a separate package, not an upgrade of `noctalia-shell` (v4, built
+  # on Quickshell). The three v4 QML patches that used to live in patches/
+  # (ddc-read-once, idle-monitor-wake, niri-output-dpms) are gone with it: v5
+  # has no QML to patch and handles all three cases itself (DDC discovery
+  # retries with per-monitor cooldown, a native screen-off idle action that
+  # restores monitor power, and dpms-on/dpms-off IPC).
   #
-  #   input-keyboard-symbolic  fcitx5 while the English layout is active
-  #   user-desktop             ActiveWindow widget's fallback icon
-  #   application-x-executable launcher/audio-panel fallback icon
+  # The upstream flake is used instead of pkgs.noctalia because:
   #
-  # Setting QT_QPA_PLATFORMTHEME=qt6ct (done in niri's config.kdl) is not enough
-  # on its own: the qt6ct plugin has to be discoverable too. Injecting it into
-  # the wrapper here keeps it scoped to the one app that needs it, instead of
-  # putting qt6ct's plugin dir in front of every Qt app niri spawns. niri's
-  # `environment` block is also only read at config load, so a wrapper-level
-  # setting does not need a session restart to take effect.
+  #   * nixpkgs unstable still carries 5.2.1, while this config uses keys that
+  #     only exist from 5.3/5.4 (backdrop, card_borders, search_position,
+  #     show_when_unavailable, ...). Unknown keys are only warnings in v5, so
+  #     the difference would be silent missing features.
+  #   * the input deliberately does NOT follow our nixpkgs. Upstream publishes
+  #     prebuilt binaries on cachix built against their own nixpkgs pin; making
+  #     it follow ours would change the derivation hash and force a local C++
+  #     build. nixConfig in flake.nix adds their substituter.
   #
-  # qt6ct.conf carries icon_theme=Papirus-Dark, which is what makes the lookup
-  # above succeed *and* keeps the glyphs legible: a light icon theme rasterises
-  # to rgb(35,37,41) and vanishes against the #111416 bar (see qt6ct.conf for
-  # the rendering details). The tray colorize shader cannot rescue that either.
+  # The package is used unmodified on purpose: any overrideAttrs would change
+  # the hash and lose that cache. Its wrapper only puts `git` on PATH, so the
+  # commands v5 shells out to (ddcutil for DDC/CI brightness, dconf/gsettings,
+  # systemctl) are taken from the session PATH -- see home.packages below.
   #
-  # The same conf also selects style=kvantum + theme=OrchisDark, so Quickshell's
-  # own Qt widgets follow the Orchis-Dark theme as well. Both the theme package
-  # and the style plugin are installed by home/linux/gui/niri/qt.nix.
-  #
-  # Must be a single --prefix for the whole variable. qt6ct is deliberately not
-  # in buildInputs: qtHostPathHook would then append the same plugin dir again,
-  # and makeWrapper silently drops the earlier value when one variable is given
-  # more than one --prefix.
-
-  # DDC brightness control is the only way to dim this panel, so it stays on
-  # (settings.json keeps enableDdcSupport = true). What has to go is the re-read
-  # on every monitor/bus change: Noctalia re-runs `ddcutil detect` when the
-  # monitor list changes and then ran `ddcutil getvcp` per detected monitor, so
-  # every display hotplug cost one more I2C transaction.
-  #
-  # That is expensive here because this YCT panel's internal USB hub
-  # re-enumerates on its own every ~10s once it starts (the kernel marks it
-  # USB_QUIRK_HUB_SLOW_RESET), taking the DP hotplug line down with it. niri
-  # re-adds DP-1 each cycle, busNum/isDdc change, and Noctalia answered each one
-  # with another DDC read on the USB-C connector that was already failing link
-  # training. 2792 re-enumerations in a single boot.
-  #
-  # The patch keeps DDC working -- setvcp still runs on demand -- but reads each
-  # connector's value once per session and caches it in
-  # ddcBrightnessByConnector.
-  #
-  # Note the limit of the evidence: running `ddcutil detect` / `getvcp` /
-  # `setvcp` by hand does *not* reset the hub on its own (devnum stayed 22 over
-  # 30 queries), and boot -37 stormed on 2026-09-12 before DDC was introduced.
-  # So this removes a per-flap cost; it does not claim DDC is the sole cause.
-  # The underlying fault is the hub firmware.
-  noctaliaShell =
-    let
-      # nixpkgs keeps a `noctalia-shell` alias that throws (v5 is an
-      # incompatible rewrite), so check that it evaluates instead of just
-      # whether the attribute exists.
-      candidate = builtins.tryEval pkgs.noctalia-shell;
-      base = if candidate.success then candidate.value else pkgs-stable.noctalia-shell;
-    in
-    base.overrideAttrs (old: {
-      postFixup = (old.postFixup or "") + ''
-        # --unset before --prefix, deliberately. The session exports
-        # QT_PLUGIN_PATH=<fcitx5-with-addons>/lib/qt-6/plugins (the fcitx5
-        # input-context plugin), and Quickshell picks it up ahead of its own
-        # plugin dirs: context creation then fails and the shell never paints.
-        #
-        #   QRhiGles2: Failed to create context
-        #   ERROR: Failed to create graphics context for
-        #          qs::wayland::layershell::WlrLayershell
-        #
-        # Dropping the inherited value leaves exactly the plugin dirs this
-        # package needs (qt6ct below plus the qs wrapper's own qtbase / qtsvg /
-        # qtdeclarative / qtwayland dirs), all from the same Qt build.
-        wrapProgram $out/bin/noctalia-shell \
-          --unset QT_PLUGIN_PATH \
-          --prefix QT_PLUGIN_PATH : ${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins
-      '';
-
-      patches = (old.patches or [ ]) ++ [
-        ../../../../patches/noctalia-ddc-read-once.patch
-        ../../../../patches/noctalia-idle-monitor-wake.patch
-        ../../../../patches/noctalia-niri-output-dpms.patch
-      ];
-    });
+  # Patching v5's workspace-pill easing to mimic v4's overshoot was tried and
+  # dropped: v4's "bubble" is a separate effect (an expanding, fading ring drawn
+  # by WorkspacePill.qml's `pillBurst`), not the width transition, so the easing
+  # change reproduced nothing -- and it cost a ~17 min local C++ rebuild per
+  # noctalia bump.
+  noctalia = noctaliaFlake.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 lib.mkIf config.modules.desktop.niri.enable {
-  # Read by modules that must talk to the running bar (ntfy-voice's
-  # do-not-disturb probe). Quickshell's IPC client hashes the config path baked
-  # into the wrapper, so any other noctalia-shell package fails with
-  # "No running instances for <path>".
-  modules.desktop.niri.noctaliaShell = noctaliaShell;
-
-  # No `home.sessionVariables` here, deliberately. Home Manager writes those to
-  # $profile/etc/profile.d/hm-session-vars.sh, and nothing in this session
-  # sources that file: niri.service execs `niri --session` directly so no login
-  # shell runs, and /etc/static/profile has no profile.d loop either. Measured:
-  # niri's own environment contains no QT_* variable at all, which is why
-  # QT_QPA_PLATFORM / QT_QPA_PLATFORMTHEME / QT_AUTO_SCREEN_SCALE_FACTOR used to
-  # sit here without ever taking effect.
-  #
-  # Settings that must actually reach niri's children belong in the
-  # `environment` block of conf/config.kdl, where QT_QPA_PLATFORMTHEME=qt6ct now
-  # lives. `wayland;xcb` is dropped rather than moved because it is already Qt's
-  # own platform fallback order, and the qt6ct plugin needs the wrapper
-  # injection above regardless of which platform is picked.
-  #
-  # qt6ct itself is a home.packages entry in home/linux/gui/niri/qt.nix, next to
-  # the Kvantum theme it drives.
+  # Read by modules that must talk to the running shell (ntfy-voice's
+  # do-not-disturb probe). Unlike v4, v5's IPC socket is
+  # `$XDG_RUNTIME_DIR/noctalia-<WAYLAND_DISPLAY>.sock`, so it is independent of
+  # the store path and any `noctalia` binary on PATH can reach the instance --
+  # but pointing at the same build keeps the CLI and the daemon in lockstep.
+  modules.desktop.niri.noctalia = noctalia;
 
   home.packages = [
-    noctaliaShell
+    noctalia
+    # v5 runs `ddcutil` itself for DDC/CI brightness instead of linking a
+    # library, and its wrapper does not add it: the binary has to be on the
+    # session PATH, which the home-manager profile provides. This panel has no
+    # backlight device, so DDC is the only way to dim it. Also useful by hand
+    # (`ddcutil detect`) when a monitor's brightness control does not appear.
+    pkgs.ddcutil
+    # v5 resolves StatusNotifierItem glyphs through the icon theme itself, so
+    # the tray still needs breeze-icons for the symbolic icons that only live
+    # there (input-keyboard-symbolic, user-desktop, application-x-executable).
+    # Papirus-Dark comes from home/linux/gui/base/gtk.nix.
     pkgs.kdePackages.breeze-icons
-    pkgs.app2unit
-    pkgs.wlsunset
     pkgs.xrdb
   ]
   ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
+    # Not used by v5 itself: the screen recorder moved to the official
+    # `noctalia/screen_recorder` plugin, which drives this binary. Installed so
+    # enabling the plugin in Settings works without another rebuild.
     pkgs.gpu-screen-recorder
   ];
 
-  # No pkgs.papirus-icon-theme here. The tray lookup above only needs the icon
-  # theme to be reachable through XDG_DATA_DIRS, and home-manager's gtk module
-  # already puts gtk.iconTheme.package into home.packages -- see
-  # home/linux/gui/base/gtk.nix, which names Papirus-Dark. Listing it again here
-  # put the same store path into the profile twice. The copy that must stay is
-  # the *system* one in modules/nixos/desktop/niri.nix: nwg-hello runs as the
-  # greeter user before home-manager activation, so it cannot read this profile.
+  # v4 needed `wlsunset` (night light was a spawned helper) and `app2unit`
+  # (launcher entries were started through it). v5 does night light itself over
+  # wlr-gamma-control and launches apps directly, so both packages are gone.
 
   # ChatGPT runs through XWayland on this scaled output. Fcitx's XCB input
   # panel otherwise uses 96 DPI and renders smaller than native Wayland apps.
@@ -144,68 +80,61 @@ lib.mkIf config.modules.desktop.niri.enable {
   home.file."Pictures/Wallpapers".source = wallpapers;
 
   xdg.configFile = {
-    # Keep ~/.config/noctalia as a real directory so Noctalia can generate
-    # colors.json and other runtime state alongside the declarative files.
-    # qt6ct/qt6ct.conf is written by home/linux/gui/niri/qt.nix, next to the
-    # Kvantum config and the theme packages it depends on.
-    "noctalia/settings.json".source = ./noctalia/config/settings.json;
-    "noctalia/plugins.json".source = ./noctalia/config/plugins.json;
+    # v5 merges every *.toml in ~/.config/noctalia/ (alphabetically) and keeps
+    # its own runtime state -- GUI overrides, palettes, plugin materialisations,
+    # encrypted clipboard/notification history -- under
+    # ~/.local/state/noctalia/, so the config directory only holds this file.
+    "noctalia/config.toml".source = ./noctalia/config.toml;
+    # Custom palettes selected by `[theme] custom_palette`. v5 reads these from
+    # ~/.config/noctalia/palettes/<name>.json, so they have to live under the
+    # config directory rather than in the store-only tree. Macchiato is the
+    # active one (Catppuccin Macchiato + Latte); WhiteSur, Layan and Orchis are
+    # the alternatives -- switching is one line in config.toml, and v5 only ships
+    # Mocha built in.
+    "noctalia/palettes/WhiteSur.json".source = ./noctalia/palettes/WhiteSur.json;
+    "noctalia/palettes/Layan.json".source = ./noctalia/palettes/Layan.json;
+    "noctalia/palettes/Orchis.json".source = ./noctalia/palettes/Orchis.json;
+    "noctalia/palettes/Macchiato.json".source = ./noctalia/palettes/Macchiato.json;
   };
 
-  # Quickshell's IPC client locates the running bar by hashing the config path
-  # it is about to load: the instance directory is
-  # `by-path/<md5 of .../noctalia-shell/shell.qml>`. The noctalia-shell wrapper
-  # bakes `-p <store path>` in at build time, so any rebuild that changes the
-  # package produces a new path while the already-running bar keeps the old
-  # one. Every `noctalia-shell ipc call ...` in keybindings.kdl then fails with
+  # The previous bar may outlive a rebuild in two ways, and both leave the
+  # session looking broken:
   #
-  #   No running instances for "<new path>/shell.qml"
+  #   1. v4 (noctalia-shell/Quickshell) still running while v5 starts: two bars
+  #      on top of each other, and every `noctalia msg` from a keybind fails
+  #      because v4 never had that socket.
+  #   2. A v5 binary from an older store path: the socket name does not include
+  #      the store path, so the new CLI does talk to it, but the daemon is still
+  #      the old build with the old config schema.
   #
-  # and exits 255, so Mod+Space / Mod+D / XF86Search (launcher), volume,
-  # brightness, media keys, Mod+C, Mod+Shift+V, Mod+S and the locker all go
-  # dead until the bar is restarted. Measured after the 2026-10-15 rebuild: the
-  # running bar was on rmwmx3v03n896ds9lvdakynhv9g55vky while the wrapper on
-  # PATH was 53np1kxh2f6ahbzrsmcaj29pkfjfmgij, so `ipc call launcher toggle`
-  # exited 255 and niri's Mod+Space did nothing.
-  #
-  # Restart the bar only when that path actually changes. The state file is left
+  # Restart only when the store path actually changed. The state file is left
   # untouched whenever the restart cannot be performed, so a later activation
   # retries instead of recording a path that was never applied.
-  home.activation.restartNoctaliaShellOnPathChange = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    state_file="$HOME/.cache/niri-noctalia-shell-path"
-    shell_dir="${noctaliaShell}/share/noctalia-shell"
+  home.activation.restartNoctaliaOnPathChange = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    state_file="$HOME/.cache/niri-noctalia-path"
+    shell_bin="${noctalia}/bin/noctalia"
 
-    # Noctalia v5 (the C++ rewrite, binary `noctalia`) and v4 (`noctalia-shell`,
-    # Quickshell) cannot coexist: they draw the same bar and own the same
-    # notification name. Switching back from v5 leaves the v5 process running,
-    # because the guard below only fires when *this* build's path changes and v5
-    # has its own state file. Kill it unconditionally (no pgrep here, see below).
-    if [ -z "''${DRY_RUN:-}" ]; then
+    if [ "$(cat "$state_file" 2>/dev/null || true)" != "$shell_bin" ] && [ -z "''${DRY_RUN:-}" ]; then
+      # pgrep is unavailable here: home-manager-yoke.service gets a minimal
+      # coreutils/grep PATH with no procps, so scan /proc directly.
+      bar_pids=""
       for proc in /proc/[0-9]*; do
         cmd="$(tr '\0' ' ' < "$proc/cmdline" 2>/dev/null || true)"
         case "$cmd" in
-          */bin/noctalia|*/bin/noctalia\ *|*/.noctalia-wrapped*)
-            kill "''${proc#/proc/}" 2>/dev/null || true
+          # v4 shell left over from before the migration.
+          *"quickshell"*"noctalia-shell"*) bar_pids="$bar_pids ''${proc#/proc/}" ;;
+          # v5 daemon: the wrapper, the real .noctalia-wrapped binary, or a bare
+          # /bin/noctalia at the end of the command line.
+          *"/bin/noctalia "|*"/bin/noctalia"|*/.noctalia-wrapped*)
+            bar_pids="$bar_pids ''${proc#/proc/}"
             ;;
         esac
       done
-    fi
 
-    if [ "$(cat "$state_file" 2>/dev/null || true)" != "$shell_dir" ] && [ -z "''${DRY_RUN:-}" ]; then
-      # pgrep is unavailable here: home-manager-yoke.service gets a minimal
-      # coreutils/grep PATH with no procps, so scan /proc directly.
-      bar_pid=""
-      for proc in /proc/[0-9]*; do
-        if tr '\0' ' ' < "$proc/cmdline" 2>/dev/null | grep -q 'quickshell .*-p .*noctalia-shell'; then
-          bar_pid="''${proc#/proc/}"
-          break
-        fi
-      done
-
-      if [ -z "$bar_pid" ]; then
-        # No bar running: nothing to restart. niri's spawn-at-startup starts
+      if [ -z "$bar_pids" ]; then
+        # No shell running: nothing to restart. niri's spawn-at-startup starts
         # the new one at next login.
-        printf '%s' "$shell_dir" > "$state_file"
+        printf '%s' "$shell_bin" > "$state_file"
       else
         # NIRI_SOCKET is normally inherited from the systemd user manager,
         # which imports it at login; fall back to the runtime socket.
@@ -219,22 +148,28 @@ lib.mkIf config.modules.desktop.niri.enable {
           done
         fi
 
-        # Without a compositor socket the bar cannot be respawned, and
-        # killing it would leave the session without one. Skip and retry.
+        # Without a compositor socket the shell cannot be respawned, and
+        # killing it would leave the session without a bar. Skip and retry.
         if [ -n "''${NIRI_SOCKET:-}" ]; then
-          kill "$bar_pid" 2>/dev/null || true
-          for _ in $(seq 1 50); do
-            [ -e "/proc/$bar_pid" ] || break
-            sleep 0.1
+          # Kill every matching process first, then wait for all of them: a
+          # leftover bar from the other version must not survive the respawn.
+          for pid in $bar_pids; do
+            kill "$pid" 2>/dev/null || true
+          done
+          for pid in $bar_pids; do
+            for _ in $(seq 1 50); do
+              [ -e "/proc/$pid" ] || break
+              sleep 0.1
+            done
           done
 
           # niri is not on the activation PATH; the system profile path is
           # the same binary the running compositor uses.
           niri_bin="$(command -v niri || true)"
           [ -n "$niri_bin" ] || niri_bin=/run/current-system/sw/bin/niri
-          "$niri_bin" msg action spawn -- "${noctaliaShell}/bin/noctalia-shell" || true
+          "$niri_bin" msg action spawn -- "$shell_bin" || true
 
-          printf '%s' "$shell_dir" > "$state_file"
+          printf '%s' "$shell_bin" > "$state_file"
         fi
       fi
     fi

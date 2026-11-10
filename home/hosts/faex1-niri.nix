@@ -10,7 +10,7 @@
   # server's nginx buffers the /json stream — see the module for measurements.
   #
   # `respectDoNotDisturb` stays at its default but has no effect until
-  # modules.desktop.niri exposes `noctaliaShell`; without it the module skips
+  # modules.desktop.niri exposes `noctalia`; without it the module skips
   # the check and always speaks (see the option's description).
   modules.ntfyVoice = {
     enable = true;

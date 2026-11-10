@@ -10,6 +10,10 @@ extend-exclude = [
 # plugin), not a misspelling of Dracula.
 darcula = "darcula"
 
+# "Sur" from WhiteSur (the macOS Big Sur theme by vinceliuice) and Big Sur
+# itself; typos splits the camelCase and reads it as "Sure".
+sur = "sur"
+
 # Android's e2fsprogs fork, shipped in platform-tools; not a typo of "make".
 # `extend-identifiers` rather than `extend-words`: typos splits on the digit and
 # otherwise reports the "mke" fragment.

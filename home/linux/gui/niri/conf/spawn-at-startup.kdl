@@ -1,4 +1,5 @@
-// Noctalia: use niri spawn-at-startup (systemd user service is deprecated upstream).
-// https://docs.noctalia.dev/getting-started/compositor-settings/niri/
+// Noctalia v5: started from niri's spawn-at-startup (upstream recommends the
+// compositor over a systemd user service).
+// https://docs.noctalia.dev/noctalia/getting-started/running-the-shell/
 spawn-at-startup "sh" "-c" "xrdb -merge $HOME/.Xresources"
-spawn-at-startup "noctalia-shell"
+spawn-at-startup "noctalia"

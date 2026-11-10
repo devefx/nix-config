@@ -83,12 +83,15 @@ let
 
   cfg = config.modules.ntfyVoice;
 
-  # The same patched Noctalia build the session runs (see niri/noctalia.nix).
-  # The IPC socket is looked up by the md5 of the config path baked into the
-  # wrapper, so pointing the DND probe at any other noctalia-shell would fail
-  # with "No running instances" and silently disable the check. `or null`
-  # keeps this module importable without the niri option tree (Plasma hosts).
-  noctaliaShell = config.modules.desktop.niri.noctaliaShell or null;
+  # The same Noctalia build the session runs (see niri/noctalia.nix). v5's IPC
+  # socket is keyed by the Wayland display rather than the store path, so any
+  # noctalia binary can reach the running shell -- but using the session's own
+  # build keeps the CLI and the daemon on the same protocol. `or null` keeps
+  # this module importable without the niri option tree (Plasma hosts).
+  noctalia = config.modules.desktop.niri.noctalia or null;
+
+  # The DND probe needs both the option and a build to query.
+  respectDnd = cfg.respectDoNotDisturb && noctalia != null;
 
   # One bilingual model instead of two monolingual ones. Piper has no zh/en
   # model, so the previous setup had to split text by script and hand each run
@@ -138,7 +141,7 @@ let
       pkgs.pipewire # pw-play
       pkgs.xdg-utils # xdg-open, for the link button
     ]
-    ++ optional (noctaliaShell != null) noctaliaShell; # `ipc call state all`, DND check
+    ++ optional (noctalia != null) noctalia; # `msg notification-dnd-status`, DND check
     text = ''
       exec python3 ${./ntfy-voice.py}
     '';
@@ -222,11 +225,11 @@ in
       type = types.bool;
       default = true;
       description = ''
-        Skip speech while Noctalia's do-not-disturb (or performance mode) is on.
-        The desktop notification is still delivered: Noctalia itself decides
-        whether to pop it up. Requires `modules.desktop.niri`, which is what
-        provides the noctalia-shell build to query; without it the check is
-        skipped and alerts are always spoken.
+        Skip speech while Noctalia's do-not-disturb mode is on. The desktop
+        notification is still delivered: Noctalia itself decides whether to pop
+        it up. Requires `modules.desktop.niri`, which is what provides the
+        noctalia build to query; without it the check is skipped and alerts are
+        always spoken.
       '';
     };
 
@@ -264,9 +267,9 @@ in
           "NTFY_VOICE_SPEAK_ALL_TOPICS=${speakAllTopicList}"
           "NTFY_VOICE_VOICE_DATA=${cfg.voiceData}"
           "NTFY_VOICE_MAX_SPOKEN_CHARS=${toString cfg.maxSpokenChars}"
-          "NTFY_VOICE_RESPECT_DND=${if cfg.respectDoNotDisturb && noctaliaShell != null then "1" else "0"}"
+          "NTFY_VOICE_RESPECT_DND=${if respectDnd then "1" else "0"}"
         ]
-        ++ optional (noctaliaShell != null) "NTFY_VOICE_NOCTALIA_SHELL=${noctaliaShell}/bin/noctalia-shell"
+        ++ optional (noctalia != null) "NTFY_VOICE_NOCTALIA=${noctalia}/bin/noctalia"
         ++ optional (cfg.tokenFile != null) "NTFY_VOICE_TOKEN_FILE=${toString cfg.tokenFile}";
       };
 

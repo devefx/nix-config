@@ -1,0 +1,53 @@
+// Noctalia v5 + niri integration.
+// https://docs.noctalia.dev/noctalia/compositor-settings/niri/
+
+window-rule {
+  // Rounded corners for a modern look.
+  geometry-corner-radius 20
+
+  // Clips window contents to the rounded corner boundaries.
+  clip-to-geometry true
+}
+
+// v5's settings window is an ordinary toplevel (v4 drew Settings as a layer
+// surface). Open it floating at a fixed size instead of as a tiling column.
+window-rule {
+  match app-id="dev.noctalia.Noctalia"
+  open-floating true
+  default-column-width { fixed 1080; }
+  default-window-height { fixed 920; }
+}
+
+debug {
+  // Allows notification actions and window activation from Noctalia.
+  honor-xdg-activation-with-invalid-serial
+}
+
+// v5 draws the blurred, tinted copy of the wallpaper on its own backdrop layer
+// (`[backdrop] enabled` in config.toml). Placing it in niri's backdrop keeps it
+// visible behind the overview only, which is what v4's overview wallpaper did.
+layer-rule {
+  match namespace="^noctalia-backdrop"
+  place-within-backdrop true
+}
+
+// Noctalia publishes blur regions for its own surfaces when the compositor
+// supports ext-background-effect-v1. niri's default xray behaviour samples the
+// wallpaper instead of what is behind the surface, which shows through the
+// anti-aliased corners of the rounded bar and panels; turning xray off makes the
+// blur use the windows below.
+layer-rule {
+  match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+  background-effect {
+    xray false
+  }
+}
+
+// The window switcher is fullscreen and should blur what it covers.
+layer-rule {
+  match namespace="noctalia-window-switcher"
+  background-effect {
+    blur true
+    xray false
+  }
+}

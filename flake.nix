@@ -11,10 +11,15 @@
       # cache.nixos.org, so without this every gufo bump compiles LLVM+ROCm
       # from source (hours). Same keys the upstream flake declares.
       "https://gufo.cachix.org"
+      # noctalia's cache, built against the nixpkgs pinned in its own flake.
+      # It only hits while the noctalia input keeps its own nixpkgs (see below);
+      # adding `inputs.nixpkgs.follows` would force a local C++ build.
+      "https://noctalia.cachix.org"
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "gufo.cachix.org-1:rfZe3n4lHINgyoACKzs5EthIZmBNvEyCCtufUpth0PE="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
   };
 
@@ -83,6 +88,16 @@
       url = "github:gufo-org/gufo/v0.26.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Noctalia v5 - the C++/Wayland rewrite of the desktop shell. It is a
+    # different program from the v4 `noctalia-shell` (Quickshell) package, so it
+    # is a separate input rather than a nixpkgs version bump: nixpkgs unstable
+    # still carries 5.2.1, while the config here uses keys added in 5.3/5.4.
+    #
+    # Deliberately NOT following our nixpkgs: upstream publishes prebuilt
+    # binaries on cachix built against their own nixpkgs pin, and following ours
+    # would change the derivation hash and force a local C++ build.
+    noctalia.url = "github:noctalia-dev/noctalia/v5.4.1";
 
     # age-encrypted secrets — asymmetric (age keys). Encrypted `.age` files
     # live in the private nix-secrets repo; decrypted at activation using the

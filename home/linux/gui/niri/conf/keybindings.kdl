@@ -189,12 +189,14 @@ binds {
     // moving the mouse or pressing any other key.
     Mod+Shift+P hotkey-overlay-title="关闭所有显示器" { power-off-monitors; }
 
-    // Utility shortcuts
-    Mod+Shift+V hotkey-overlay-title="打开剪贴板历史" { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
-    Mod+C hotkey-overlay-title="打开计算器" { spawn "noctalia-shell" "ipc" "call" "launcher" "calculator"; }
+    // Utility shortcuts. Noctalia v5 replaced `noctalia-shell ipc call ...`
+    // with `noctalia msg ...`; the calculator is a launcher provider, so it is
+    // opened with the launcher's trigger query instead of a dedicated call.
+    Mod+Shift+V hotkey-overlay-title="打开剪贴板历史" { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
+    Mod+C hotkey-overlay-title="打开计算器" { spawn "noctalia" "msg" "panel-toggle" "launcher" "/calc"; }
 
-    Mod+S hotkey-overlay-title="打开控制中心" { spawn "noctalia-shell" "ipc" "call" "controlCenter" "toggle"; }
-    Mod+E hotkey-overlay-title="打开会话菜单" { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+    Mod+S hotkey-overlay-title="打开控制中心" { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
+    Mod+E hotkey-overlay-title="打开会话菜单" { spawn "noctalia" "msg" "panel-toggle" "session"; }
 
     // Hardware function keys. Keep last so they appear at the end of the
     // hotkey overlay.
@@ -221,9 +223,9 @@ binds {
     Mod+Ctrl+0 hotkey-overlay-title="将当前列移到其他工作区" { move-column-to-workspace "0other"; }
 
     // Launcher
-    Mod+D hotkey-overlay-title="打开应用启动器" { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
-    Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
-    XF86Search { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+    Mod+D hotkey-overlay-title="打开应用启动器" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
+    Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
+    XF86Search { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
 
     // Vicinae launcher. It runs as a separate daemon (`vicinae server`, started
     // by the home-manager module's systemd unit) and the client is just an IPC
@@ -231,7 +233,7 @@ binds {
     Alt+Space hotkey-overlay-title="打开 Vicinae 启动器" { spawn "vicinae" "toggle"; }
 
     // Locker
-    CTRL+Alt+L hotkey-overlay-title="锁定屏幕" { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    CTRL+Alt+L hotkey-overlay-title="锁定屏幕" { spawn "noctalia" "msg" "session" "lock"; }
 
     // Example volume keys mappings for PipeWire & WirePlumber.
     // The allow-when-locked=true property makes them work even when the session is locked.
@@ -241,10 +243,10 @@ binds {
     // XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-"; }
     // XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
     // XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
-    XF86AudioRaiseVolume allow-when-locked=true hotkey-overlay-title="提高音量" { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
-    XF86AudioLowerVolume allow-when-locked=true hotkey-overlay-title="降低音量" { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
-    XF86AudioMute allow-when-locked=true hotkey-overlay-title="切换输出静音" { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
-    XF86AudioMicMute allow-when-locked=true hotkey-overlay-title="切换麦克风静音" { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
+    XF86AudioRaiseVolume allow-when-locked=true hotkey-overlay-title="提高音量" { spawn "noctalia" "msg" "volume-up"; }
+    XF86AudioLowerVolume allow-when-locked=true hotkey-overlay-title="降低音量" { spawn "noctalia" "msg" "volume-down"; }
+    XF86AudioMute allow-when-locked=true hotkey-overlay-title="切换输出静音" { spawn "noctalia" "msg" "volume-mute"; }
+    XF86AudioMicMute allow-when-locked=true hotkey-overlay-title="切换麦克风静音" { spawn "noctalia" "msg" "mic-mute"; }
 
     // Example media keys mapping using playerctl.
     // This will work with any MPRIS-enabled media player.
@@ -252,18 +254,18 @@ binds {
     // XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
     // XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
     // XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
-    XF86AudioPlay allow-when-locked=true hotkey-overlay-title="播放或暂停媒体" { spawn-sh "noctalia-shell ipc call media playPause"; }
-    XF86AudioStop allow-when-locked=true hotkey-overlay-title="停止媒体播放" { spawn-sh "noctalia-shell ipc call media pause"; }
-    XF86AudioPrev allow-when-locked=true hotkey-overlay-title="播放上一个媒体" { spawn-sh "noctalia-shell ipc call media previous"; }
-    XF86AudioNext allow-when-locked=true hotkey-overlay-title="播放下一个媒体" { spawn-sh "noctalia-shell ipc call media next"; }
+    XF86AudioPlay allow-when-locked=true hotkey-overlay-title="播放或暂停媒体" { spawn "noctalia" "msg" "media" "toggle"; }
+    XF86AudioStop allow-when-locked=true hotkey-overlay-title="停止媒体播放" { spawn "noctalia" "msg" "media" "pause"; }
+    XF86AudioPrev allow-when-locked=true hotkey-overlay-title="播放上一个媒体" { spawn "noctalia" "msg" "media" "previous"; }
+    XF86AudioNext allow-when-locked=true hotkey-overlay-title="播放下一个媒体" { spawn "noctalia" "msg" "media" "next"; }
 
     // Example brightness key mappings for brightnessctl.
     // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
     // but you need to manually put each argument in separate "" quotes.
     // XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%+"; }
     // XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
-    XF86MonBrightnessUp allow-when-locked=true hotkey-overlay-title="提高屏幕亮度" { spawn "noctalia-shell" "ipc" "call" "brightness" "increase"; }
-    XF86MonBrightnessDown allow-when-locked=true hotkey-overlay-title="降低屏幕亮度" { spawn "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
+    XF86MonBrightnessUp allow-when-locked=true hotkey-overlay-title="提高屏幕亮度" { spawn "noctalia" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true hotkey-overlay-title="降低屏幕亮度" { spawn "noctalia" "msg" "brightness-down"; }
 
     // keyboard backlight
     XF86KbdBrightnessUp allow-when-locked=true hotkey-overlay-title="提高键盘背光" { spawn "brightnessctl" "--device=kbd_backlight" "set" "10%+"; }

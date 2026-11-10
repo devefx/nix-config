@@ -1,0 +1,864 @@
+# Noctalia v5 configuration.
+#
+# v5 is a ground-up C++/Wayland rewrite, not an upgrade of the Quickshell v4
+# shell: it uses a different binary (`noctalia`, not `noctalia-shell`), a
+# different IPC (`noctalia msg ...`), and a TOML config instead of
+# settings.json. Upstream does not migrate v4 settings, so this file is the old
+# `settings.json` translated key by key; comments below call out every place
+# where v5 has no equivalent or where the mapping is an approximation.
+#
+# How the config is loaded (upstream: docs.noctalia.dev/noctalia/configuration/):
+#
+#   ~/.config/noctalia/*.toml                 every file, merged alphabetically
+#   ~/.local/state/noctalia/settings.toml     GUI overrides, loaded last, wins
+#
+# Everything here is declarative. Anything changed in the Settings GUI is
+# written to settings.toml and will override the matching key below, which is
+# upstream's intended behaviour for runtime state (wallpaper picks, widget
+# layout edits, and so on).
+#
+# Defaults for every key live in upstream's example.toml; keys omitted here are
+# left at their defaults on purpose.
+
+# ── Shell ─────────────────────────────────────────────────────────────────────
+
+[storage]
+# Clipboard history and notification history are encrypted at rest; the master
+# key comes from the session keyring (GNOME Keyring / KWallet).
+key_source = "secret-service"
+
+[shell]
+# v4: general.radiusRatio / boxRadiusRatio / iRadiusRatio / scaleRatio = 1.
+corner_radius_scale = 1.0
+# v4: ui.fontDefault.
+font_family = "Maple Mono NF CN"
+# v4: general.language = "" (auto-detect).
+lang = ""
+# v4: general.avatarImage.
+avatar_path = "~/.face.icon"
+# v4: general.passwordChars = false.
+password_style = "default"
+# v4: general.autoStartAuth = false - another agent owns polkit prompts.
+polkit_agent = false
+# v4: general.telemetryEnabled = false.
+telemetry_enabled = false
+# v4: location.hideWeatherCityName = false.
+show_location = true
+# v4: ui.boxBorderEnabled = false. Deliberately turned back on: v5 draws no
+# per-card shadow, so without the outline the section cards inside the Control
+# Center, launcher and Settings sit flat on the panel background -- the "no
+# depth" look. The outline uses outline_variant, which is one step above the
+# card fill.
+card_borders = true
+# v4: appLauncher.customLaunchPrefixEnabled = false.
+launch_apps_custom_command = ""
+# v4: appLauncher.enableClipboardHistory = true.
+clipboard_enabled = true
+# v4: appLauncher.autoPasteClipboard = false.
+clipboard_auto_paste = "off"
+# v4: general.showChangelogOnStartup had no declarative switch in v5; the
+# first-run wizard is the closest thing and it must not pop up on a
+# declaratively managed session.
+setup_wizard_enabled = false
+
+[shell.animation]
+# v4: general.animationDisabled = false, general.animationSpeed = 1.
+enabled = true
+speed = 1.0
+
+[shell.shadow]
+# v4: general.enableShadows = true, general.shadowDirection = "bottom_right".
+# alpha is multiplied by each surface's background opacity; 0.55 (the default)
+# barely registers on translucent panels, 0.75 gives the bar, panels and popups
+# an edge that separates them from the wallpaper.
+direction = "down_right"
+alpha = 0.75
+
+[shell.panel]
+# v4: ui.panelBackgroundOpacity = 0.85. v5 replaces the numeric opacity with a
+# three-step mode. "glass" (floating panels 0.55, cards 0.75) is what makes the
+# cards read as raised frosted panes: the panel behind them is darker (0.55 of
+# the near-black surface plus the blurred wallpaper) and the cards are a light
+# grey (#4a4a4a), so the 25% see-through shows the blur underneath while the
+# card still sits clearly above it. At "soft" the cards are 92% opaque, which
+# hides the blur completely and they read as painted-on rectangles.
+transparency_mode = "glass"
+# v4: ui.panelsAttachedToBar = true.
+#
+# Control Center is the one panel that does NOT attach: an attached panel
+# inherits the *bar's* backgroundOpacity (panel_manager.cpp:
+# m_attachedBackgroundOpacity = barConfig.backgroundOpacity), which is 0.3 here,
+# so the panel body was near-transparent over the bright blurred wallpaper while
+# the cards on it were 0.92 opaque surface_container -- the same light/dark clash
+# the capsules had. A floating panel uses
+# detachedPanelBackgroundOpacityForTransparencyMode("soft") = 0.80, which sits
+# next to the 0.92 cards instead of far below them.
+launcher_placement = "floating"
+clipboard_placement = "attached"
+control_center_placement = "floating"
+wallpaper_placement = "attached"
+session_placement = "attached"
+# v4: appLauncher.position = "center". In v5 a floating panel with "center" is
+# pinned to the middle of the output -- that is the reference layout: the
+# launcher floats free in the centre with its own rounded card and shadow,
+# instead of hanging off the top bar. "auto" would keep it bar-relative
+# (attached to the bar edge) and is what this config used before.
+launcher_position = "center"
+# v4: controlCenter.position = "close_to_bar_button".
+open_near_click_control_center = true
+# v4: wallpaper.panelPosition = "follow_bar".
+wallpaper_position = "auto"
+
+[shell.launcher]
+# v4: appLauncher.iconMode/showIconBackground/enableClipPreview/
+# enableClipboardChips/enableClipboardSmartIcons have no v5 equivalent.
+layout = "full"
+# 760 is v5's default and the width the reference layout uses. It also has to
+# stay above kCompactNavigationWidth (680) + the settings button (~38), because
+# below that threshold launcher_panel.cpp switches the top tabs (Recent / All /
+# Categories / Providers) to icon-only and drops their labels.
+width = 760
+# The reference layout puts the search field at the bottom of the panel, with
+# the tabs on top, the result list in between and the profile avatar / power
+# button in the same bottom row.
+search_position = "bottom"
+# v4 opened the launcher on the full application list sorted by usage
+# (appLauncher.sortByMostUsed = true), which is v5's "all" view; v5's default
+# "recent" view has no v4 counterpart.
+default_view = "all"
+# v4: appLauncher.showCategories = true (v5 only uses this in the simple layout).
+# Category chips show their icon only; the full name stays in the hover tooltip.
+# This is what keeps the row short enough for a compact panel width.
+categories = true
+category_icons_only = true
+# v4: appLauncher.enableSettingsSearch / enableSessionSearch.
+show_settings_button = true
+show_session_button = true
+# v4: appLauncher.showIconBackground is gone; icons themselves stay on.
+show_icons = true
+show_app_origin_indicator = true
+# v4: appLauncher.viewMode = "list".
+compact = false
+app_grid = false
+track_usage = true
+sort_by_usage = true
+# v4: appLauncher.ignoreMouseInput = false.
+ignore_mouse = false
+# v4: appLauncher.pinnedApps = [].
+pinned = []
+provider_prefix = "/"
+# v4: appLauncher.autoPasteClipboard = false.
+auto_paste = "off"
+
+# v4: appLauncher.enableSessionSearch = true and
+# appLauncher.enableWindowsSearch = true put both providers in the unprefixed
+# search. Calculator stays global by default (v4 bound Mod+C to it directly).
+[shell.launcher.providers.session]
+global = true
+
+[shell.launcher.providers.windows]
+global = true
+
+[shell.mpris]
+# v4: audio.mprisBlacklist = [].
+blacklist = []
+
+[shell.screenshot]
+# v4 had no screenshot policy of its own (niri keybinds used grim/slurp/satty).
+# Keep v5's defaults so the built-in screenshot widget and IPC commands behave
+# like a stock install.
+annotate = false
+
+# v4: general.showScreenCorners = false.
+[shell.screen_corners]
+enabled = false
+
+# v4: sessionMenu.* - countdownDuration 10000 / enableCountdown true applied to
+# every power option, largeButtonsStyle + largeButtonsLayout "grid", and
+# showKeybinds true.
+[shell.session]
+grid = true
+grid_columns = 3
+show_shortcuts = true
+
+[[shell.session.actions]]
+action = "lock"
+shortcut = "1"
+countdown_seconds = 10
+
+[[shell.session.actions]]
+action = "suspend"
+shortcut = "2"
+countdown_seconds = 10
+
+# v4 offered Hibernate; v5's built-in actions do not, so it is a command row.
+[[shell.session.actions]]
+action = "command"
+label = "Hibernate"
+glyph = "bed"
+command = "systemctl hibernate"
+shortcut = "3"
+countdown_seconds = 10
+
+[[shell.session.actions]]
+action = "reboot"
+shortcut = "4"
+countdown_seconds = 10
+
+[[shell.session.actions]]
+action = "logout"
+shortcut = "5"
+countdown_seconds = 10
+
+[[shell.session.actions]]
+action = "shutdown"
+shortcut = "6"
+countdown_seconds = 10
+
+# v4: sessionMenu powerOptions[rebootToUefi] had no keybind.
+[[shell.session.actions]]
+action = "reboot_uefi"
+shortcut = ""
+countdown_seconds = 10
+
+# v4: general.keybinds. Return/Enter, Esc, arrows and Del map one to one; the
+# tab keys keep v5's defaults.
+[keybinds]
+validate = [
+  "return",
+  "kp_enter",
+]
+cancel = ["escape"]
+left = ["left"]
+right = ["right"]
+up = ["up"]
+down = ["down"]
+delete = ["del"]
+
+# ── Bar ───────────────────────────────────────────────────────────────────────
+
+# v4 layout:
+#   left   Launcher, Clock, SystemMonitor, ActiveWindow, MediaMini
+#   center Workspace
+#   right  NotificationHistory, Battery, Volume, Brightness, Tray, ControlCenter
+#
+# v5 lanes are start/center/end and the center lane is pinned to the bar
+# midline, while a start lane that grows past it simply overlaps the center
+# slot (bar.cpp: startSlotMain = centerSlotStart - contentMainStart). v4's left
+# group -- launcher + clock + five sysmon values + active window + media -- is
+# wider than the space left of the midline on this 1741px logical desktop, so
+# MediaMini was drawn right on top of the workspace pills.
+#
+# Media and the active-window widget therefore move to the head of the end lane
+# (v5 ships media there by default) and the start lane keeps only launcher,
+# clock and the sysmon group. Everything else keeps v4's order.
+#
+# One v4 widget can also map to several v5 ones (SystemMonitor became a set of
+# single-stat `sysmon` widgets), so the widths are not identical to v4's single
+# compact widget.
+[bar.main]
+position = "top"
+thickness = 34
+# macOS-style frosted glass. The palette supplies a neutral graphite surface
+# (#1e1e1e), the bar stays translucent on top of it, and niri's layer-rule blurs
+# whatever is behind it -- the same construction as the macOS menu bar, where a
+# grey surface over a blurred wallpaper is what produces the perceived colour.
+# 0.3 keeps a little more of the graphite surface than the 0.2 tried before;
+# at 0.2 the strip lost most of its own tone and looked like bare wallpaper.
+# niri's blur (passes 2 in config.kdl) turns the remainder into frosted glass.
+# v4: bar.backgroundOpacity = 0.2.
+background_opacity = 0.3
+# v5 publishes a blur region when the compositor supports
+# ext-background-effect; niri's layer-rule in noctalia.kdl keeps xray off.
+compositor_blur = true
+# v4: bar.frameRadius = 12.
+radius = 12
+# v4: bar.marginHorizontal = 5 / bar.marginVertical = 5. A non-zero margin_edge
+# floats the bar, so the concave screen-edge corners cannot apply.
+margin_ends = 5
+margin_edge = 5
+concave_edge_corners = false
+padding = 14
+# v4: bar.widgetSpacing = 6.
+widget_spacing = 6
+scale = 1.0
+font_scale = 1.0
+shadow = true
+# v4: bar.displayMode = "always_visible" (the 500 ms auto-hide delay was inert).
+auto_hide = false
+auto_hide_delay_ms = 500
+# v4: bar.showOnWorkspaceSwitch = true.
+show_on_workspace_switch = true
+# v4: bar.enableExclusionZoneInset = true.
+reserve_space = true
+# v4 also had hideOnOverview = true (hide the bar while niri's overview is open).
+# v5 has no equivalent: the bar stays visible on the top layer, and the only
+# overview-aware behaviour is Smart auto-hide, which keeps the bar *shown* while
+# the overview is open.
+# v4: bar.showCapsule = true, capsuleOpacity = 1, useSeparateOpacity = true.
+#
+# capsule_padding is NOT v4's contentPadding = 2. The two are different knobs:
+# v4's contentPadding was inner content spacing inside an already-padded
+# capsule, while v5's capsule_padding *is* the gap between the capsule edge and
+# its content. At 2 every pill had its text flush against the edge, and the
+# launcher capsule (16px glyph + 2x2) came out narrower than its 26px height, so
+# the round icon background turned into a vertical ellipse. 8 gives the
+# horizontal breathing room v4 had while staying narrower than the 34px bar.
+#
+# capsule_opacity is a touch above the bar's so the widgets read as raised
+# frosted cards over the strip rather than sinking into it. The fill is the
+# palette's card grey (#2a2a2a).
+capsule = true
+capsule_fill = "surface_container"
+capsule_opacity = 0.5
+capsule_padding = 8
+# v4: bar.showOutline = false (frameThickness 8 was unused).
+border_width = 0
+
+start = [
+  "launcher",
+  "clock",
+  "group:sysmon",
+]
+center = ["workspaces"]
+end = [
+  "active_window",
+  "media",
+  "notifications",
+  "battery",
+  "volume",
+  "brightness",
+  "tray",
+  "control-center",
+]
+
+# v4's SystemMonitor was one capsule holding five values; v5 needs five widgets,
+# so a capsule group puts them back inside a single pill and drops the per-widget
+# capsule padding between them. The lane references the group as `group:sysmon`.
+[[bar.main.capsule_group]]
+id = "sysmon"
+members = [
+  "sysmon-cpu",
+  "sysmon-ram",
+  "sysmon-disk",
+  "sysmon-net-rx",
+  "sysmon-net-tx",
+]
+fill = "surface_container"
+padding = 8.0
+opacity = 0.5
+widget_spacing = 6
+
+# v4: bar.middleClickAction = "none", bar.mouseWheelAction = "none" for the bar
+# background. Right click still opens the Control Center (v4
+# rightClickAction = "controlCenter", v5 default).
+[bar.main.dead_zone.actions]
+middle = "none"
+scroll_up = "none"
+scroll_down = "none"
+
+# ── Bar widgets ───────────────────────────────────────────────────────────────
+
+# v4: bar.widgets.left[Launcher] icon = "rocket", useDistroLogo = false.
+#
+# capsule_padding is narrowed to 5 for this widget alone: the capsule is
+# 0.76 x 34 = 26px tall, and the glyph is 16px, so 5px on each side makes the
+# pill exactly 26x26 - the circular icon background v4 drew. The bar-wide 8 is
+# right for text widgets but would stretch this one into an ellipse.
+[widget.launcher]
+glyph = "rocket"
+capsule_padding = 5.0
+
+# v4: formatHorizontal "HH:mm ddd, MMM dd", tooltipFormat the same, custom font
+# off (so the shell font applies). Written as a bare strftime pattern: v5 parses
+# `{:...}` chrono fields and bare patterns through the same formatter, but the
+# bare form skips the std::vformat path entirely, which is the one that can
+# silently render nothing when the C++ locale is odd.
+[widget.clock]
+format = "%H:%M %a, %b %d"
+vertical_format = "%H\n%M"
+tooltip_format = "%H:%M %a, %b %d"
+
+# v4 SystemMonitor showed CPU, RAM (percent), disk usage, load average and
+# network throughput in one widget. v5's `sysmon` widget shows exactly one stat,
+# so the same information needs one widget per stat:
+#
+#   showCpuUsage = true              -> sysmon-cpu      cpu_usage
+#   showMemoryUsage + AsPercent      -> sysmon-ram      ram_pct
+#   showDiskUsage (not as percent)   -> sysmon-disk     disk_used
+#   showNetworkStats = true          -> sysmon-net-rx/tx
+#   showLoadAverage = true           -> no equivalent (v5 only exposes load
+#                                       averages in Control Center -> System)
+#
+# v4 useMonospaceFont = true used ui.fontFixed; the same family is repeated
+# here. v4 compactMode/usePadding/showCpuFreq/showCpuTemp/showSwapUsage were
+# false, so those stats are simply not added.
+[widget.sysmon-cpu]
+type = "sysmon"
+stat = "cpu_usage"
+visualization = "none"
+font_family = "Maple Mono NF CN"
+
+[widget.sysmon-ram]
+type = "sysmon"
+stat = "ram_pct"
+visualization = "none"
+font_family = "Maple Mono NF CN"
+
+[widget.sysmon-disk]
+type = "sysmon"
+stat = "disk_used"
+path = "/"
+visualization = "none"
+font_family = "Maple Mono NF CN"
+
+# v4's network readout was a bare "20KB/s" because its SystemMonitor printed
+# the unit itself. v5 appends "/s" unless network_speed_compact is on, which
+# switches to the short suffix (20K / 1.6K) and drops the slash without losing
+# the magnitude.
+[widget.sysmon-net-rx]
+type = "sysmon"
+stat = "net_rx"
+visualization = "none"
+font_family = "Maple Mono NF CN"
+network_speed_compact = true
+
+[widget.sysmon-net-tx]
+type = "sysmon"
+stat = "net_tx"
+visualization = "none"
+font_family = "Maple Mono NF CN"
+network_speed_compact = true
+
+# v4: maxWidth 145, showIcon + showText, scrollingMode "hover",
+# hideMode "hidden", useFixedWidth false.
+[widget.active_window]
+max_length = 145
+display = "icon_and_text"
+title_scroll = "on_hover"
+show_empty_label = false
+
+# v4 MediaMini: maxWidth 145, showAlbumArt false, showArtistFirst true,
+# showProgressRing true, showVisualizer false, scrollingMode "hover",
+# hideWhenIdle false, compactMode false. v5 has no progress ring on the bar
+# widget and no per-widget visualizer; album art is hidden and the artist comes
+# first, as in v4.
+[widget.media]
+max_length = 145
+hide_album_art = true
+artist_first = true
+title_scroll = "on_hover"
+hide_when_idle = false
+# v4 MediaMini hideMode = "hidden": no MPRIS player means no widget.
+hide_when_no_media = true
+
+# v4 Workspace widget: characterCount 2, labelMode "index", fontWeight "bold",
+# pillSize 0.6, showApplications false, showBadge true,
+# showLabelsOnlyWhenOccupied true, hideUnoccupied false, focusedColor primary,
+# occupiedColor/emptyColor secondary, colorizeIcons false.
+#
+# pillSize is NOT mapped to v5's pill_scale: v4's pillSize sized the pill body,
+# while v5's pill_scale multiplies the pill height *and* the slot width
+# (pillHeight = baseGlyphSize * contentScale * pillScale, padding = baseSize *
+# 0.6), so 0.6 shrank the pill to 60% of the bar height and squeezed the digits
+# into a flat capsule. v5's default 1.0 keeps the pill at the bar's natural
+# glyph height.
+#
+[widget.workspaces]
+style = "regular"
+show_labels = true
+label_source = "id"
+max_label_chars = 2
+show_icons = false
+# Regular weight: at 700 the digits render as a heavy slab inside the pill, and
+# the fill already carries the emphasis (light pill, dark digit).
+font_weight = 400
+# v5 draws workspace labels at Style::fontSizeMini (11px) inside a 16px-tall
+# pill. 1.1 gives ~12px: enough to read at a glance, still leaving vertical
+# breathing room so the digits do not touch the pill edges (1.27 filled the pill
+# completely and read as oversized next to the 16px glyphs elsewhere on the bar).
+font_scale = 1.1
+# Active workspace is the elongated capsule (2.2x thickness); the rest stay
+# circular, so the current workspace is distinguishable by shape as well.
+active_pill_size = 2.2
+inactive_pill_size = 1.0
+# Empty workspaces draw a bare circle with no digit, which is what v4 does
+# (`showLabelsOnlyWhenOccupied = true`). v5 has no separate number badge, so the
+# label switch is the only knob: with this false every pill carries a digit.
+labels_only_when_occupied = true
+hide_when_empty = false
+# Pill *fills*. The active pill uses the `primary` role so it follows the
+# day/night palette: sapphire #7dc4e4 in Macchiato, #209fb5 in Latte (identical in
+# dark mode, darker in light mode where a pale cyan would wash out).
+#
+# occupied/empty stay fixed hex: v5's role vocabulary is closed (primary /
+# secondary / tertiary / error + the surface family) and has nothing for
+# subtext0 or overlay0. Both are mid-tones that read on either background, and a
+# fixed fill makes v5 derive the digit colour itself
+# (readableColorForFill -> readableTextColorForBackground), so no on_* role is
+# needed.
+#   occupied #a5adcb  subtext0 circle, dark digit
+#   empty    #6e738d  overlay0 circle, no digit (labels_only_when_occupied)
+#
+# Note: v5 multiplies the empty pill's alpha by 0.55 before drawing
+# (workspaces_widget.cpp: `color.alpha *= 0.55F`), so overlay0 renders as a
+# translucent version of itself over the bar, not as flat #6e738d.
+focused_color = "primary"
+occupied_color = "#a5adcb"
+empty_color = "#6e738d"
+# On hover v5 swaps the pill's fill for the theme's `hover` role (#f0c6c6) and
+# its digits for `on_hover` (#181926 crust), matching v4, which used
+# Color.mHover / Color.mOnHover for the hovered pill. That value differs from all
+# three fills above, so every pill visibly changes under the pointer.
+change_color_on_hover = true
+
+# v4 NotificationHistory: showUnreadBadge true, hideWhenZero false.
+[widget.notifications]
+hide_when_no_unread = false
+
+# v4 Battery: displayMode "icon-always", deviceNativePath "__default__",
+# hideIfNotDetected true. v5 hides itself when no battery is present, which is
+# the same behaviour on this desktop.
+[widget.battery]
+display_mode = "glyph"
+show_label = false
+device = "auto"
+
+# v4 Volume: displayMode "alwaysShow", middleClickCommand
+# "pwvucontrol || pavucontrol".
+[widget.volume]
+show_glyph = true
+show_label = true
+
+[widget.volume.actions]
+middle = "exec pwvucontrol || pavucontrol"
+
+# v4 Brightness: displayMode "alwaysShow" (so it stays visible even when the
+# monitor has no controllable backlight), applyToAllMonitors false.
+[widget.brightness]
+show_glyph = true
+show_label = true
+show_when_unavailable = true
+
+# v4 Tray: drawerEnabled true, hidePassive false, blacklist/pinned empty.
+#
+# v5 draws the drawer as a floating panel of app-provided icons, and v5.4.1 has
+# no way to restyle them: `icon_type` (symbolic/desktop), `colorize_icons` and
+# `drawer_background_opacity` only exist on upstream main (5.5-dev), so they are
+# rejected as unknown keys by this release. The only lever here is size:
+#
+#   drawer_item_size = 24   one cell size instead of every icon's own intrinsic
+#                           size (default: inherit), which is what made Chrome
+#                           large, Telegram small and the white fallback huge in
+#                           the same grid. 24 is the size v4 drew.
+#
+# Items that are not wanted at all go in `hidden` (id/name/bus/path token);
+# `pinned` keeps an item visible on the bar when the drawer is enabled.
+[widget.tray]
+drawer = true
+hide_passive = false
+hidden = []
+pinned = []
+# 24 matches the size v4 drew; without an explicit value v5 renders each item at
+# its own intrinsic size, which is what made the drawer look ragged.
+drawer_item_size = 24
+drawer_columns = 3
+
+# v4 ControlCenter: icon "noctalia", useDistroLogo true.
+[widget.control-center]
+glyph = "noctalia"
+
+# ── Theme ─────────────────────────────────────────────────────────────────────
+
+# v4 colorSchemes: darkMode true, useWallpaperColors true,
+# generationMethod "tonal-spot", predefinedScheme "Noctalia (default)",
+# schedulingMode "off", syncGsettings true.
+#
+# v4 used wallpaper-derived colours (colorSchemes.useWallpaperColors). That is
+# still possible here (source = "wallpaper"), but every wallpaper-generated
+# scheme inherits the wallpaper's hue, and this wallpaper is blue-violet: even
+# "muted" kept the panels navy. The built-in palettes are no help either --
+# "Noctalia" is navy by design (#070722 / #11112d) and every Catppuccin flavour
+# keeps a blue-violet cast (#1e1e2e / #313244 for Mocha), which is exactly the
+# "one pale blue over one dark blue" that reads wrong against this wallpaper.
+#
+# Catppuccin Macchiato (dark) + Latte (light) is the default. Both halves live in
+# palettes/Macchiato.json, so `mode = "auto"` swaps them on the [location]
+# sunrise/sunset schedule. v5 only ships Mocha built in, hence the custom file.
+#
+# Accents are picked by hand (surfaces and text keep the standard mapping), so
+# this is NOT the stock Catppuccin assignment; the same role carries the same
+# accent in both variants:
+#              dark (Macchiato)          light (Latte)
+#   primary    sapphire #7dc4e4          #209fb5
+#   secondary  flamingo #f0c6c6          #dd7878
+#   tertiary   teal     #8bd5ca          #179299
+#   error      red      #ed8796          #d20f39
+#   hover      flamingo #f0c6c6          #dd7878
+#   surface    base     #24273a          #eff1f5
+#   text       #cad3f5                   #4c4f69
+#
+# Alternatives in palettes/, mapped the same way (the scheme's Selection ->
+# primary, Neutral -> secondary, Positive -> tertiary, Negative -> error,
+# Window/View -> surface and cards):
+#   WhiteSur.json  vinceliuice/WhiteSur-kde   #315bef  macOS Big Sur
+#   Layan.json     vinceliuice/Layan-kde      #5657f5  Material indigo
+#   Orchis.json    vinceliuice/Orchis-kde     #1a73e8  Google blue
+# Switching is one line plus `noctalia msg config-reload`.
+[theme]
+mode = "dark"
+shell_mode = "follow"
+source = "custom"
+custom_palette = "Macchiato"
+sync_color_scheme = true
+
+# ── Wallpaper ─────────────────────────────────────────────────────────────────
+
+# v4 wallpaper: enabled true, directory ~/Pictures/Wallpapers,
+# fillMode "crop", fillColor #000000, transitionType
+# [fade, disc, stripes, wipe, pixelate, honeycomb] -> v5's "pixel",
+# transitionDuration 1500, transitionEdgeSmoothness 0.05,
+# skipStartupTransition false, viewMode "recursive",
+# wallpaperChangeMode "random", randomIntervalSec 600, automationEnabled true.
+[wallpaper]
+enabled = true
+directory = "~/Pictures/Wallpapers"
+fill_mode = "crop"
+fill_color = "#000000"
+transition = [
+  "fade",
+  "disc",
+  "stripes",
+  "wipe",
+  "pixel",
+  "honeycomb",
+]
+transition_duration = 1500
+edge_smoothness = 0.05
+transition_on_startup = false
+
+[wallpaper.automation]
+enabled = true
+interval_seconds = 600
+order = "random"
+recursive = true
+
+# v4 wallpaper.overviewEnabled true with overviewBlur 0.4 / overviewTint 0.6.
+# This is the blurred wallpaper niri shows behind the overview; the matching
+# `place-within-backdrop` layer-rule is in noctalia-shell.kdl.
+[backdrop]
+enabled = true
+blur_intensity = 0.4
+tint_intensity = 0.6
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+
+# v4 notifications: enabled true, location "top_right", overlayLayer true,
+# backgroundOpacity 1, clearDismissed true, enableBatteryToast /
+# enableKeyboardLayoutToast true, enableMediaToast false,
+# respectExpireTimeout false, sounds.enabled false (see [audio] below).
+# v5 has no per-urgency durations, no markdown rendering and no media toast;
+# the per-event sounds toggle is [audio] enable_sounds.
+[notification]
+enable_daemon = true
+position = "top_right"
+layer = "overlay"
+# Matches the frosted surfaces: opaque white toasts on a light palette glare
+# against the wallpaper.
+background_opacity = 0.8
+keep_dismissed_in_history = false
+
+# ── OSD ───────────────────────────────────────────────────────────────────────
+
+# v4 osd: enabled true, location "top_right", autoHideMs 2000,
+# backgroundOpacity 1, overlayLayer true. v4's enabledTypes list
+# [0, 1, 4, 3] has no published mapping to v5's named `osd.kinds`, so every
+# kind keeps v5's default (enabled).
+[osd]
+position = "top_right"
+hide_delay_ms = 2000
+background_opacity = 0.8
+enabled = true
+
+# ── Lock screen ───────────────────────────────────────────────────────────────
+
+# v4 general: lockOnSuspend true, lockScreenAnimations false, lockScreenBlur 0,
+# lockScreenTint 0, allowPasswordWithFprintd false, lockScreenMonitors [],
+# showSessionButtonsOnLockScreen true, enableLockScreenCountdown true (handled
+# by the per-action countdown above).
+#
+# v4's lock screen also drew a custom clock ("hh\nmm"). In v5 the lock screen has
+# no built-in clock: it is a `lockscreen_widgets` entry with absolute per-output
+# coordinates, which cannot be expressed declaratively for a laptop that docks
+# and undocks. Add it once at runtime with
+# `noctalia msg lockscreen-widgets-toggle-edit`; the GUI writes it to
+# settings.toml and keeps it.
+[lockscreen]
+enabled = true
+lock_before_suspend = true
+fingerprint = false
+transition = []
+blur_intensity = 0.0
+tint_intensity = 0.0
+monitors = []
+
+# ── Services ──────────────────────────────────────────────────────────────────
+
+# v4 audio: volumeOverdrive false, volumeFeedback false,
+# notifications.sounds.enabled false. v5 has one master sound toggle instead of
+# v4's volumeFeedback + notification sounds; both were off, so sounds stay off.
+# v4's spectrumFrameRate 30 has no v5 equivalent (the visualizer rate is
+# internal), so it is not translated.
+[audio]
+enable_overdrive = false
+enable_sounds = false
+
+# v4 brightness: enableDdcSupport true (this panel has no backlight, DDC is the
+# only way to dim it), enforceMinimum true. v4's exact floor was not exposed;
+# 5% keeps the panel from going fully black.
+[brightness]
+enable_ddcutil = true
+minimum_brightness = 0.05
+
+# v4 nightLight: enabled true, autoSchedule true (v5 always follows the
+# [location] schedule), forced false, dayTemp 6500, nightTemp 4000.
+[nightlight]
+enabled = true
+force = false
+temperature_day = 6500
+temperature_night = 4000
+
+# v4 location.autoLocate true; the v4 manual sunrise/sunset were only used by
+# the disabled scheduling mode, so v5 keeps computing them from coordinates.
+[location]
+auto_locate = true
+
+# v4 location.weatherEnabled true, weatherShowEffects true,
+# useFahrenheit false, hideWeatherCityName false (-> [shell] show_location).
+[weather]
+enabled = true
+unit = "metric"
+effects = true
+
+# v4 network.bluetoothAutoConnect true.
+[bluetooth]
+connect_when_enabled = true
+
+# v4 idle: enabled false, fadeDuration 5, lockTimeout 660,
+# screenOffTimeout 600, suspendTimeout 1800. Behaviours are declared but
+# disabled, so the session keeps whatever the compositor/logind does today.
+[idle]
+pre_action_fade_seconds = 5
+
+[idle.behavior.lock]
+timeout = 660
+action = "lock"
+enabled = false
+
+[idle.behavior.screen-off]
+timeout = 600
+action = "screen_off"
+enabled = false
+
+[idle.behavior.suspend]
+timeout = 1800
+action = "suspend"
+enabled = false
+
+# v4 systemMonitor thresholds (warn/critical): CPU 80/95, memory 80/90,
+# disk 80/90, temperature 80/90, GPU 80/90, swap 80/90. v5 splits the CPU
+# thresholds per stat and has no swap/temperature widget here, but the same
+# numbers keep the highlight colours identical.
+[system.monitor]
+cpu_usage_activity_threshold = 80
+cpu_usage_critical_threshold = 95
+cpu_temp_activity_threshold = 80
+cpu_temp_critical_threshold = 90
+gpu_usage_activity_threshold = 80
+gpu_usage_critical_threshold = 90
+gpu_temp_activity_threshold = 80
+gpu_temp_critical_threshold = 90
+ram_pct_activity_threshold = 80
+ram_pct_critical_threshold = 90
+swap_pct_activity_threshold = 80
+swap_pct_critical_threshold = 90
+disk_used_activity_threshold = 80
+disk_used_critical_threshold = 90
+
+# v4 location.showCalendarEvents true. The month grid renders regardless; this
+# switch is what syncs events from the configured calendar accounts.
+[calendar]
+enabled = true
+
+# ── Control Center ────────────────────────────────────────────────────────────
+
+# v4 controlCenter cards (profile, shortcuts, audio, brightness, weather,
+# media-sysmon) became fixed tabs in v5, so there is nothing to re-enable here.
+#
+# hidden_tabs drops the Power tab: this host is a desktop with no system
+# battery, so the tab only ever showed a power-profile selector that is already
+# on the Home shortcuts. UPower + power-profiles-daemon still run, so the tab
+# would otherwise be offered.
+[control_center]
+sidebar = "compact"
+hidden_tabs = ["power"]
+show_shortcut_labels = true
+show_session_button = true
+circular_avatar = true
+show_avatar_border = true
+
+[control_center.calendar]
+show_events_card = true
+show_week_numbers = false
+
+[control_center.media]
+show_visualizer = true
+
+# v4 had seven shortcuts (left: WiFi, Bluetooth, WallpaperSelector; right:
+# Notifications, PowerProfile, KeepAwake, NightLight). v5 shows at most six, so
+# PowerProfile is the one dropped (still reachable from the Power tab, the bar
+# battery widget and `noctalia msg power-cycle`).
+#
+# `nightlight` is the toggle this config wants: v5's shortcut calls
+# GammaService::toggleEnabled() on left click -- exactly
+# `noctalia msg nightlight-toggle` -- and toggles the always-on override on right
+# click. Its label doubles as the state readout (forced / off / scheduled-day /
+# scheduled-night).
+[[control_center.shortcuts]]
+type = "wifi"
+
+[[control_center.shortcuts]]
+type = "bluetooth"
+
+[[control_center.shortcuts]]
+type = "wallpaper"
+
+[[control_center.shortcuts]]
+type = "notification"
+
+[[control_center.shortcuts]]
+type = "nightlight"
+
+[[control_center.shortcuts]]
+type = "caffeine"
+
+# ── Desktop widgets / dock / plugins ─────────────────────────────────────────
+
+# v4 desktopWidgets: enabled true, gridSnap true, overviewEnabled true, but
+# monitorWidgets was empty, so nothing is placed.
+[desktop_widgets]
+enabled = true
+
+# v4 dock.enabled false; every other dock key was inert.
+[dock]
+enabled = false
+
+# v4 plugins.json only registered the noctalia-plugins source with
+# autoUpdate false; v5 ships the official and community sources itself, so only
+# the auto-update policy needs translating. `enabled` stays empty: the v4
+# screen recorder was built in, while v5 needs the official
+# `noctalia/screen_recorder` plugin, which is installed and enabled from
+# Settings → Plugins (it has to clone the plugin repo once).
+[plugins]
+auto_update = "none"
+enabled = []

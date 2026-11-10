@@ -74,5 +74,14 @@ lib.mkIf config.modules.desktop.niri.enable {
   # name has to be exported there too -- otherwise a Qt app launched from a
   # systemd service falls back to QGenericUnixTheme (light Fusion, hicolor-only
   # icons) while everything spawned by niri looks correct.
-  systemd.user.sessionVariables.QT_QPA_PLATFORMTHEME = "qt6ct";
+  #
+  # QT_PLUGIN_PATH used to be injected into the noctalia-shell wrapper only,
+  # because Quickshell was the one Qt app that had to resolve tray icons through
+  # the desktop theme. Noctalia v5 is not Qt at all, so the path now belongs to
+  # the session: without it every other Qt app (fcitx5, Kvantum-themed tools)
+  # loads QGenericUnixTheme and silently ignores QT_QPA_PLATFORMTHEME=qt6ct.
+  systemd.user.sessionVariables = {
+    QT_QPA_PLATFORMTHEME = "qt6ct";
+    QT_PLUGIN_PATH = "${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins";
+  };
 }
