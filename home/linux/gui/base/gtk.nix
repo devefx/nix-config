@@ -95,12 +95,15 @@
       "gtk-interface-color-scheme" = config.gtk.colorScheme;
     };
 
-    # Nautilus 50 is GTK4/libadwaita, so the GTK4 side matters here as much as
-    # GTK3. home-manager's default for gtk4.theme changed from "inherit
-    # gtk.theme" to null; stateVersion here is 25.11 so the legacy inheritance
-    # still applies, but it warns on every evaluation. Pin it explicitly to
-    # keep the same behaviour without the noise.
-    gtk4.theme = config.gtk.theme;
+    # null, not `config.gtk.theme`: setting it makes home-manager write a
+    # ~/.config/gtk-4.0/gtk.css that @imports the whole Orchis GTK4 stylesheet
+    # as *user* CSS, which outranks libadwaita's own stylesheet. Orchis is a
+    # GTK3-era theme, so its Nautilus sidebar rules (a nine-slice
+    # row-selected-dark.png border-image) then land on Nautilus 50's
+    # libadwaita sidebar and draw the selection as a half-length slab.
+    # Leaving it null keeps libadwaita apps (Nautilus, GNOME dialogs) on stock
+    # Adwaita Dark while GTK 3 apps still get Orchis-Dark via gtk.theme above.
+    gtk4.theme = null;
 
     font = {
       name = "Noto Sans";
