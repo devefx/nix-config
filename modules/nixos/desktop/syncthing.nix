@@ -126,6 +126,25 @@ in
                 when the service is older than that.
               '';
             };
+
+            ignorePatterns = mkOption {
+              type = types.listOf types.str;
+              default = [
+                # `save.lock` exists while the game runs and is pure runtime
+                # state. The conflict pattern is defensive: one machine plays
+                # at a time, so a conflict should never appear, and if one ever
+                # does it must not be synced onward as a game file.
+                "save.lock"
+                "*.tmp"
+                "*.partial"
+                "*.sync-conflict-*"
+              ];
+              description = ''
+                What never leaves this machine for this folder. The default is
+                the save-directory set; a folder carrying generated or
+                machine-local files needs its own rules.
+              '';
+            };
           };
         }
       );
@@ -221,16 +240,7 @@ in
           # Empty until `server.id` is set: the folder exists but is shared
           # with nobody, so picking the server is a UI step.
           devices = optionals serverDeclared [ "server" ];
-          # `save.lock` exists while the game runs and is pure runtime state.
-          # The conflict pattern is defensive: one machine plays at a time, so
-          # a conflict should never appear, and if one ever does it must not be
-          # synced onward as a game file.
-          ignorePatterns = [
-            "save.lock"
-            "*.tmp"
-            "*.partial"
-            "*.sync-conflict-*"
-          ];
+          inherit (folder) ignorePatterns;
           versioning = {
             type = "staggered";
             params = {

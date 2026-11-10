@@ -4,15 +4,22 @@
 default:
     @just --list
 
-# Build and switch to a host config.
-#
 # The two nixosConfigurations share the hardware profile (see
 # outputs/x86_64-linux/src/faex1.nix): `<hostname>-niri` is the session this
 # machine actually runs, `<hostname>-kde` is the Plasma variant. `just switch`
 # therefore targets the niri one, `just switch kde` picks Plasma, and any other
 # value is passed through as a configuration name.
+#
+# The fcitx5 restart is what triggers the Rime user dictionary sync: the unit's
+# ExecStartPre merges every `*.userdb.txt` under ~/Sync/rime-sync and writes a
+# fresh snapshot back, which cannot run while fcitx5 holds the LevelDB lock.
+# `restart` rather than `try-restart`: an orphaned fcitx5 (process alive, unit
+# dead) is exactly the case that needs it.
+#
+# Build and switch to a host config.
 switch target=`hostname`:
     sudo nixos-rebuild switch --flake ".#$(just _host {{target}})"
+    systemctl --user restart fcitx5-daemon
 
 # Dry-build a host config without switching.
 build target=`hostname`:
@@ -243,4 +250,3 @@ hooks:
 #   HM_USER=...                home-manager user to evaluate
 outdated:
     FLAKE_ATTR="$(just _host "$(hostname)")" nix run .#nix-outdated
-

@@ -566,6 +566,25 @@ in
         label = "Zelda: Tears of the Kingdom saves";
         group = "Zelda";
       };
+
+      # Rime 用户词典的备份。`sync` 由 home/linux/gui/base/rime 软链到这里，
+      # 方案和词库不进这个目录（它们由 Nix 提供）。
+      #
+      # 白名单而非黑名单：Syncthing 的 ignore 是「第一个匹配的规则胜出」，
+      # 所以「只留 X」必须写成 `!X` 在前、`**` 兜底。兜底要用 `**` 而不是 `*`
+      # —— `*` 不跨目录分隔符，管不到 <installation_id>/ 里的文件。
+      # 代价是 `!` 非顶层锚定，Syncthing 会遍历被忽略的目录（约 2.5 MB）。
+      "rime-sync" = {
+        path = "/home/${myvars.username}/Sync/rime-sync";
+        label = "Rime 用户词典";
+        # 纯本地 UI 分组，不参与共享；叫 Sync 是为了以后 dotfiles 也能归进来。
+        group = "Sync";
+        ignorePatterns = [
+          "!**/*.userdb.txt"
+          "!**/user.yaml"
+          "**"
+        ];
+      };
     };
   };
 

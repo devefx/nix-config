@@ -14,15 +14,18 @@
     enable = true;
     type = "fcitx5";
 
-    # Plasma 6 runs Wayland — use the native text-input-v3 protocol
-    # instead of the legacy XMODIFIERS / *_IM_MODULE env vars.
+    # Wayland sessions use the native text-input-v3 protocol instead of the
+    # legacy XMODIFIERS / *_IM_MODULE env vars.
     fcitx5.waylandFrontend = true;
 
-    # waylandFrontend avoids exporting X11 env vars for native Wayland apps,
-    # but Steam and other XWayland apps still need them for fcitx5.
+    # Do not set GTK_IM_MODULE / QT_IM_MODULE here: with waylandFrontend on they
+    # make GTK/Qt apps use their own im module, which gets no cursor coordinates
+    # on Wayland, so the candidate window stops following the caret.
+    #
+    # XWayland apps (Steam, ...) reach fcitx5 through XMODIFIERS/xim — Steam's
+    # wrapper even forces GTK_IM_MODULE=xim. SDL and GLFW have no text-input-v3
+    # support at all, so they keep their variables.
     fcitx5.sessionVariables = {
-      GTK_IM_MODULE = "fcitx";
-      QT_IM_MODULE = "fcitx";
       XMODIFIERS = "@im=fcitx";
       GLFW_IM_MODULE = "fcitx";
       SDL_IM_MODULE = "fcitx";

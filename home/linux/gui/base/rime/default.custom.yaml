@@ -1,0 +1,8 @@
+# 覆盖上游 default.yaml（来自 pkgs.rime-ice.src）的方案列表：只留全拼。
+# 其余方案的文件都在 store 里，想启用就取消注释。
+patch:
+  schema_list:
+    - schema: rime_ice
+    # - schema: double_pinyin_flypy   # 小鹤双拼
+    # - schema: double_pinyin_mspy    # 微软双拼
+    # - schema: t9                    # 中文九键（依赖 rime_ice）
