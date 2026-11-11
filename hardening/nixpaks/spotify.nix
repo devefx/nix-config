@@ -9,6 +9,8 @@
 let
   appId = "com.spotify.Client";
 
+  adblock = pkgs.callPackage ../../pkgs/spotify-adblock { };
+
   wrapped = mkNixPak {
     config =
       { ... }:
@@ -40,6 +42,18 @@ let
             wayland = true;
             pipewire = true;
           };
+          env = {
+            # spotify-adblock wraps cef_urlrequest_create and drops requests
+            # to the ad/tracking hosts in its denylist. It only needs the
+            # config file, which we bind below.
+            LD_PRELOAD = "${adblock}/lib/spotify-adblock.so";
+          };
+          bind.ro = [
+            [
+              "${adblock}/etc/spotify-adblock"
+              "/etc/spotify-adblock"
+            ]
+          ];
         };
       };
   };
