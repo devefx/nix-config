@@ -18,13 +18,17 @@
     topics = [
       "anime_alerts"
       "truenas-alerts"
+      "grafana_alerts"
     ];
     # Topics whose messages are always spoken, whatever their priority.
     # TrueNAS alerts carry no priority field at all, so the 4/5 rule would keep
     # them silent; anime_alerts is wanted aloud on every update too.
+    # grafana_alerts is listed so Grafana notifications are spoken regardless of
+    # the priority the contact point template happens to send.
     speakAllTopics = [
       "truenas-alerts"
       "anime_alerts"
+      "grafana_alerts"
     ];
   };
 }
