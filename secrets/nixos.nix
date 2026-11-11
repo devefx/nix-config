@@ -31,6 +31,7 @@ in
     smb.enable = mkEnableOption "SMB share credentials secret";
     hf.enable = mkEnableOption "Hugging Face token secret";
     piWeb.enable = mkEnableOption "Pi Web environment file secret (password + PI_WEB_* overrides)";
+    grafanaMcp.enable = mkEnableOption "Grafana MCP service account token secret";
   };
 
   config = mkIf cfg.enable {
@@ -64,6 +65,19 @@ in
           owner = myvars.username;
           group = "users";
           mode = "0600";
+        };
+      })
+      (mkIf cfg.grafanaMcp.enable {
+        # Read by mcp-grafana through `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`, not
+        # as an EnvironmentFile: the server re-reads the file on every request,
+        # so rotating the token only needs a new `.age` file and a switch — no
+        # restart, and the plaintext never reaches the Nix store or a command
+        # line. Contents are the bare token (whitespace trimmed).
+        grafana-mcp-token = {
+          file = "${mysecrets}/grafana-mcp-token.age";
+          owner = myvars.username;
+          group = "users";
+          mode = "0400";
         };
       })
       (mkIf cfg.piWeb.enable {

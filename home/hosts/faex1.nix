@@ -30,6 +30,18 @@
       ghidra = true;
     };
 
+    # Grafana MCP server for Pi / Pi Web. The service account token is an
+    # agenix secret, and only its *path* is handed to the server
+    # (`GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`): mcp-grafana re-reads that file on
+    # every request, so rotating the token needs no restart and the plaintext
+    # never enters the store. The matching `modules.secrets.grafanaMcp` switch
+    # is in hosts/faex1/default.nix.
+    grafana = {
+      enable = true;
+      url = "http://docker-infra.yooke.top:3000";
+      tokenFile = osConfig.age.secrets.grafana-mcp-token.path;
+    };
+
     # geo-sleuth lands in `~/.agents/skills`, which Pi Web scans through the Pi
     # SDK, so it is available in the web UI without any extra registration. The
     # module installs `uv` and `curl` and puts the manylinux wheel libraries on

@@ -99,6 +99,7 @@ let
   geoSleuthCfg = cfg.geoSleuth;
   piWebCfg = cfg.piWeb;
   reaCfg = cfg.rea;
+  grafanaCfg = cfg.grafana;
 
   codex-desktop = pkgs.callPackage ../../../pkgs/codex-desktop { };
   dsh-desktop = pkgs.callPackage ../../../pkgs/dsh-desktop { };
@@ -213,6 +214,59 @@ let
     		args: ["mcp"],
     		description: "Reverse engineer binaries, applications and runtimes.",
     ${reaEnvLine}	});
+    }
+  '';
+
+  # Grafana MCP server (`mcp-grafana`, from nixpkgs).
+  #
+  # The token is the interesting part: mcp-grafana reads
+  # `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE` *fresh on every request* (upstream
+  # documents it for Kubernetes Secret volumes), so an agenix secret can sit at
+  # `/run/agenix/grafana-mcp-token` and be re-encrypted at will — the running
+  # server picks up a rotated token without a restart, and the plaintext never
+  # enters the Nix store, an `Environment=` line or a command line. A rotation
+  # is `just secrets-replace` + `just secrets-lock` + `just switch`.
+  #
+  # The wrapper exists so `env` does not have to be repeated in every client:
+  # Pi gets it through the extension below, and Codex / DSH / any other MCP
+  # host can point at the same `grafana-mcp` command and inherit both variables.
+  grafanaMcp = pkgs.writeShellApplication {
+    name = "grafana-mcp";
+    runtimeInputs = [ pkgs.mcp-grafana ];
+    text = lib.concatStringsSep "\n" (
+      [
+        "export GRAFANA_URL=${lib.escapeShellArg grafanaCfg.url}"
+      ]
+      ++ lib.optional (grafanaCfg.tokenFile != null) ''
+        export GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE=${lib.escapeShellArg grafanaCfg.tokenFile}
+        # Fail loudly here instead of letting every tool call fail with a 401:
+        # stdio MCP clients usually hide the server's stderr.
+        if [ ! -r "$GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE" ]; then
+          echo "grafana-mcp: cannot read $GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE — enable modules.secrets.grafanaMcp and run 'just switch'" >&2
+          exit 1
+        fi
+      ''
+      ++ [
+        ''exec ${lib.getExe pkgs.mcp-grafana} "$@"''
+      ]
+    );
+  };
+
+  # Same seam as REA: Pi loads `~/.pi/agent/extensions/*.ts` in both the CLI and
+  # pi-web's in-process sessions, so one file covers both. `env` is deliberately
+  # absent — the wrapper already carries the URL and the token-file path.
+  grafanaExtension = pkgs.writeText "grafana.ts" ''
+    /**
+     * Grafana MCP server registration. Managed by nix-config:
+     * home/base/gui/ai-agents.nix (modules.aiAgents.grafana).
+     */
+    export default function (pi) {
+    	pi.registerMcpServer("grafana", {
+    		type: "stdio",
+    		command: "${lib.getExe grafanaMcp}",
+    		args: [],
+    		description: "Query Grafana dashboards, datasources (Prometheus / Loki / SQL) and alerting.",
+    	});
     }
   '';
 
@@ -391,6 +445,36 @@ in
       enable = mkEnableOption "the geo-sleuth skill (photo geolocation) for Pi and Pi Web";
     };
 
+    grafana = {
+      enable = mkEnableOption "the Grafana MCP server (mcp-grafana) for Pi / Pi Web";
+
+      url = mkOption {
+        type = types.str;
+        default = "http://localhost:3000";
+        description = ''
+          Grafana base URL the server talks to (`GRAFANA_URL`). Use the
+          instance URL (e.g. `https://myinstance.grafana.net`) for Grafana
+          Cloud.
+        '';
+      };
+
+      tokenFile = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "/run/agenix/grafana-mcp-token";
+        description = ''
+          Runtime file holding a Grafana service account token, exported as
+          `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`. mcp-grafana re-reads it on every
+          request, so the token can be rotated without restarting the server.
+
+          Point it at an agenix secret path (`osConfig.age.secrets.<name>.path`)
+          to keep the token out of the Nix store. Left null, the server falls
+          back to `GRAFANA_SERVICE_ACCOUNT_TOKEN` (or basic auth) from the
+          session environment.
+        '';
+      };
+    };
+
     rea = {
       enable = mkEnableOption "REA (Reverse Engineer Anything) for Pi / Pi Web / Codex / DSH";
 
@@ -431,6 +515,7 @@ in
     ]
     ++ optionals pkgs.stdenv.hostPlatform.isLinux [ cc-haha-desktop ]
     ++ optionals reaCfg.enable ([ rea ] ++ optionals reaCfg.ghidra reaGhidraProfile)
+    ++ optionals grafanaCfg.enable [ grafanaMcp ]
     # geo-sleuth's scripts are `uv run` entry points: `uv` resolves the PEP 723
     # dependency blocks and `curl` backs `_net.py` and the doctor's probes.
     ++ optionals geoSleuthCfg.enable [
@@ -451,6 +536,9 @@ in
       }
       // lib.optionalAttrs geoSleuthCfg.enable {
         ".agents/skills/geo-sleuth".source = geoSleuthSkill;
+      }
+      // lib.optionalAttrs grafanaCfg.enable {
+        ".pi/agent/extensions/grafana.ts".source = grafanaExtension;
       };
 
     # No `home.sessionVariables.LD_LIBRARY_PATH` here: exporting it to the whole

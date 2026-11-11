@@ -62,8 +62,10 @@ Finally `just switch`.
 ## What exists
 
 `smb-credentials` and `smb-credentials-wd20t` (SMB mounts), `hf-token` (`HF_TOKEN`), `pi-web`
-(`EnvironmentFile` for the Pi Web user service). The only recipient is this host's SSH key —
-`just host-age` prints it, and `NIX_SECRETS_EXTRA_RECIPIENTS` adds more for a single run.
+(`EnvironmentFile` for the Pi Web user service), `grafana-mcp-token` (Grafana service account token
+read by `mcp-grafana` through `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`). The only recipient is this
+host's SSH key — `just host-age` prints it, and `NIX_SECRETS_EXTRA_RECIPIENTS` adds more for a
+single run.
 
 ## Pitfalls
 

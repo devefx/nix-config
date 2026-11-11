@@ -62,8 +62,9 @@ modules.aiAgents.piWeb.environmentFile = osConfig.age.secrets.pi-web.path;
 ## 现有 secret
 
 `smb-credentials` 和 `smb-credentials-wd20t`(SMB 挂载)、`hf-token`(`HF_TOKEN`)、`pi-web`(Pi
-Web用户服务的 `EnvironmentFile`)。收件人只有本机的 SSH key —— `just host-age` 打印它,
-`NIX_SECRETS_EXTRA_RECIPIENTS` 可以在单次运行时追加更多。
+Web 用户服务的 `EnvironmentFile`)、`grafana-mcp-token`(`mcp-grafana` 通过
+`GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE` 读取的 Grafana service account token)。收件人只有本机的 SSH key
+—— `just host-age` 打印它, `NIX_SECRETS_EXTRA_RECIPIENTS` 可以在单次运行时追加更多。
 
 ## 注意
 
