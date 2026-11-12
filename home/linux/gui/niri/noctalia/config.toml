@@ -36,6 +36,8 @@ font_family = "Maple Mono NF CN"
 lang = ""
 # v4: general.avatarImage.
 avatar_path = "~/.face.icon"
+# v5.5 moved this out of [control_center] (was control_center.circular_avatar).
+circular_avatar = true
 # v4: general.passwordChars = false.
 password_style = "default"
 # v4: general.autoStartAuth = false - another agent owns polkit prompts.
@@ -804,7 +806,6 @@ sidebar = "compact"
 hidden_tabs = ["power"]
 show_shortcut_labels = true
 show_session_button = true
-circular_avatar = true
 show_avatar_border = true
 
 [control_center.calendar]

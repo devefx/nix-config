@@ -92,12 +92,20 @@
     # Noctalia v5 - the C++/Wayland rewrite of the desktop shell. It is a
     # different program from the v4 `noctalia-shell` (Quickshell) package, so it
     # is a separate input rather than a nixpkgs version bump: nixpkgs unstable
-    # still carries 5.2.1, while the config here uses keys added in 5.3/5.4.
+    # still carries an older release, while the config here uses keys added in
+    # 5.3/5.4.
+    #
+    # 5.5.0 over 5.4.1: it carries upstream's tray InputArea reuse (commit
+    # 7756d21aa and PR #5184, fixing issue #4537). On 5.4.1 a tray app that
+    # animates its icon (WeChat, Telegram, MEGA, an active Discord call, ...)
+    # rebuilds the whole tray widget on every update, which destroys the drawer
+    # button's InputArea: its hover flickers and clicks are dropped while the
+    # icon animates.
     #
     # Deliberately NOT following our nixpkgs: upstream publishes prebuilt
     # binaries on cachix built against their own nixpkgs pin, and following ours
     # would change the derivation hash and force a local C++ build.
-    noctalia.url = "github:noctalia-dev/noctalia/v5.4.1";
+    noctalia.url = "github:noctalia-dev/noctalia/v5.5.0";
 
     # age-encrypted secrets — asymmetric (age keys). Encrypted `.age` files
     # live in the private nix-secrets repo; decrypted at activation using the
