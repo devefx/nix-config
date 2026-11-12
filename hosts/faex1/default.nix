@@ -631,6 +631,43 @@ in
           "**"
         ];
       };
+
+      # RetroArch 的用户数据：存档、即时存档、per-core 选项、播放列表、封面、
+      # 金手指、BIOS、截图。用黑名单而不是白名单——database（158 MB）和
+      # downloads 必须跳过，Syncthing 不遍历被忽略的目录，比白名单的 `**`
+      # 兜底快得多。
+      #
+      # 不同步 retroarch.cfg：里面是 /nix/store 的绝对路径和本机的视频/音频/
+      # 手柄设置，多机同步只会互相覆盖；需要跨机一致的项走 modules.retroarch
+      # 的 settings（--appendconfig）。
+      #
+      # 播放列表能跨机用，是因为条目写的是 /mnt/archive 挂载点路径；
+      # RetroArch 保存 playlist 时会 realpath 解析 symlink，所以别用
+      # ~/.config/retroarch/roms 这种链接路径写进去。
+      "retroarch" = {
+        path = "/home/${myvars.username}/.config/retroarch";
+        label = "RetroArch";
+        group = "Games";
+        ignorePatterns = [
+          "/database" # 158 MB 的 No-Intro rdb，随时可重新下载
+          "/downloads" # 在线更新的临时解压目录
+          "/logs"
+          "/cores" # 由 Nix wrapper 指向 /nix/store
+          "/assets"
+          "/autoconfig"
+          "/shaders"
+          "/overlays"
+          "/filters"
+          "/records"
+          "/records_config"
+          "/retroarch.cfg"
+          "/retroarch_qt.cfg"
+          "/playlists/builtin" # 最近游玩历史，各机器不同
+          "*.tmp"
+          "*.partial"
+          "*.sync-conflict-*"
+        ];
+      };
     };
   };
 
