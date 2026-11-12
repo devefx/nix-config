@@ -392,14 +392,27 @@ in
   # unit stays failed, and the automount never retries -- the directory looks
   # empty long after the server is back. Drop-ins keep the fstab-generated
   # units and only lift the rate limit.
-  environment.etc = lib.listToAttrs (
+  #
+  # `overrideStrategy = "asDropin"` rather than `environment.etc`, because
+  # nixpkgs 26.11 makes all of `/etc/systemd/system` one symlink to the
+  # `system-units` derivation (`environment.etc."systemd/system".source` in
+  # nixos/modules/system/boot/systemd.nix). Writing
+  # `environment.etc."systemd/system/<unit>.d/overrides.conf"` therefore asks
+  # the etc builder to `mkdir` inside a read-only store path and fails with
+  # `Permission denied`. `asDropin` makes systemd-lib emit the same
+  # `<unit>.d/overrides.conf` inside `system-units`, which is where systemd
+  # looks for drop-ins of generator-created units anyway.
+  systemd.units = lib.listToAttrs (
     map
       (unit: {
-        name = "systemd/system/${unit}.d/overrides.conf";
-        value.text = ''
-          [Unit]
-          StartLimitIntervalSec=0
-        '';
+        name = unit;
+        value = {
+          overrideStrategy = "asDropin";
+          text = ''
+            [Unit]
+            StartLimitIntervalSec=0
+          '';
+        };
       })
       [
         "mnt-portable_apps.mount"
