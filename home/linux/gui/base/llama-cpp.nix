@@ -12,8 +12,8 @@ let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.llamaCpp;
 
-  # 0.7.0 for --moe-cache-mib; see pkgs/llama-cpp-0.7/default.nix.
-  llama-cpp = pkgs.callPackage ../../../../pkgs/llama-cpp-0.7 { };
+  # nixpkgs' llama.cpp (0.9.0) with the Vulkan backend.
+  llama-cpp = pkgs.llama-cpp.override { vulkanSupport = true; };
 in
 {
   options.modules.llamaCpp = {

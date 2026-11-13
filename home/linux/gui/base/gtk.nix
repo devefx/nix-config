@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -63,37 +62,6 @@
     # for GTK 3, gtk-interface-color-scheme for GTK 4, and prefer-dark into the
     # dconf org/gnome/desktop/interface color-scheme.
     colorScheme = "dark";
-
-    # home-manager writes `gtk-interface-color-scheme` as the bare integer 2/3
-    # (see mkGtkSettings in home-manager's modules/misc/gtk/lib.nix). That was
-    # correct for older GTK 4, but GTK 4.22 made the property a proper enum,
-    # GtkInterfaceColorScheme, whose values only parse from their nick strings:
-    #
-    #   value 0 = GTK_INTERFACE_COLOR_SCHEME_UNSUPPORTED (nick "unsupported")
-    #   value 1 = GTK_INTERFACE_COLOR_SCHEME_DEFAULT     (nick "default")
-    #   value 2 = GTK_INTERFACE_COLOR_SCHEME_DARK        (nick "dark")
-    #   value 3 = GTK_INTERFACE_COLOR_SCHEME_LIGHT       (nick "light")
-    #
-    # So every GTK 4 app printed, on startup:
-    #
-    #   Gtk-WARNING **: Error setting gtk-interface-color-scheme in
-    #   ~/.config/gtk-4.0/settings.ini: Key file contains key
-    #   "gtk-interface-color-scheme" which has a value that cannot be
-    #   interpreted.
-    #
-    # and then silently fell back to the default scheme -- the dark theme was
-    # only taking effect through the other keys. Verified against GTK 4.22.4
-    # with a minimal gtk_init() program: "light"/"dark"/"default"/
-    # "unsupported" parse cleanly, 2 and 3 both warn.
-    #
-    # home-manager master already fixed this (it now writes the string
-    # directly), but the flake is pinned to a home-manager from 2026-08-14.
-    # Overriding the generated file's extraConfig keeps the fix local instead
-    # of forcing a home-manager bump; drop this block once home-manager is
-    # updated past that commit.
-    gtk4.extraConfig = {
-      "gtk-interface-color-scheme" = config.gtk.colorScheme;
-    };
 
     # null, not `config.gtk.theme`: setting it makes home-manager write a
     # ~/.config/gtk-4.0/gtk.css that @imports the whole Orchis GTK4 stylesheet

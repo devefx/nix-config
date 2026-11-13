@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   pnpm_10,
+  sqlite,
 }:
 # nixpkgs' cc-switch has been stuck on 3.16.5 (schema v11) since 2026-07;
 # upstream is on 3.20.x (schema v19). Only the version and the fetched-input
@@ -16,13 +17,13 @@
 # before the first launch.
 cc-switch.overrideAttrs (
   finalAttrs: old: {
-    version = "4.0.20";
+    version = "4.0.31";
 
     src = fetchFromGitHub {
       owner = "farion1231";
       repo = "cc-switch";
       tag = "v${finalAttrs.version}";
-      hash = "sha256-tHamU9GQxfo+2QvczRFV8qO5ZrQzxiFX3yd3+JKXDQg=";
+      hash = "sha256-up9/Q8qa4TirhxHT9fU0GoJ9x8BZX9TP9rgH7qNrvlM=";
     };
 
     pnpmDeps = fetchPnpmDeps {
@@ -31,17 +32,22 @@ cc-switch.overrideAttrs (
       src = finalAttrs.src;
       pnpm = pnpm_10;
       fetcherVersion = 3;
-      hash = "sha256-+BKQY+QFdoo+gi5ObGDS0vd6KwG7jsRZIEF7/8/K89Q=";
+      hash = "sha256-1VFkWR1fxeu2J1gKApl0j5AP0fo6lNdiXCe+ry9yPGI=";
     };
 
-    cargoHash = "sha256-ZHndpX18+khp18/KyFSwKGn3uioFOIyAfagjeXC+T30=";
+    cargoHash = "sha256-fwkQBcIHzgpa5V4GzyRo9m7D156H3hWGhZSM3pV2LxI=";
+
+    # nixpkgs' 3.16.5 has no sqlite in `buildInputs` (its Cargo.lock bundled
+    # SQLite); 4.0.20 links the system one, so the link fails with
+    # `cannot find -lsqlite3` unless it is provided.
+    buildInputs = old.buildInputs ++ [ sqlite ];
 
     # buildRustPackage derives the vendored-deps derivation from its original
     # argument set, so overriding `cargoHash` alone leaves the old hash on the
     # staging fixed-output derivation that actually does the fetching.
     cargoDeps = old.cargoDeps.overrideAttrs (vendor: {
       vendorStaging = vendor.vendorStaging.overrideAttrs (_: {
-        outputHash = "sha256-ZHndpX18+khp18/KyFSwKGn3uioFOIyAfagjeXC+T30=";
+        outputHash = "sha256-fwkQBcIHzgpa5V4GzyRo9m7D156H3hWGhZSM3pV2LxI=";
       });
     });
 
@@ -54,6 +60,10 @@ cc-switch.overrideAttrs (
       "--skip=commands::misc::tests::probe_version_command_captures_healthy_tool_output"
       "--skip=commands::misc::tests::unix_launcher_script_passes_env_past_rc_files_and_cleans_up"
       "--skip=session_manager::providers::mcode::tests::mcode_history_uses_visible_roots_and_display_messages"
+      # 4.0.31's MCP connectivity tests spawn a login shell, which does not
+      # exist in the Nix build sandbox (Os { code: 2, kind: NotFound }).
+      "--skip=services::mcp_connectivity::tests::stdio_keeps_inherited_path_when_login_shell_resolution_fails"
+      "--skip=services::mcp_connectivity::tests::stdio_login_path_finds_bare_launchers_and_configured_path_wins"
     ];
   }
 )

@@ -49,9 +49,10 @@
   };
 
   # Fenced-code-block language autocomplete plus a matching insert command.
+  # 1.7.0: upstream deleted the 1.6.0 asset, whose URL now returns 404.
   codeblock-autocomplete = {
     id = "com.bwat47.codeblock-autocomplete";
-    version = "1.6.0";
-    hash = "sha256-cBkVd1K9iLpvzxWs7eGpcKpJEIrfNYLu0+fBXXZdPBs=";
+    version = "1.7.0";
+    hash = "sha256-rv1bwk81UFXRpH4CJ4SAhOdZ28em/ySQnlSlUF9/NcU=";
   };
 }

@@ -25,7 +25,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
 
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -80,14 +79,17 @@
     # Does NOT follow our nixpkgs (agents pin their own supported versions).
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # Gufo — inference engine specialised for Strix Halo (gfx1151). Follows our
-    # nixpkgs for everything but ROCm: it carries its own nixpkgs-rocm10 pin
-    # (ROCm 10.1 / LLVM 24) because the ROCm in nixpkgs (7.2.x) has no gfx1151
-    # kernels. That closure comes from gufo.cachix.org, see nixConfig above.
-    gufo = {
-      url = "github:gufo-org/gufo/v0.26.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # Gufo — inference engine specialised for Strix Halo (gfx1151).
+    #
+    # Deliberately NOT following our nixpkgs: gufo.cachix.org publishes gufo
+    # built against the nixpkgs in gufo's own flake.lock, and overriding that
+    # changes every dependency hash, so the cache never hits and the ROCm/LLVM
+    # stack compiles locally (~1 h per nixpkgs bump). Noctalia makes the same
+    # trade; the cost is a second nixpkgs closure (~2-3 GB).
+    #
+    # ROCm is separate: gufo pins its own nixpkgs-rocm10 (ROCm 10.1 / LLVM 24)
+    # because the ROCm in nixpkgs (7.2.x) has no gfx1151 kernels.
+    gufo.url = "github:gufo-org/gufo/v0.26.0";
 
     # Noctalia v5 - the C++/Wayland rewrite of the desktop shell. It is a
     # different program from the v4 `noctalia-shell` (Quickshell) package, so it

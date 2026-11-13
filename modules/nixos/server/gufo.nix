@@ -10,8 +10,10 @@
 # https://github.com/gufo-org/gufo
 #
 # The package comes straight from the upstream flake (`gufo`, pinned to a
-# release tag in flake.nix, injected by genSpecialArgs). Its `nixpkgs` input
-# follows ours, but ROCm does not: upstream builds against its own
+# release tag in flake.nix, injected by genSpecialArgs). It keeps gufo's own
+# `nixpkgs` pin rather than following ours: gufo.cachix.org builds against
+# that pin, so following ours would invalidate the cache and compile the ROCm
+# stack locally. ROCm is separate anyway — upstream builds against its own
 # nixpkgs-rocm10 pin (ROCm 10.1 / LLVM 24, patched ROCr) because the ROCm in
 # nixpkgs (7.2.x, what PyTorch and ComfyUI here use) ships no gfx1151 kernels.
 # Gufo is therefore the only consumer of that stack, and it arrives prebuilt

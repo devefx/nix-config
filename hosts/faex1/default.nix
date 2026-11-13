@@ -87,33 +87,8 @@ in
     IdleTimeout = 0;
     UserspaceHID = true;
   };
-  # BlueZ 5.86 fails to activate A2DP on some speakers with
-  # "a2dp-sink profile connect failed: Device or resource busy".
-  # Pin 5.84 until nixpkgs ships the fixed 5.87 release.
-  # https://github.com/bluez/bluez/issues/1898
-  hardware.bluetooth.package = lib.mkIf (lib.versionOlder pkgs.bluez.version "5.87") (
-    (pkgs.bluez.override {
-      bluez-headers = pkgs.bluez-headers.overrideAttrs (_: {
-        version = "5.84";
 
-        src = pkgs.fetchurl {
-          url = "mirror://kernel/linux/bluetooth/bluez-5.84.tar.xz";
-          hash = "sha256-W6c9Aw97AAh9Z4ALDjIWAa7A+JKCfHLlosg5DYyIaxE=";
-        };
-      });
-    }).overrideAttrs
-      (_: {
-        patches = [
-          (pkgs.fetchurl {
-            name = "static.patch";
-            url = "https://lore.kernel.org/linux-bluetooth/20250703182908.2370130-1-hi@alyssa.is/raw";
-            hash = "sha256-4Yz3ljsn2emJf+uTcJO4hG/YXvjERtitce71TZx5Hak=";
-          })
-        ];
-      })
-  );
-
-  # Kernel 7.2 instead of the 6.18 default: on 6.18 the MT7925 Bluetooth half
+  # Kernel 7.3 instead of the 6.18 default: on 6.18 the MT7925 Bluetooth half
   # (USB 0e8d:7925) intermittently fails the WMT firmware download --
   # "Wrong op received 6 expected 1" then "Failed to send wmt patch dwnld" --
   # and does not retry, leaving hci0 unusable until a power cycle; BlueZ then
@@ -124,7 +99,10 @@ in
   # (upstream 679621a767, first in 7.1-rc) and disables the broken
   # remote-wakeup path for MT7922/MT7925 (upstream e31d761628), so the adapter
   # recovers on its own.
-  boot.kernelPackages = pkgs.linuxPackages_7_2;
+  #
+  # 7.2 reached upstream EOL and nixpkgs dropped the `linuxPackages_7_2`
+  # alias, so the pin moves to 7.3, which carries the same 7.x btmtk driver.
+  boot.kernelPackages = pkgs.linuxPackages_7_3;
 
   # This machine was installed with GRUB and dual-boots Windows 11
   # (Windows boot files live on the same ESP). Override the framework
@@ -292,9 +270,9 @@ in
   # window to keep the screen off until a real wake event.
   environment.sessionVariables.KWIN_DPMS_WORKAROUND_TIMEOUT = "100000";
 
-  # nixpkgs 26.11 has PyTorch 2.13 against AOTriton 0.11.1b, which does not
-  # compile. Use ROCm's matching 0.12b binaries for the gfx1151 Strix Halo GPU
-  # and patch PyTorch's configure-time helper shebang.
+  # nixpkgs 26.11 pairs PyTorch 2.13 with AOTriton 0.11.1b, which does not
+  # compile. Use ROCm's matching 0.12b binaries for the gfx1151 Strix Halo GPU;
+  # nixpkgs' torch already patches its CK helper shebang when rocmSupport is on.
   nixpkgs.overlays = [
     (
       _final: prev:
@@ -305,13 +283,6 @@ in
             inherit aotriton;
           }
         );
-        patchTorchAttrs =
-          torch:
-          torch.overridePythonAttrs (old: {
-            postPatch = (old.postPatch or "") + ''
-              patchShebangs --build aten/src/ATen/native/transformers/hip/flash_attn/ck/add_make_kernel_pt.sh
-            '';
-          });
       in
       {
         # Deliberately NOT `inherit rocmPackages` at the top level. Upstream
@@ -325,19 +296,15 @@ in
         # them directly and leave the top-level rocmPackages unscoped.
         python3Packages = prev.python3Packages.overrideScope (
           _pythonFinal: pythonPrev: {
-            torch = patchTorchAttrs (
-              pythonPrev.torch.override {
-                inherit rocmPackages;
-              }
-            );
-            torchWithRocm = patchTorchAttrs (
-              pythonPrev.torch.override {
-                inherit rocmPackages;
-                cudaSupport = false;
-                rocmSupport = true;
-                triton = pythonPrev.triton-no-cuda;
-              }
-            );
+            torch = pythonPrev.torch.override {
+              inherit rocmPackages;
+            };
+            torchWithRocm = pythonPrev.torch.override {
+              inherit rocmPackages;
+              cudaSupport = false;
+              rocmSupport = true;
+              triton = pythonPrev.triton-no-cuda;
+            };
           }
         );
       }

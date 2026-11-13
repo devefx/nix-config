@@ -37,9 +37,8 @@ let
     ;
 
   # Same package the home module exposes, so the CLI and the service cannot
-  # drift apart. This is nixpkgs' Vulkan build bumped to 0.7.0 for
-  # `--moe-cache-mib`; see pkgs/llama-cpp-0.7/default.nix.
-  package = pkgs.callPackage ../../../pkgs/llama-cpp-0.7 { };
+  # drift apart: nixpkgs' llama.cpp (0.9.0) with the Vulkan backend.
+  package = pkgs.llama-cpp.override { vulkanSupport = true; };
 in
 {
   options.modules.llamaCppServer = {
@@ -48,7 +47,7 @@ in
     package = mkOption {
       type = types.package;
       default = package;
-      defaultText = lib.literalExpression "pkgs.callPackage ../../../pkgs/llama-cpp-0.7 { }";
+      defaultText = lib.literalExpression "pkgs.llama-cpp.override { vulkanSupport = true; }";
       description = "llama.cpp package providing `llama-server`.";
     };
 

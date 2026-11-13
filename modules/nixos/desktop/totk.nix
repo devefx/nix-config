@@ -230,6 +230,9 @@ let
       pkgs.gnutar
       pkgs.curl
       pkgs.unzip
+      # `cleanKeyset` uses awk, and writeShellApplication only puts
+      # `runtimeInputs` on PATH; without this it fails with "awk: command not found".
+      pkgs.gawk
     ];
     text = ''
       set -euo pipefail
@@ -332,6 +335,25 @@ let
       # 5. Build.
       export LD_LIBRARY_PATH="$sdl3/lib:$vk/lib:$gcc/lib:$zlib/lib:$glibc/lib:/run/opengl-driver/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       ${selectVulkanIcd}
+
+      # The installer's `prepare` step opens a window to build the shader cache,
+      # so `check` refuses to run without `DISPLAY`/`WAYLAND_DISPLAY`
+      # (check.no_display). A system service has no session environment, so
+      # point it at the compositor socket; the name is discovered because niri
+      # uses `wayland-<n>` and the number changes across restarts.
+      if [ -z "''${WAYLAND_DISPLAY:-}" ] && [ -z "''${DISPLAY:-}" ]; then
+        export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+        for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
+          if [ -S "$sock" ]; then
+            WAYLAND_DISPLAY=$(basename "$sock")
+            export WAYLAND_DISPLAY
+            break
+          fi
+        done
+        if [ -z "''${WAYLAND_DISPLAY:-}" ] && [ -S /tmp/.X11-unix/X0 ]; then
+          export DISPLAY=:0
+        fi
+      fi
 
       args=(
         --base ${escapeShellArg sourceDrv.base}

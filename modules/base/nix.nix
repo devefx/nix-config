@@ -6,15 +6,25 @@
   # to home-manager too.
   nixpkgs.config.allowUnfree = true;
 
-  # openldap 2.6.13 ships timing-sensitive syncrepl replication tests
-  # that flake under load (provider/consumer db differ); skip checks so
-  # rebuilds do not fail on them. The binaries are unaffected.
+  # home-manager's fcitx5 module always builds a GTK 2 immodule cache
+  # (`gtk2-immodule.cache`, modules/i18n/input-method/default.nix), putting
+  # `pkgs.gtk2` in the closure. The 2026-11 nixpkgs bump marked GTK 2 broken
+  # (removal planned for 27.05) and evaluation now aborts instead of warning;
+  # nothing here uses GTK 2 directly, so keep it evaluable. Drop this once
+  # home-manager stops pulling GTK 2 in.
+  nixpkgs.config.problems.handlers."gtk+".broken = "warn";
+
+  # openldap 2.6.13's syncrepl replication tests are timing-sensitive and flake
+  # under load. It used to be overridden with `doCheck = false`, but that
+  # changes its hash and rebuilds openldap plus its consumers locally (gnupg,
+  # gcr, apache-httpd, nfs-utils, the lutris FHS rootfs) on every nixpkgs bump.
+  # cache.nixos.org already carries it with the tests passing, so the override
+  # cost more than it saved. If a future nixpkgs rev forces a local build and
+  # the tests flake, add this back temporarily:
+  #
+  #   openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
   nixpkgs.overlays = [
     (_final: prev: {
-      openldap = prev.openldap.overrideAttrs (_: {
-        doCheck = false;
-      });
-
       # gtk3 3.24.52 leaks the zxdg_output_v1 proxy that GDK creates per monitor:
       # gdk_wayland_monitor_finalize() destroys the wl_output but not the proxy,
       # so the proxy's listener keeps pointing at the freed monitor. A later

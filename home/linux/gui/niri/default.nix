@@ -77,10 +77,10 @@ let
     '';
   };
 
-  # xwayland-satellite draws a title bar for X11 windows that do not provide
-  # their own decorations. Spotify's window is frameless (its own UI draws the
-  # controls), so the patch skips the decoration for that one window only —
-  # every other X11 app keeps its title bar.
+  # xwayland-satellite draws a title bar for X11 windows that request
+  # server-side decorations. Spotify is a borderless full-workspace tile
+  # (windowrules.kdl: focus-ring/border off), so skip the decoration for that
+  # one window only — every other X11 app keeps its title bar.
   xwayland-satellite = pkgs.xwayland-satellite.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [
       ../../../../patches/xwayland-satellite-no-spotify-decor.patch

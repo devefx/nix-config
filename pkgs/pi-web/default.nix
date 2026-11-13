@@ -12,7 +12,7 @@
 # shows the same sessions, providers and project files the `pi` CLI uses.
 #
 # The published npm tarball already contains a finished `next build` output
-# (681 files under `.next/`), so there is no build step here. `dontNpmBuild`
+# (684 files under `.next/`), so there is no build step here. `dontNpmBuild`
 # skips the upstream `build` script, and the devDependency set (playwright,
 # mermaid, katex, typescript, tailwind) never enters the closure.
 #
@@ -24,18 +24,18 @@
 # supplies the missing lockfile so Nix can fetch a complete, reproducible
 # dependency closure.
 #
-# Note the Pi packages installed here are the versions pi-web pins (1.5.0),
+# Note the Pi packages installed here are the versions pi-web pins (1.5.2),
 # which is deliberately independent of the `pi` CLI this repository takes from
-# the llm-agents flake input (1.2.0). The two do not conflict: pi-web resolves
+# the llm-agents flake input (1.5.2). The two do not conflict: pi-web resolves
 # its own copies from its own `node_modules`.
 
 buildNpmPackage (finalAttrs: {
   pname = "pi-web";
-  version = "0.15.0";
+  version = "0.16.0";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@agegr/pi-web/-/pi-web-${finalAttrs.version}.tgz";
-    hash = "sha256-4VCI9UU/R825RpNfA6iU0CEdyALiuiQCOObXWRNsCvc=";
+    hash = "sha256-PMGL4YMMzWeY/aRt+Ea/pZ0oGC7EQp6pLXrWte4yNK0=";
   };
 
   # The published tarball carries no lockfile, and its package.json still
@@ -67,7 +67,7 @@ buildNpmPackage (finalAttrs: {
     fi
   '';
 
-  npmDepsHash = "sha256-evHIee562knMAqgG4qs8G+j+aTAchIcIz2ePFHCivS0=";
+  npmDepsHash = "sha256-O1y4vZlN+jp+EkN9nhAlQvBpIkZbit5g5yy6g1TEaCw=";
 
   # The tarball is already built; `dontNpmBuild` makes the default
   # `npm run build` a no-op. Lifecycle scripts stay off: the only

@@ -34,11 +34,6 @@ let
       # because its modules call the package itself `noctalia`.
       inherit (inputs) gufo;
       noctaliaFlake = inputs.noctalia;
-
-      pkgs-stable = import inputs.nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
-      };
     };
 
   args = {

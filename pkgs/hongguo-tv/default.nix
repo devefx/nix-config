@@ -31,11 +31,11 @@
 # other. They live in `libexec` and only the wrapper is exposed in `bin`.
 let
   pname = "hongguo-tv";
-  version = "0.2.117";
+  version = "0.2.170";
 
   src = fetchurl {
     url = "https://github.com/aston314/hongguo-tv-releases/releases/download/linux-v${version}-test.1/hongguo-desktop-${version}-x86_64.AppImage";
-    hash = "sha256-gULDpBDDMG0t8QqtiZWrX5a7b2hZPq8Fdswe4oRyaes=";
+    hash = "sha256-AUmLLa86l4AYDCEOEF0V+1kwxjh/hq5G1eAz2nkfIg4=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
