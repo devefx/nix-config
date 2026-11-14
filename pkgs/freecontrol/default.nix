@@ -19,7 +19,7 @@
 #
 # 上游 Linux 有两种产物：AppImage（83 MB，把 WebKitGTK 4.1 整套打进包里）与 deb
 # （3.2 MB，只声明 `libwebkit2gtk-4.1-0, libgtk-3-0`）。这里取 deb —— 与
-# pkgs/hongguo-tv、pkgs/cc-switch 同一条理由：内嵌的 WebKitGTK 在 NixOS 上会因为
+# pkgs/hongguo-shortdramabox、pkgs/cc-switch 同一条理由：内嵌的 WebKitGTK 在 NixOS 上会因为
 # 库路径与 EGL 不匹配而白屏，链接系统的 webkitgtk_4_1 才是可复现的路径。
 #
 # 运行环境（scrcpy + adb）不在本包里 —— 上游刻意不随安装包分发，首次启动后由应用

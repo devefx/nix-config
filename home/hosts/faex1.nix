@@ -92,7 +92,7 @@
     menuScaleFactor = 2.0 / 3.5;
   };
   modules.remmina.enable = true;
-  modules.hongguoTv.enable = true;
+  modules.shortDramaBox.enable = true;
   modules.freeControl.enable = true;
   modules.vicinae.enable = true;
   modules.thunderbird = {
