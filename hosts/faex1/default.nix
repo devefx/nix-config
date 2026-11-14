@@ -61,6 +61,7 @@ in
     5173 # tele-desk frontend (Vite dev server)
     43128 # DSH Desktop phone pairing
     30141 # Pi Web (pi-web)
+    8015 # WeChat phone→PC chat-history import (listened only while importing)
   ];
 
   # mDNS for FreeControl's wireless-debug discovery: the app asks adb's own mDNS
