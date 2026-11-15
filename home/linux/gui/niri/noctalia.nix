@@ -81,20 +81,14 @@ lib.mkIf config.modules.desktop.niri.enable {
 
   xdg.configFile = {
     # v5 merges every *.toml in ~/.config/noctalia/ (alphabetically) and keeps
-    # its own runtime state -- GUI overrides, palettes, plugin materialisations,
-    # encrypted clipboard/notification history -- under
+    # its own runtime state -- GUI overrides, downloaded community palettes,
+    # plugin materialisations, encrypted clipboard/notification history -- under
     # ~/.local/state/noctalia/, so the config directory only holds this file.
+    #
+    # No palettes/ entry: the shell runs the built-in Nord palette (see `[theme]`
+    # in config.toml), which is compiled into the binary, so there is no custom
+    # palette JSON to install.
     "noctalia/config.toml".source = ./noctalia/config.toml;
-    # Custom palettes selected by `[theme] custom_palette`. v5 reads these from
-    # ~/.config/noctalia/palettes/<name>.json, so they have to live under the
-    # config directory rather than in the store-only tree. Macchiato is the
-    # active one (Catppuccin Macchiato + Latte); WhiteSur, Layan and Orchis are
-    # the alternatives -- switching is one line in config.toml, and v5 only ships
-    # Mocha built in.
-    "noctalia/palettes/WhiteSur.json".source = ./noctalia/palettes/WhiteSur.json;
-    "noctalia/palettes/Layan.json".source = ./noctalia/palettes/Layan.json;
-    "noctalia/palettes/Orchis.json".source = ./noctalia/palettes/Orchis.json;
-    "noctalia/palettes/Macchiato.json".source = ./noctalia/palettes/Macchiato.json;
   };
 
   # The previous bar may outlive a rebuild in two ways, and both leave the

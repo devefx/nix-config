@@ -276,11 +276,12 @@ delete = ["del"]
 [bar.main]
 position = "top"
 thickness = 34
-# macOS-style frosted glass. The palette supplies a neutral graphite surface
-# (#1e1e1e), the bar stays translucent on top of it, and niri's layer-rule blurs
-# whatever is behind it -- the same construction as the macOS menu bar, where a
-# grey surface over a blurred wallpaper is what produces the perceived colour.
-# 0.3 keeps a little more of the graphite surface than the 0.2 tried before;
+# macOS-style frosted glass. The palette supplies the dark surface (#2e3440 in
+# Nord dark), the bar stays translucent on top of it, and niri's layer-rule
+# blurs whatever is behind it -- the same construction as the macOS menu bar,
+# where a tinted surface over a blurred wallpaper is what produces the perceived
+# colour.
+# 0.3 keeps a little more of the surface than the 0.2 tried before;
 # at 0.2 the strip lost most of its own tone and looked like bare wallpaper.
 # niri's blur (passes 2 in config.kdl) turns the remainder into frosted glass.
 # v4: bar.backgroundOpacity = 0.2.
@@ -324,7 +325,7 @@ reserve_space = true
 #
 # capsule_opacity is a touch above the bar's so the widgets read as raised
 # frosted cards over the strip rather than sinking into it. The fill is the
-# palette's card grey (#2a2a2a).
+# palette's surface_container (#3b4252 in Nord dark).
 capsule = true
 capsule_fill = "surface_container"
 capsule_opacity = 0.5
@@ -522,26 +523,24 @@ inactive_pill_size = 1.0
 labels_only_when_occupied = true
 hide_when_empty = false
 # Pill *fills*. The active pill uses the `primary` role so it follows the
-# day/night palette: sapphire #7dc4e4 in Macchiato, #209fb5 in Latte (identical in
-# dark mode, darker in light mode where a pale cyan would wash out).
+# day/night palette: frost teal #8fbcbb in Nord dark, #5e81ac in Nord light.
 #
 # occupied/empty stay fixed hex: v5's role vocabulary is closed (primary /
-# secondary / tertiary / error + the surface family) and has nothing for
-# subtext0 or overlay0. Both are mid-tones that read on either background, and a
-# fixed fill makes v5 derive the digit colour itself
-# (readableColorForFill -> readableTextColorForBackground), so no on_* role is
-# needed.
-#   occupied #a5adcb  subtext0 circle, dark digit
-#   empty    #6e738d  overlay0 circle, no digit (labels_only_when_occupied)
+# secondary / tertiary / error + the surface family) and has nothing for the
+# mid-tones below. Both read on either background, and a fixed fill makes v5
+# derive the digit colour itself (readableColorForFill ->
+# readableTextColorForBackground), so no on_* role is needed.
+#   occupied #81a1c1  nord9 circle, dark digit
+#   empty    #4c566a  nord3 circle, no digit (labels_only_when_occupied)
 #
 # Note: v5 multiplies the empty pill's alpha by 0.55 before drawing
-# (workspaces_widget.cpp: `color.alpha *= 0.55F`), so overlay0 renders as a
-# translucent version of itself over the bar, not as flat #6e738d.
+# (workspaces_widget.cpp: `color.alpha *= 0.55F`), so nord3 renders as a
+# translucent version of itself over the bar, not as flat #4c566a.
 focused_color = "primary"
-occupied_color = "#a5adcb"
-empty_color = "#6e738d"
-# On hover v5 swaps the pill's fill for the theme's `hover` role (#f0c6c6) and
-# its digits for `on_hover` (#181926 crust), matching v4, which used
+occupied_color = "#81a1c1"
+empty_color = "#4c566a"
+# On hover v5 swaps the pill's fill for the theme's `hover` role (#5e81ac nord10)
+# and its digits for `on_hover` (#2e3440), matching v4, which used
 # Color.mHover / Color.mOnHover for the hovered pill. That value differs from all
 # three fills above, so every pill visibly changes under the pointer.
 change_color_on_hover = true
@@ -611,39 +610,33 @@ glyph = "noctalia"
 # v4 used wallpaper-derived colours (colorSchemes.useWallpaperColors). That is
 # still possible here (source = "wallpaper"), but every wallpaper-generated
 # scheme inherits the wallpaper's hue, and this wallpaper is blue-violet: even
-# "muted" kept the panels navy. The built-in palettes are no help either --
-# "Noctalia" is navy by design (#070722 / #11112d) and every Catppuccin flavour
-# keeps a blue-violet cast (#1e1e2e / #313244 for Mocha), which is exactly the
-# "one pale blue over one dark blue" that reads wrong against this wallpaper.
+# "muted" kept the panels navy.
 #
-# Catppuccin Macchiato (dark) + Latte (light) is the default. Both halves live in
-# palettes/Macchiato.json, so `mode = "auto"` swaps them on the [location]
-# sunrise/sunset schedule. v5 only ships Mocha built in, hence the custom file.
+# Nord is used through the built-in palette list (`source = "builtin"`), so no
+# palette file is installed any more: v5 compiles ten palettes into the binary
+# and `builtin` selects one by name. That keeps the config directory free of
+# JSON and makes the shell palette a one-line, store-managed value.
 #
-# Accents are picked by hand (surfaces and text keep the standard mapping), so
-# this is NOT the stock Catppuccin assignment; the same role carries the same
-# accent in both variants:
-#              dark (Macchiato)          light (Latte)
-#   primary    sapphire #7dc4e4          #209fb5
-#   secondary  flamingo #f0c6c6          #dd7878
-#   tertiary   teal     #8bd5ca          #179299
-#   error      red      #ed8796          #d20f39
-#   hover      flamingo #f0c6c6          #dd7878
-#   surface    base     #24273a          #eff1f5
-#   text       #cad3f5                   #4c4f69
+# Roles as Nord defines them (dark is the active half; `mode = "auto"` would
+# swap in the light half on the [location] sunrise/sunset schedule):
+#              dark              light
+#   primary    #8fbcbb           #5e81ac
+#   secondary  #88c0d0           #64adc2
+#   tertiary   #5e81ac           #6fa9a8
+#   error      #bf616a           #bf616a
+#   hover      #5e81ac           #6fa9a8
+#   surface    #2e3440           #eceff4
+#   container  #3b4252           #e5e9f0
+#   text       #eceff4           #2e3440
 #
-# Alternatives in palettes/, mapped the same way (the scheme's Selection ->
-# primary, Neutral -> secondary, Positive -> tertiary, Negative -> error,
-# Window/View -> surface and cards):
-#   WhiteSur.json  vinceliuice/WhiteSur-kde   #315bef  macOS Big Sur
-#   Layan.json     vinceliuice/Layan-kde      #5657f5  Material indigo
-#   Orchis.json    vinceliuice/Orchis-kde     #1a73e8  Google blue
-# Switching is one line plus `noctalia msg config-reload`.
+# The other built-in names are Ayu, Catppuccin, Dracula, Eldritch, Gruvbox,
+# Kanagawa, Noctalia, Rosé Pine and Tokyo-Night; switching is one line plus
+# `noctalia msg config-reload`.
 [theme]
 mode = "dark"
 shell_mode = "follow"
-source = "custom"
-custom_palette = "Macchiato"
+source = "builtin"
+builtin = "Nord"
 sync_color_scheme = true
 
 # ── Wallpaper ─────────────────────────────────────────────────────────────────
