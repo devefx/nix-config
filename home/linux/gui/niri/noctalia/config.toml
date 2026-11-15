@@ -78,23 +78,38 @@ alpha = 0.75
 
 [shell.panel]
 # v4: ui.panelBackgroundOpacity = 0.85. v5 replaces the numeric opacity with a
-# three-step mode. "glass" (floating panels 0.55, cards 0.75) is what makes the
-# cards read as raised frosted panes: the panel behind them is darker (0.55 of
-# the near-black surface plus the blurred wallpaper) and the cards are a light
-# grey (#4a4a4a), so the 25% see-through shows the blur underneath while the
-# card still sits clearly above it. At "soft" the cards are 92% opaque, which
-# hides the blur completely and they read as painted-on rectangles.
-transparency_mode = "glass"
+# three-step mode (panel background / cards):
+#
+#   glass  0.55 / 0.65
+#   soft   0.80 / 0.88
+#   solid  1.00 / 1.00
+#
+# These values only reach *floating* panels; an attached one inherits the bar's
+# background_opacity instead (see the placement note below), which is why the
+# same menu can look solid floating and washed out attached.
+#
+# "soft" is where this config settles. "glass" looks better -- the blurred
+# wallpaper shows through and the cards read as raised panes -- but it was tried
+# with the Binance panel floating and still washed out over a bright wallpaper:
+# that panel draws its tabs and headings directly on the panel body, with no card
+# fill behind them. "solid" would fix it by dropping the blur; 0.80/0.88 keeps
+# the texture while the card fill carries the text.
+transparency_mode = "soft"
 # v4: ui.panelsAttachedToBar = true.
 #
-# Control Center is the one panel that does NOT attach: an attached panel
-# inherits the *bar's* backgroundOpacity (panel_manager.cpp:
-# m_attachedBackgroundOpacity = barConfig.backgroundOpacity), which is 0.3 here,
-# so the panel body was near-transparent over the bright blurred wallpaper while
-# the cards on it were 0.92 opaque surface_container -- the same light/dark clash
-# the capsules had. A floating panel uses
-# detachedPanelBackgroundOpacityForTransparencyMode("soft") = 0.80, which sits
-# next to the 0.92 cards instead of far below them.
+# An attached panel inherits the *bar's* backgroundOpacity
+# (panel_manager.cpp: m_attachedBackgroundOpacity = barConfig.backgroundOpacity),
+# 0.3 here -- the bar's own frosted value, not the panel mode above. Over a
+# bright wallpaper that leaves the panel a light grey wash that swallows the
+# light on_surface text drawn on it. A floating panel uses
+# detachedPanelBackgroundOpacityForTransparencyMode, 0.80 at "soft", next to the
+# 0.88 cards instead of far below them.
+#
+# Every panel carrying readable text therefore floats: launcher, Control Center,
+# and the Binance plugin panel (its manifest says `attached`;
+# [plugin_settings."ayagmar/binance"].panel_placement overrides it). The three
+# kept attached -- clipboard, wallpaper, session -- still inherit 0.3; flip them
+# here if their contents read badly, at the cost of the flush-with-the-bar look.
 launcher_placement = "floating"
 clipboard_placement = "attached"
 control_center_placement = "floating"
@@ -323,8 +338,10 @@ start = [
   "group:sysmon",
 ]
 center = ["workspaces"]
+# One Binance capsule at the head of the end lane; active_window is out of the
+# lane to leave room. Put it back if the end group has space to spare.
 end = [
-  "active_window",
+  "binance",
   "media",
   "notifications",
   "battery",
@@ -439,6 +456,21 @@ max_length = 145
 display = "icon_and_text"
 title_scroll = "on_hover"
 show_empty_label = false
+
+# ── Crypto ticker (community plugin, cycling) ─────────────────────────────
+#
+# Keyless mode: Binance's API key is optional and only unlocks portfolio totals,
+# so `show = "cycle"` walks `assets` every `cycle_seconds` -- keyless, the cycle
+# contains only those assets, since `total`/`today` are skipped. The widget's
+# update interval follows `cycle_seconds`, so no second timer is involved, and
+# the wheel steps through the list by hand too. `assets` can only name pairs in
+# the service's watchlist (prefs.json, edited from the panel's Watchlist tab);
+# `show = "price"` would pin the first one instead of cycling.
+[widget.binance]
+type = "ayagmar/binance:bar"
+show = "cycle"
+assets = ["BNB", "BTC"]
+cycle_seconds = 8
 
 # v4 MediaMini: maxWidth 145, showAlbumArt false, showArtistFirst true,
 # showProgressRing true, showVisualizer false, scrollingMode "hover",
@@ -854,12 +886,31 @@ enabled = true
 [dock]
 enabled = false
 
-# v4 plugins.json only registered the noctalia-plugins source with
-# autoUpdate false; v5 ships the official and community sources itself, so only
-# the auto-update policy needs translating. `enabled` stays empty: the v4
-# screen recorder was built in, while v5 needs the official
-# `noctalia/screen_recorder` plugin, which is installed and enabled from
-# Settings → Plugins (it has to clone the plugin repo once).
+# v4 plugins.json only registered the noctalia-plugins source with autoUpdate
+# false; v5 ships the official and community sources itself, so only the
+# auto-update policy needs translating. It stays "none" to keep the cached
+# community revision from drifting between rebuilds. The official
+# `noctalia/screen_recorder` plugin (v4 had the recorder built in) is installed
+# from Settings -> Plugins, which clones its repo once.
+#
+# Binance is a community plugin, not a local one: the first start after this
+# change clones github.com/noctalia-dev/community-plugins into the state dir and
+# materialises just this plugin. Nothing is linked from the store, so
+# `nix flake check` does not cover its code -- it is trusted, unsandboxed Luau,
+# and a GUI toggle-off writes a state-file override instead of editing this file.
 [plugins]
 auto_update = "none"
-enabled = []
+enabled = ["ayagmar/binance"]
+
+# Plugin-level settings, keyed by plugin id. Only declared keys resolve; the rest
+# fall back to the manifest defaults.
+#
+# Binance: USDT is the only display currency this config needs (EUR would convert
+# through Binance's own rates).
+[plugin_settings."ayagmar/binance"]
+display_currency = "USDT"
+# The manifest declares this panel `attached`, which would inherit the bar's 0.3
+# background and wash its labels out over a bright wallpaper (see [shell.panel]).
+# Floating gives it the launcher's 0.80 fill; the plugin's own `position = "auto"`
+# + `open_near_click` still open it under the bar.
+panel_placement = "floating"
