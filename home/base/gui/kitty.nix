@@ -11,36 +11,36 @@
   programs.kitty = {
     enable = true;
 
-    # Catppuccin Macchiato, matching the starship prompt's palette
-    # (`home/base/core/starship.nix` uses `catppuccin_macchiato`). One palette
-    # across the terminal and the prompt means the prompt's `base`-coloured
-    # ends and the terminal background are the same family of dark blue-grey
-    # instead of two slightly different rectangles.
+    # The colours come from Noctalia, not from this file: its `kitty` template
+    # writes `~/.config/kitty/themes/noctalia.conf` on every palette change, and
+    # the `globinclude` in `extraConfig` below loads it. home-manager renders
+    # `extraConfig` last (themeFile at order 520, settings 540, keybindings 560,
+    # user extraConfig 1000), so the Noctalia file wins over everything above it.
     #
-    # `themeFile` rather than an `include` line in `settings`: home-manager
-    # renders `themeFile` at order 520 and `settings` at 540, so the theme is
-    # included first and anything in `settings` can still override it. Putting
-    # the include inside `settings` would not give that guarantee -- attrsets
-    # render in alphabetical order, so `background_opacity` would land before
-    # `include` and the theme would win.
+    # `globinclude` rather than `include`: kitty reports a missing `include`
+    # target as a config error, while a glob that matches nothing is silent --
+    # which matters on a fresh install before Noctalia has ever run.
     #
-    # kitty's own package ships no theme files; `themeFile` pulls them from
-    # `pkgs.kitty-themes`, the same collection `kitten themes` lists. Its
-    # Catppuccin entries are the upstream ports from catppuccin/kitty, so the
-    # colour values are the canonical ones, not a re-derivation.
+    # `themeFile` stays as the fallback for exactly that case: the Catppuccin
+    # Macchiato port from `pkgs.kitty-themes`, the same palette
+    # `home/base/core/starship.nix` and the yazi/bat themes still use, so a
+    # session without Noctalia keeps the terminal and the prompt consistent
+    # instead of dropping to kitty's built-in black.
     #
-    # Three of the port's settings are load-bearing here: `background`
-    # #24273A (Macchiato `base`, the colour the prompt's first and last blocks
-    # sit on), `foreground` #CAD3F5 (`text`), and `color1` #ED8796 -- the ANSI
-    # red is the same value as the prompt's `red` segment, so shell errors and
-    # the `$os`/`$username` block match. Its `cursor` is #F4DBD6 (rosewater)
-    # rather than white, deliberately tinted to read as part of the palette.
-    #
-    # The port also sets tab and border colours. They only show up once a second
-    # tab exists (`tab_bar_min_tabs` defaults to 2) or a window is split into
-    # several panes, but they are part of the same palette, so leaving them is
-    # what makes the tab bar match instead of falling back to kitty's defaults.
+    # Consequence to keep in mind: the shell palette is Nord (see `[theme]` in
+    # home/linux/gui/niri/noctalia/config.toml) while the prompt is still
+    # Catppuccin, so the prompt's `base`-coloured blocks sit on Nord's #2e3440
+    # background. Moving starship/yazi/bat to Nord is what would make the whole
+    # terminal one palette again.
     themeFile = "Catppuccin-Macchiato";
+
+    # Last in the rendered file, so it overrides `themeFile` and `settings`.
+    # The pattern matches only the file Noctalia writes; if it is absent the
+    # glob silently matches nothing and the fallback theme above applies.
+    extraConfig = ''
+      # Palette pushed by Noctalia's kitty template; see themeFile above.
+      globinclude themes/noctalia*.conf
+    '';
 
     # JetBrains Mono Nerd Font — already pulled in at system level by
     # modules/nixos/desktop/plasma.nix, but declare the package here too
