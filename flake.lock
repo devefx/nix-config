@@ -601,11 +601,11 @@
     "wallpapers": {
       "flake": false,
       "locked": {
-        "lastModified": 1789493488,
-        "narHash": "sha256-8pxSKtYgTzwHEPQfCeKevFN5wAF+4l7QjOAAayBaslY=",
+        "lastModified": 1794846519,
+        "narHash": "sha256-OCIicnhSqkbHKxR61bfC4rYSddcPVRpPt/XJYRlmuFk=",
         "owner": "devefx",
         "repo": "wallpapers",
-        "rev": "d92cd0f23178194f18e42b74bec9a65af0ca9237",
+        "rev": "56601a7e83f0ba20ae8a260b454f31fa2be6e8bf",
         "type": "github"
       },
       "original": {
