@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }:
 # Vicinae — native command palette / launcher (https://vicinae.com).
@@ -15,6 +16,10 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.vicinae;
+
+  # Dictionary / translation extension. See pkgs/vicinae-felixdict for why it is
+  # packaged here instead of pulled from the Vicinae extension store.
+  felixdict = pkgs.callPackage ../../../../pkgs/vicinae-felixdict { };
 in
 {
   options.modules.vicinae = {
@@ -36,6 +41,11 @@ in
       # integration the nixpkgs home-manager module offers; Chrome support
       # exists upstream but has not landed in this module yet.
       enableFirefoxIntegration = true;
+
+      # Declarative extensions land in `$XDG_DATA_HOME/vicinae/extensions`; the
+      # module also adds them to the daemon's restart triggers, so bumping the
+      # package reloads the server on the next `home-manager switch`.
+      extensions = [ felixdict ];
     };
   };
 }
