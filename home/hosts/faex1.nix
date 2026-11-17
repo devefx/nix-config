@@ -62,6 +62,7 @@
   modules.wechat.enable = true;
   modules.karere.enable = true;
   modules.telegram.enable = true;
+  modules.telegram.second.enable = true;
   modules.qq.enable = true;
   modules.joplin = {
     enable = true;

@@ -30,6 +30,7 @@ in
       nixpaks = {
         firefox = wrapper super ./firefox.nix;
         telegram-desktop = wrapper super ./telegram-desktop.nix;
+        telegram-desktop-2 = wrapper super ./telegram-desktop-2.nix;
         qq = wrapper super ./qq.nix;
         spotify = wrapper super ./spotify.nix;
       };
