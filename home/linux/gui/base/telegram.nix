@@ -9,10 +9,9 @@
 # exposed as pkgs.nixpaks.telegram-desktop.
 #
 # Gated behind `modules.telegram.enable` so hosts that don't need it
-# skip the Qt/tdlib closure. Chat data lives under
-# ~/.local/share/0brand.dev/Telegram Desktop/ (inside the nixpak
-# private data dir — survives rebuilds but isolated from the rest of
-# $HOME).
+# skip the Qt/tdlib closure. Chat data lives in the nixpak data dir —
+# ~/.var/app/org.telegram.desktop/data/TelegramDesktop/ — so it
+# survives rebuilds but stays isolated from the rest of $HOME.
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.modules.telegram;
