@@ -284,21 +284,12 @@ in
   nixpkgs.config.problems.handlers."composable_kernel-gfx1151".broken = "ignore";
 
   boot.supportedFilesystems = [
-    "ntfs"
     "cifs"
   ];
 
-  # Shared NTFS data partition, mounted with the in-kernel ntfs3 driver.
-  fileSystems."/mnt/data" = {
-    device = "/dev/disk/by-uuid/7C02CBA602CB642C";
-    fsType = "ntfs3";
-    options = [
-      "rw"
-      "uid=1000"
-      "gid=100"
-      "umask=022"
-    ];
-  };
+  # /mnt/data lives on the btrfs `@data` subvolume of the root filesystem, so
+  # its mount point is declared in hardware-configuration.nix (the device is the
+  # root FS UUID, which is only known after installation) rather than here.
 
   # SMB shares — TrueNAS (truenas.yooke.top) and the Samba server
   # (samba-server.yooke.top). Credentials are decrypted by agenix
@@ -423,7 +414,7 @@ in
     cacheDisk = {
       enable = true;
       # On the root NVMe: a checkpoint is thousands of 256 KiB files and
-      # /mnt/data is NTFS (and its cache is also pinned in RAM).
+      # /mnt/data is the btrfs @data subvolume (its cache is also pinned in RAM).
       bytes = 32 * 1024 * 1024 * 1024;
     };
   };
