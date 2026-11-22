@@ -105,38 +105,8 @@ in
   # alias, so the pin moves to 7.3, which carries the same 7.x btmtk driver.
   boot.kernelPackages = pkgs.linuxPackages_7_3;
 
-  # This machine was installed with GRUB and dual-boots Windows 11
-  # (Windows boot files live on the same ESP). Override the framework
-  # default of systemd-boot.
-  boot.loader.systemd-boot.enable = false;
-  boot.loader.grub = {
-    enable = true;
-    device = "nodev"; # UEFI-only: do not write to an MBR
-    efiSupport = true;
-    extraEntries = ''
-      menuentry "Windows 11" --class windows {
-        insmod part_gpt
-        insmod fat
-        insmod chain
-        search --fs-uuid --set=root E28C-ED3A
-        chainloader /EFI/Microsoft/Boot/bootmgfw.efi
-      }
-    '';
-  };
-  boot.loader.efi = {
-    canTouchEfiVariables = true;
-    efiSysMountPoint = "/boot";
-  };
-
-  # GRUB theme — vinceliuice/grub2-themes via its NixOS module (README method).
-  # Variants: tela / vimix / stylish / whitesur · icons: color / white / whitesur
-  # · screens: 1080p / 2k / 4k / ultrawide / ultrawide2k.
-  boot.loader.grub2-theme = {
-    enable = true;
-    theme = "tela";
-    icon = "white";
-    screen = "4k";
-  };
+  # Boot loader: framework default systemd-boot (modules/nixos/base/core.nix),
+  # which installs to the ESP at /boot.
 
   # Raise the Radeon 8060S GPU GTT cap from the default ~55 GiB to 96 GiB.
   # With UMA/VRAM set to 8 GiB in BIOS, the GPU sees 8 + 96 = 104 GiB of

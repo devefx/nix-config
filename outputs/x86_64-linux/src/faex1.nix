@@ -2,9 +2,10 @@
   inputs,
   lib,
   # Declared only so haumea's callPackageWith injects them into `args`, which is
-  # forwarded verbatim to mylib.nixosSystem. `system` / `genSpecialArgs` /
-  # `myvars` are required by that function's argument pattern, so removing any
-  # of them here makes the call fail with "called without required argument".
+  # forwarded verbatim to mylib.nixosSystem. `inputs` / `system` /
+  # `genSpecialArgs` / `myvars` are required by that function's argument pattern,
+  # so removing any of them here makes the call fail with "called without
+  # required argument".
   myvars,
   mylib,
   system,
@@ -14,30 +15,28 @@
 let
   name = "faex1";
   base-modules = {
-    nixos-modules =
-      map mylib.relativeToRoot [
-        "modules/nixos"
-        # Desktop module group — provides `modules.desktop.*` toggles.
-        "modules/nixos/desktop"
-        "hosts/${name}"
-        # Age-encrypted secrets (agenix) — see secrets/nixos.nix.
-        "secrets/nixos.nix"
-        # Sandbox overlays — safe to always import, they only register
-        # `pkgs.nixpaks.*` / `pkgs.bwraps.*` namespaces. Zero effect until
-        # you actually reference one.
-        "hardening/nixpaks"
-        "hardening/bwraps"
-        # Gufo inference server — registers `modules.gufo.*`, inert until the
-        # host enables it. See modules/nixos/server/gufo.nix.
-        "modules/nixos/server/gufo.nix"
-        # llama.cpp server — same shape, but the unit is never pulled in at
-        # boot; start it by hand after stopping gufo.
-        "modules/nixos/server/llama-cpp.nix"
-        # Full system hardening — uncomment if you want NixOS's hardened
-        # profile. Read hardening/profiles/default.nix first, it breaks things.
-        # "hardening/profiles"
-      ]
-      ++ [ inputs.grub2-themes.nixosModules.default ];
+    nixos-modules = map mylib.relativeToRoot [
+      "modules/nixos"
+      # Desktop module group — provides `modules.desktop.*` toggles.
+      "modules/nixos/desktop"
+      "hosts/${name}"
+      # Age-encrypted secrets (agenix) — see secrets/nixos.nix.
+      "secrets/nixos.nix"
+      # Sandbox overlays — safe to always import, they only register
+      # `pkgs.nixpaks.*` / `pkgs.bwraps.*` namespaces. Zero effect until
+      # you actually reference one.
+      "hardening/nixpaks"
+      "hardening/bwraps"
+      # Gufo inference server — registers `modules.gufo.*`, inert until the
+      # host enables it. See modules/nixos/server/gufo.nix.
+      "modules/nixos/server/gufo.nix"
+      # llama.cpp server — same shape, but the unit is never pulled in at
+      # boot; start it by hand after stopping gufo.
+      "modules/nixos/server/llama-cpp.nix"
+      # Full system hardening — uncomment if you want NixOS's hardened
+      # profile. Read hardening/profiles/default.nix first, it breaks things.
+      # "hardening/profiles"
+    ];
     home-modules = map mylib.relativeToRoot [
       "home/hosts/${name}.nix"
     ];

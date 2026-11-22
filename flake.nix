@@ -51,12 +51,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-    # GRUB theme — provides `boot.loader.grub2-theme` NixOS module.
-    grub2-themes = {
-      url = "github:vinceliuice/grub2-themes";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # directory -> attrset auto-loader
     haumea = {
       url = "github:nix-community/haumea/v0.2.2";
