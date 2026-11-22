@@ -202,19 +202,20 @@
       "inputs": {
         "audio-cpp": "audio-cpp",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-rocm10": "nixpkgs-rocm10"
+        "nixpkgs-rocm10": "nixpkgs-rocm10",
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1793189946,
-        "narHash": "sha256-aCrz1V8faVdQtJhnjhhwKZhP0zDQ+KE7A/YuYUo/FUo=",
+        "lastModified": 1794909316,
+        "narHash": "sha256-BDT5OYA/rsF/QxjD3LsuxBVmYjmE0WM50KBhWGjUMok=",
         "owner": "gufo-org",
         "repo": "gufo",
-        "rev": "78d741856d0063825482660e1b1081184419c7a8",
+        "rev": "0260e1162f8713caee4d3f4ff77e017de7165f9c",
         "type": "github"
       },
       "original": {
         "owner": "gufo-org",
-        "ref": "v0.26.0",
+        "ref": "v0.35.0",
         "repo": "gufo",
         "type": "github"
       }
@@ -523,11 +524,32 @@
         "noctalia": "noctalia",
         "plasma-manager": "plasma-manager",
         "pre-commit-hooks": "pre-commit-hooks",
-        "rust-overlay": "rust-overlay",
+        "rust-overlay": "rust-overlay_2",
         "wallpapers": "wallpapers"
       }
     },
     "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "gufo",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793610678,
+        "narHash": "sha256-5V08BokWHSUU962Kcr/uSTWyy+1NqB7pjuyqjqXTqQU=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "6b29b8e8d3cc8ebda9342fbbcc7ac06eff58e2fb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"

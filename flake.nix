@@ -89,7 +89,7 @@
     #
     # ROCm is separate: gufo pins its own nixpkgs-rocm10 (ROCm 10.1 / LLVM 24)
     # because the ROCm in nixpkgs (7.2.x) has no gfx1151 kernels.
-    gufo.url = "github:gufo-org/gufo/v0.26.0";
+    gufo.url = "github:gufo-org/gufo/v0.35.0";
 
     # Noctalia v5 - the C++/Wayland rewrite of the desktop shell. It is a
     # different program from the v4 `noctalia-shell` (Quickshell) package, so it
