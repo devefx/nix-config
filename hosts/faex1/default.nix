@@ -550,8 +550,9 @@ in
     };
   };
 
-  # Syncthing, sharing `/var/lib/savagewind/save` and `/var/lib/totk/profile/save`
-  # with the Syncthing container on docker-media.yooke.top (192.168.16.248). The
+  # Syncthing, sharing the emulator saves (`/var/lib/savagewind/save`,
+  # `/var/lib/totk/profile/save`, Eden's data dir) with the Syncthing container
+  # on docker-media.yooke.top (192.168.16.248). The
   # server is the copy to fall back on and what survives a reinstall; the
   # version history kept here covers a save overwritten by a stale copy. The
   # device id is the server's certificate fingerprint, not a credential, so it
@@ -579,6 +580,16 @@ in
         path = "/var/lib/totk/profile/save";
         label = "Zelda: Tears of the Kingdom saves";
         group = "Zelda";
+      };
+
+      # Eden（Switch 模拟器）的整个数据目录，不是只挑存档：重装后要能直接玩，
+      # 散在 `nand/` 和 `sdmc/` 里的存档、固件、更新、mod、缓存都算在内（约
+      # 343 MB）。包含 `keys/`，所以共享目录里从此有 `prod.keys` 副本，别把这个
+      # folder 再共享给 server 以外的设备。忽略规则用模块默认。
+      "eden" = {
+        path = "/home/${myvars.username}/.local/share/eden";
+        label = "Eden";
+        group = "Games";
       };
 
       # Rime 用户词典的备份。`sync` 由 home/linux/gui/base/rime 软链到这里，
