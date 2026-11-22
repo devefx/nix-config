@@ -550,6 +550,50 @@ in
     };
   };
 
+  # Hookshot — 塞尔达传说：时之笛（Switch 2 重制版）的静态重编译。AppImage
+  # 自带整套构建器，`hookshot-provision` 在本机把 dump 编译成原生游戏
+  # （10–45 分钟）。游戏本体和其他两个塞尔达一样从服务器声明：archive 上
+  # `ns/zelda-ocarina-of-time/` 的那份原生 `.nup`（程序 id 0400486024DEC000、
+  # 更新 v131072），fetchurl 带 SRI hash —— 和 savage-wind 的 xci/totk 的 nup
+  # 是同一个模型，包括那个取舍：ROM 会进世界可读的 Nix store（25.6 GB）。
+  #
+  # 上游 GitHub 仓库 2026-11-13 被任天堂下架，现托管在 git.notrexed.dev；
+  # URL 搬家时这里和 hash 要一起改。
+  modules.desktop.hookshot = {
+    enable = true;
+    appImage = {
+      # 自己的镜像（`software/hookshot/v2.3.2/README.md` 记录了来源和校验值）：
+      # 上游 GitHub 仓库 2026-11-13 被任天堂下架过，现在虽然搬到了
+      # git.notrexed.dev，但不再依赖它。切回上游只需换回
+      # https://git.notrexed.dev/Hookshot/Hookshot/releases/download/v2.3.2/Hookshot-v2.3.2-x86_64.AppImage
+      # hash 不变。
+      url = "https://archive.yooke.top/software/hookshot/v2.3.2/Hookshot-v2.3.2-x86_64.AppImage";
+      hash = "sha256-SccfR9GdcJgabwr9USVnKAkrYeat6MyFjWYoGHp9aw4=";
+    };
+    source = {
+      url = "https://archive.yooke.top/games/ns/zelda-ocarina-of-time/The%20Legend%20of%20Zelda%20Ocarina%20of%20Time%20%5B0400486024dec000%5D%5Bv131072%5D.nup";
+      hash = "sha256-hbCOgaKghhL4jeEGPIWB/giPdVQwOqH/IHly1ym1kW8=";
+    };
+    language = "zh-Hans";
+    # 实测：把 Render resolution 降到 67%/50%/33% 只把 GPU time 从 9.3 拉到 8.6 ms，
+    # 帧率 51.8 → 54.6 不动——瓶颈是引擎每帧 2000+ draws 的提交/readback 串行（CPU
+    # 侧），不是 GPU。所以这里选“清晰优先”：游戏自带 upscaler + Auto 渲染分辨率、
+    # 纹理 Auto，用 2x 帧生成把输出补到 60。若不喜欢 interpolated 帧的手感就把
+    # frame_generation 关掉（0），代价是 50–54 fps。
+    settings = {
+      dlss = 0; # Upscaler: 游戏自带（FSR 在这台机器上只能解糊）
+      resolution = 0; # Render resolution: Auto（游戏自己的动态分辨率）
+      texture_detail = 0; # Texture detail: Auto
+      frame_generation = 2; # 帧生成 2x：把 ~52 fps 补到 60 输出
+      frame_rate_cap = 0; # 0 = 60 fps（控制台原生帧率）
+      frame_pacing = 1; # On
+      vsync = 0; # Auto（mailbox）
+      upscaling = 0; # 窗口缩放滤镜关（输出已经是 1080p）
+      fps_counter = 1; # 右上角 FPS
+      threaded_rendering = 1; # On（render thread + recorder thread）
+    };
+  };
+
   # Syncthing, sharing the emulator saves (`/var/lib/savagewind/save`,
   # `/var/lib/totk/profile/save`, Eden's data dir) with the Syncthing container
   # on docker-media.yooke.top (192.168.16.248). The
