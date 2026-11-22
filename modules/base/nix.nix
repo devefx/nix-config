@@ -58,16 +58,26 @@
 
     trusted-users = [ myvars.username ];
 
+    # Measured from this host (8 MiB ranged nar download, 2026-11):
+    #   cache.nixos.org        5.08 MB/s, TTFB 0.42 s
+    #   mirrors.ustc.edu.cn    3.01 MB/s, TTFB 0.92 s
+    #   mirror.nju.edu.cn      2.24 MB/s, TTFB 0.53 s
+    #   mirror.sjtu.edu.cn     0.16 MB/s, TTFB 6.52 s  ← unusable, dropped
+    #
+    # SJTU used to be the fastest mirror and was listed first; it now stalls at
+    # ~0.16 MB/s (a 20 GiB rebuild went from ~70 min to ~36 h), and Nix does not
+    # try the next substituter until the current one fails — a slow first entry
+    # is worse than no entry at all. Direct cache.nixos.org wins, keep the two
+    # CN mirrors for the days the direct route is degraded.
     substituters = [
-      "https://mirror.sjtu.edu.cn/nix-channels/store"
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://cache.nixos.org"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "https://mirror.nju.edu.cn/nix-channels/store"
       "https://nix-community.cachix.org"
       # gufo (modules/nixos/server/gufo.nix) links against a patched ROCr and
       # ROCm 10.1 / LLVM 24 that cache.nixos.org does not carry. Upstream
       # publishes them here; without it a gufo bump rebuilds LLVM+ROCm.
       "https://gufo.cachix.org"
-      "https://cache.nixos.org"
     ];
 
     trusted-public-keys = [
@@ -77,6 +87,14 @@
 
     builders-use-substitutes = true;
     auto-optimise-store = true;
+
+    # Fail over fast instead of hanging on a stalled mirror, and widen the
+    # download fan-out (default is 25) so a 20 GiB substitution saturates the
+    # link with many small narinfo/nar requests rather than one at a time.
+    connect-timeout = 10;
+    stalled-download-timeout = 30;
+    download-attempts = 3;
+    http-connections = 32;
   };
 
   nix.gc = {
